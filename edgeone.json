@@ -1,0 +1,50 @@
+{
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/HazelSpam.min.user.js",
+      "statusCode": 302
+    }
+  ],
+  "headers": [
+    {
+      "source": "/HazelSpam.min.user.js",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=60, s-maxage=60, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/HazelSpam.user.js",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=60, s-maxage=60, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/latest.json",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=60, s-maxage=60, must-revalidate"
+        }
+      ]
+    }
+  ]
+}

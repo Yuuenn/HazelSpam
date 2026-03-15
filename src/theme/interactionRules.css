@@ -1,0 +1,209 @@
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) .emoji-cell {
+    border: 1px solid var(--hazelspam-color-surface-border, var(--p-content-border-color));
+    color: var(--hazelspam-color-text-primary, var(--p-text-color));
+    background: transparent;
+    outline-color: transparent;
+    transition:
+        background var(--p-button-transition-duration, var(--hazelspam-motion-duration-fast, 0.12s)),
+        color var(--p-button-transition-duration, var(--hazelspam-motion-duration-fast, 0.12s)),
+        border-color var(--p-button-transition-duration, var(--hazelspam-motion-duration-fast, 0.12s)),
+        outline-color var(--p-button-transition-duration, var(--hazelspam-motion-duration-fast, 0.12s)),
+        box-shadow var(--p-button-transition-duration, var(--hazelspam-motion-duration-fast, 0.12s));
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    :is(.p-inputtext, .p-textarea, .p-inputnumber-input) {
+    background: var(--hazelspam-color-field-bg, var(--p-form-field-background));
+    border-color: var(--hazelspam-color-field-border, var(--p-form-field-border-color));
+    color: var(--hazelspam-color-field-text, var(--p-form-field-color));
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    :is(.p-inputtext, .p-textarea, .p-inputnumber-input)::placeholder {
+    color: var(--hazelspam-color-field-placeholder, var(--p-form-field-placeholder-color));
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    :is(.p-inputtext, .p-textarea, .p-inputnumber-input):hover {
+    border-color: var(--hazelspam-color-field-hover-border, var(--p-form-field-hover-border-color));
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    :is(.p-inputtext, .p-textarea, .p-inputnumber-input):focus {
+    border-color: var(--hazelspam-color-field-focus-border, var(--p-form-field-focus-border-color));
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    :is(.emotion-pack-item__name, .emotion-pack-item__text small, .emotion-grid-item__text) {
+    transition: color var(--hazelspam-motion-duration-fast, 0.12s) var(--hazelspam-motion-ease-standard, ease);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) .emoji-cell:hover {
+    background: color-mix(in srgb, var(--hazelspam-color-accent) 10%, transparent);
+    border-color: var(--hazelspam-color-accent);
+    color: var(--hazelspam-color-accent);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) .emoji-cell:focus-visible {
+    box-shadow: var(
+        --hazelspam-focus-ring-shadow,
+        var(--p-focus-ring-shadow, 0 0 0 3px color-mix(in srgb, var(--hazelspam-color-accent) 18%, transparent))
+    );
+    outline: var(--hazelspam-focus-ring-width, var(--p-focus-ring-width, 2px))
+        var(--hazelspam-focus-ring-style, var(--p-focus-ring-style, solid))
+        var(--hazelspam-focus-ring-color, var(--p-focus-ring-color, var(--hazelspam-color-accent)));
+    outline-offset: var(--hazelspam-focus-ring-offset, var(--p-focus-ring-offset, 1px));
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) .emoji-cell:active {
+    background: color-mix(in srgb, var(--hazelspam-color-accent) 16%, transparent);
+    border-color: var(--hazelspam-color-accent-active, var(--hazelspam-color-accent));
+    color: var(--hazelspam-color-accent-active, var(--hazelspam-color-accent));
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    .emotion-pack-item--current
+    :is(.emotion-pack-item__name, .emotion-pack-item__text small) {
+    color: inherit;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    .emotion-grid-item--selected
+    .emotion-grid-item__text {
+    color: inherit;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    .emotion-pack-item
+    .emotion-pack-item__count {
+    border-color: color-mix(
+        in srgb,
+        var(--hazelspam-color-text-primary, var(--p-text-color)) 28%,
+        transparent
+    );
+    color: var(--hazelspam-color-text-primary, var(--p-text-color));
+    background: color-mix(in srgb, var(--hazelspam-color-accent) 10%, transparent);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    .emotion-pack-item--current
+    .emotion-pack-item__count {
+    border-color: color-mix(
+        in srgb,
+        var(--hazelspam-color-accent-contrast, var(--p-primary-contrast-color)) 38%,
+        transparent
+    );
+    color: var(--hazelspam-color-accent-contrast, var(--p-primary-contrast-color));
+    background: color-mix(
+        in srgb,
+        var(--hazelspam-color-accent-contrast, var(--p-primary-contrast-color)) 20%,
+        transparent
+    );
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    .emotion-pack-item--current:hover
+    .emotion-pack-item__count {
+    border-color: color-mix(
+        in srgb,
+        var(--hazelspam-color-accent-contrast, var(--p-primary-contrast-color)) 38%,
+        transparent
+    );
+    color: var(--hazelspam-color-accent-contrast, var(--p-primary-contrast-color));
+    background: color-mix(
+        in srgb,
+        var(--hazelspam-color-accent-contrast, var(--p-primary-contrast-color)) 20%,
+        transparent
+    );
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    .emotion-pack-item--current:active
+    .emotion-pack-item__count {
+    border-color: color-mix(
+        in srgb,
+        var(--hazelspam-color-accent-contrast, var(--p-primary-contrast-color)) 38%,
+        transparent
+    );
+    color: var(--hazelspam-color-accent-contrast, var(--p-primary-contrast-color));
+    background: color-mix(
+        in srgb,
+        var(--hazelspam-color-accent-contrast, var(--p-primary-contrast-color)) 20%,
+        transparent
+    );
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    :is(.emotion-grid-item--disabled, .emotion-grid-item:disabled) {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    :is(.emotion-grid-item--disabled, .emotion-grid-item:disabled):hover {
+    border-color: var(--hazelspam-color-surface-border, var(--p-content-border-color));
+    background: transparent;
+}
+
+.hazelspam-dm-action-group .hazelspam-inline-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--hazelspam-size-inline-action-button, 18px);
+    height: var(--hazelspam-size-inline-action-button, 18px);
+    border: 1px solid transparent;
+    border-radius: var(--hazelspam-radius-xs, 6px);
+    background: transparent;
+    color: var(--hazelspam-color-inline-action-muted, var(--p-text-muted-color, #8c95a0));
+    cursor: pointer;
+    padding: 0;
+    outline-color: transparent;
+    transition:
+        background var(--p-button-transition-duration, var(--hazelspam-motion-duration-fast, 0.12s)),
+        color var(--p-button-transition-duration, var(--hazelspam-motion-duration-fast, 0.12s)),
+        border-color var(--p-button-transition-duration, var(--hazelspam-motion-duration-fast, 0.12s)),
+        outline-color var(--p-button-transition-duration, var(--hazelspam-motion-duration-fast, 0.12s)),
+        box-shadow var(--p-button-transition-duration, var(--hazelspam-motion-duration-fast, 0.12s));
+}
+
+.hazelspam-dm-action-group .hazelspam-inline-action-btn:hover {
+    color: var(--hazelspam-color-inline-action-hover, var(--hazelspam-color-accent, #23ade5));
+    border-color: transparent;
+    background: var(--hazelspam-color-inline-action-hover-bg, rgba(64, 158, 255, 0.12));
+}
+
+.hazelspam-dm-action-group .hazelspam-inline-action-btn:active {
+    color: var(--hazelspam-color-inline-action-hover, var(--hazelspam-color-accent, #23ade5));
+    border-color: transparent;
+    background: color-mix(
+        in srgb,
+        var(--hazelspam-color-inline-action-hover-bg, rgba(64, 158, 255, 0.12)) 82%,
+        transparent
+    );
+}
+
+.hazelspam-dm-action-group .hazelspam-inline-action-btn:focus-visible {
+    box-shadow: var(
+        --hazelspam-focus-ring-shadow,
+        var(--p-focus-ring-shadow, 0 0 0 2px color-mix(in srgb, var(--hazelspam-color-accent, #23ade5) 28%, transparent))
+    );
+    outline: var(--hazelspam-focus-ring-width, var(--p-focus-ring-width, 2px))
+        var(--hazelspam-focus-ring-style, var(--p-focus-ring-style, solid))
+        var(
+            --hazelspam-focus-ring-color,
+            var(--p-focus-ring-color, color-mix(in srgb, var(--hazelspam-color-accent, #23ade5) 42%, transparent))
+        );
+    outline-offset: var(--hazelspam-focus-ring-offset, var(--p-focus-ring-offset, 1px));
+}
+
+.hazelspam-dm-action-group .hazelspam-inline-action-btn__icon {
+    font-size: var(--hazelspam-size-inline-action-icon, 13px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+        :is(.emotion-pack-item, .emotion-grid-item, .emoji-cell),
+    .hazelspam-dm-action-group .hazelspam-inline-action-btn {
+        transition-duration: 0.01ms !important;
+    }
+}

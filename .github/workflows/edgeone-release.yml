@@ -1,0 +1,65 @@
+name: Deploy EdgeOne Pages
+
+on:
+    push:
+        tags:
+            - "v*"
+
+env:
+    FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    HAZELSPAM_RELEASE_ORIGIN: https://hazel.idols.ltd
+    HAZELSPAM_CHANGELOG_URL: https://github.com/Yuuenn/HazelSpam/blob/main/CHANGELOG.md
+
+jobs:
+    release:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v5
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Install pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10.30.3
+
+            - name: Install Dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Verify Version Matches Tag
+              run: |
+                  TAG_VERSION="${GITHUB_REF_NAME#v}"
+                  CURRENT_VERSION="$(node -p "require('./package.json').version")"
+                  if [ "$CURRENT_VERSION" != "$TAG_VERSION" ]; then
+                    echo "package.json version ($CURRENT_VERSION) does not match tag ($TAG_VERSION)" >&2
+                    exit 1
+                  fi
+
+            - name: Build
+              run: pnpm build
+
+            - name: Trigger EdgeOne Deploy Hook
+              env:
+                  EDGEONE_DEPLOY_HOOK_URL: ${{ secrets.EDGEONE_DEPLOY_HOOK_URL }}
+              run: |
+                  if [ -z "$EDGEONE_DEPLOY_HOOK_URL" ]; then
+                    echo "Missing EDGEONE_DEPLOY_HOOK_URL secret" >&2
+                    exit 1
+                  fi
+                  curl --fail --show-error --silent -X POST "$EDGEONE_DEPLOY_HOOK_URL"
+
+            - name: Create Backup Release On GitHub
+              uses: softprops/action-gh-release@v2
+              with:
+                  generate_release_notes: true
+                  files: |
+                      dist/HazelSpam.user.js
+                      dist/HazelSpam.min.user.js
+                      dist/latest.json
