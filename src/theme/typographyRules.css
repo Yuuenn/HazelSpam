@@ -1,0 +1,114 @@
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) {
+    color: var(--hazelspam-color-text-primary, var(--p-text-color));
+}
+
+#hazelspam .p-component,
+#hazelspam input,
+#hazelspam textarea,
+#hazelspam button,
+#hazelspam select,
+.hazelspam-modal .p-component,
+.hazelspam-modal input,
+.hazelspam-modal textarea,
+.hazelspam-modal button,
+.hazelspam-modal select,
+.hazelspam-dialog .p-component,
+.hazelspam-dialog input,
+.hazelspam-dialog textarea,
+.hazelspam-dialog button,
+.hazelspam-dialog select,
+.hazelspam-root .p-component,
+.hazelspam-root input,
+.hazelspam-root textarea,
+.hazelspam-root button,
+.hazelspam-root select {
+    font-family: var(--hazelspam-font-family);
+    font-size: var(--hazelspam-type-size-body) !important;
+    line-height: var(--hazelspam-line-height);
+}
+
+.hazelspam-root h1,
+.hazelspam-root .hazelspam-heading-h1 {
+    font-size: var(--hazelspam-type-size-h1);
+    font-weight: var(--hazelspam-type-weight-bold);
+    line-height: 1.3;
+}
+
+.hazelspam-root h2,
+.hazelspam-root .hazelspam-heading-h2 {
+    font-size: var(--hazelspam-type-size-h2);
+    font-weight: var(--hazelspam-type-weight-semibold);
+    line-height: 1.35;
+}
+
+.hazelspam-root h3,
+.hazelspam-root .hazelspam-heading-h3 {
+    font-size: var(--hazelspam-type-size-h3);
+    font-weight: var(--hazelspam-type-weight-semibold);
+    line-height: 1.4;
+}
+
+.hazelspam-root h4,
+.hazelspam-root .hazelspam-heading-h4 {
+    font-size: var(--hazelspam-type-size-h4);
+    font-weight: var(--hazelspam-type-weight-semibold);
+    line-height: 1.4;
+}
+
+.hazelspam-root h5,
+.hazelspam-root .hazelspam-heading-h5 {
+    font-size: var(--hazelspam-type-size-h5);
+    font-weight: var(--hazelspam-type-weight-medium);
+    line-height: 1.45;
+}
+
+.hazelspam-root h6,
+.hazelspam-root .hazelspam-heading-h6 {
+    font-size: var(--hazelspam-type-size-h6);
+    font-weight: var(--hazelspam-type-weight-medium);
+    line-height: 1.45;
+}
+
+.hazelspam-root .hazelspam-heading-h7,
+.hazelspam-root [data-hazelspam-heading='7'] {
+    font-size: var(--hazelspam-type-size-h7);
+    font-weight: var(--hazelspam-type-weight-medium);
+    line-height: 1.45;
+    color: var(--hazelspam-color-text-primary, var(--p-text-color));
+}
+
+.hazelspam-root .hazelspam-text-body-lg {
+    font-size: var(--hazelspam-type-size-body-lg);
+    font-weight: var(--hazelspam-type-weight-regular);
+    line-height: var(--hazelspam-line-height);
+}
+
+.hazelspam-root .hazelspam-text-body {
+    font-size: var(--hazelspam-type-size-body);
+    font-weight: var(--hazelspam-type-weight-regular);
+    line-height: var(--hazelspam-line-height);
+}
+
+#hazelspam p,
+#hazelspam label,
+.hazelspam-modal p,
+.hazelspam-modal label,
+.hazelspam-dialog p,
+.hazelspam-dialog label,
+.hazelspam-root p,
+.hazelspam-root label,
+.hazelspam-root .hazelspam-text-body-sm {
+    font-size: var(--hazelspam-type-size-body-sm);
+    font-weight: var(--hazelspam-type-weight-regular);
+    line-height: var(--hazelspam-line-height);
+}
+
+#hazelspam small,
+.hazelspam-modal small,
+.hazelspam-dialog small,
+.hazelspam-root small,
+.hazelspam-root .hazelspam-text-caption {
+    font-size: var(--hazelspam-type-size-caption);
+    font-weight: var(--hazelspam-type-weight-regular);
+    line-height: 1.45;
+}

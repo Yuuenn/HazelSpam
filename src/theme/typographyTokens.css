@@ -1,0 +1,41 @@
+:root {
+    /* PrimeVue button preset also reads label weight and size tokens from globally injected CSS. */
+    --hazelspam-type-weight-medium: 500;
+    --hazelspam-type-size-body-sm: 13px;
+    --hazelspam-type-size-body-lg: 16px;
+}
+
+#hazelspam,
+.hazelspam-modal,
+.hazelspam-dialog,
+.hazelspam-root,
+.hazelspam-toast {
+    --hazelspam-font-family:
+        'Segoe UI', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB',
+        'Microsoft YaHei', sans-serif;
+    --hazelspam-font-size: 15px;
+    --hazelspam-line-height: 1.5;
+    --hazelspam-type-weight-regular: 400;
+    --hazelspam-type-weight-medium: 500;
+    --hazelspam-type-weight-semibold: 600;
+    --hazelspam-type-weight-bold: 700;
+    --hazelspam-type-size-h1: 24px;
+    --hazelspam-type-size-h2: 20px;
+    --hazelspam-type-size-h3: 17px;
+    --hazelspam-type-size-h4: 16px;
+    --hazelspam-type-size-h5: 15px;
+    --hazelspam-type-size-h6: 14px;
+    --hazelspam-type-size-h7: 13px;
+    --hazelspam-type-size-body-lg: 16px;
+    --hazelspam-type-size-body: 15px;
+    --hazelspam-type-size-body-sm: 13px;
+    --hazelspam-type-size-caption: 12px;
+    --hazelspam-switch-width: calc(var(--hazelspam-type-size-body) * 2.7);
+    --hazelspam-switch-height: calc(var(--hazelspam-type-size-body) * 1.55);
+    --hazelspam-switch-handle-size: calc(var(--hazelspam-type-size-body) * 1.02);
+    --hazelspam-switch-gap: calc(var(--hazelspam-type-size-body) * 0.26);
+    /* PrimeVue field-size tokens (safe when scoped to plugin containers). */
+    --p-form-field-font-size: var(--hazelspam-type-size-body);
+    --p-form-field-sm-font-size: var(--hazelspam-type-size-body-sm);
+    --p-form-field-lg-font-size: var(--hazelspam-type-size-body-lg);
+}

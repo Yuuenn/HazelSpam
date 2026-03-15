@@ -1,0 +1,608 @@
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) .hazelspam-panel-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--hazelspam-space-md);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='surface']:not(.p-button-text) {
+    background: transparent;
+    border-color: var(--hazelspam-color-surface-border, var(--p-content-border-color));
+    color: var(--hazelspam-color-text-primary, var(--p-text-color));
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='surface']:not(.p-button-text):hover {
+    background: color-mix(in srgb, var(--hazelspam-color-accent) 10%, transparent);
+    border-color: var(--hazelspam-color-accent);
+    color: var(--hazelspam-color-accent);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='surface']:not(.p-button-text):active {
+    background: color-mix(in srgb, var(--hazelspam-color-accent) 16%, transparent);
+    border-color: var(--hazelspam-color-accent-active);
+    color: var(--hazelspam-color-accent-active);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='surface'].p-button-text {
+    background: transparent;
+    border-color: transparent;
+    color: var(--hazelspam-color-text-muted, var(--p-text-muted-color));
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='surface'].p-button-text:hover,
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='surface'].p-button-text:active {
+    background: color-mix(in srgb, var(--hazelspam-color-accent) 10%, transparent);
+    border-color: transparent;
+    color: var(--hazelspam-color-accent);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='dangerSurface']:not(.p-button-text) {
+    background: transparent;
+    border-color: var(--hazelspam-color-danger);
+    color: var(--hazelspam-color-danger);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='dangerSurface']:not(.p-button-text):hover {
+    background: color-mix(in srgb, var(--hazelspam-color-danger) 10%, transparent);
+    border-color: var(--hazelspam-color-danger-hover);
+    color: var(--hazelspam-color-danger-hover);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='dangerSurface']:not(.p-button-text):active {
+    background: color-mix(in srgb, var(--hazelspam-color-danger) 16%, transparent);
+    border-color: var(--hazelspam-color-danger-active);
+    color: var(--hazelspam-color-danger-active);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='successSurface']:not(.p-button-text) {
+    background: transparent;
+    border-color: var(--hazelspam-color-success);
+    color: var(--hazelspam-color-success);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='successSurface']:not(.p-button-text):hover {
+    background: color-mix(in srgb, var(--hazelspam-color-success) 10%, transparent);
+    border-color: var(--hazelspam-color-success-hover);
+    color: var(--hazelspam-color-success-hover);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='successSurface']:not(.p-button-text):active {
+    background: color-mix(in srgb, var(--hazelspam-color-success) 16%, transparent);
+    border-color: var(--hazelspam-color-success-active);
+    color: var(--hazelspam-color-success-active);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='primary']:not(.p-button-text) {
+    background: var(--hazelspam-color-accent);
+    border-color: var(--hazelspam-color-accent);
+    color: var(--hazelspam-color-accent-contrast, #ffffff);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='primary']:not(.p-button-text):hover {
+    background: var(--hazelspam-color-accent-hover, var(--hazelspam-color-accent));
+    border-color: var(--hazelspam-color-accent-hover, var(--hazelspam-color-accent));
+    color: var(--hazelspam-color-accent-contrast, #ffffff);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='primary']:not(.p-button-text):active {
+    background: var(--hazelspam-color-accent-active, var(--hazelspam-color-accent-hover));
+    border-color: var(--hazelspam-color-accent-active, var(--hazelspam-color-accent-hover));
+    color: var(--hazelspam-color-accent-contrast, #ffffff);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='success']:not(.p-button-text) {
+    background: var(--hazelspam-color-success);
+    border-color: var(--hazelspam-color-success);
+    color: #ffffff;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='success']:not(.p-button-text):hover {
+    background: var(--hazelspam-color-success-hover);
+    border-color: var(--hazelspam-color-success-hover);
+    color: #ffffff;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='success']:not(.p-button-text):active {
+    background: var(--hazelspam-color-success-active);
+    border-color: var(--hazelspam-color-success-active);
+    color: #ffffff;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='danger']:not(.p-button-text) {
+    background: var(--hazelspam-color-danger);
+    border-color: var(--hazelspam-color-danger);
+    color: #ffffff;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='danger']:not(.p-button-text):hover {
+    background: var(--hazelspam-color-danger-hover);
+    border-color: var(--hazelspam-color-danger-hover);
+    color: #ffffff;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='danger']:not(.p-button-text):active {
+    background: var(--hazelspam-color-danger-active);
+    border-color: var(--hazelspam-color-danger-active);
+    color: #ffffff;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='primary'].p-button-text {
+    background: transparent;
+    border-color: transparent;
+    color: var(--hazelspam-color-accent);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='primary'].p-button-text:hover,
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='primary'].p-button-text:active {
+    background: color-mix(in srgb, var(--hazelspam-color-accent) 10%, transparent);
+    border-color: transparent;
+    color: var(--hazelspam-color-accent-hover, var(--hazelspam-color-accent));
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='success'].p-button-text,
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='successSurface'].p-button-text {
+    background: transparent;
+    border-color: transparent;
+    color: var(--hazelspam-color-success);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='success'].p-button-text:hover,
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='success'].p-button-text:active,
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='successSurface'].p-button-text:hover,
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='successSurface'].p-button-text:active {
+    background: color-mix(in srgb, var(--hazelspam-color-success) 10%, transparent);
+    border-color: transparent;
+    color: var(--hazelspam-color-success-hover);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='danger'].p-button-text,
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='dangerSurface'].p-button-text {
+    background: transparent;
+    border-color: transparent;
+    color: var(--hazelspam-color-danger);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='danger'].p-button-text:hover,
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='danger'].p-button-text:active,
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='dangerSurface'].p-button-text:hover,
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-tone='dangerSurface'].p-button-text:active {
+    background: color-mix(in srgb, var(--hazelspam-color-danger) 10%, transparent);
+    border-color: transparent;
+    color: var(--hazelspam-color-danger-hover);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    :is(.hazelspam-app-button, [data-hazelspam-button-style]).p-button-secondary.p-button-outlined:not(
+            [data-hazelspam-button-tone]
+        ) {
+    background: transparent;
+    border-color: var(--hazelspam-color-surface-border, var(--p-content-border-color));
+    color: var(--hazelspam-color-text-primary, var(--p-text-color));
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    :is(.hazelspam-app-button, [data-hazelspam-button-style]).p-button-secondary.p-button-outlined:not(
+            [data-hazelspam-button-tone]
+        ):hover {
+    background: color-mix(in srgb, var(--hazelspam-color-accent) 10%, transparent);
+    border-color: var(--hazelspam-color-accent);
+    color: var(--hazelspam-color-accent);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    :is(.hazelspam-app-button, [data-hazelspam-button-style]).p-button-secondary.p-button-outlined:not(
+            [data-hazelspam-button-tone]
+        ):active {
+    background: color-mix(in srgb, var(--hazelspam-color-accent) 16%, transparent);
+    border-color: var(--hazelspam-color-accent-active);
+    color: var(--hazelspam-color-accent-active);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-style='rail'] {
+    width: var(--hazelspam-size-rail-button, 44px);
+    height: var(--hazelspam-size-rail-button, 44px);
+    border-radius: var(--hazelspam-rail-button-radius);
+    color: var(--hazelspam-color-text-muted, var(--p-text-muted-color));
+    background: transparent;
+    transition: all var(--hazelspam-motion-duration-slow, 0.2s) var(--hazelspam-motion-ease-standard, ease);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-style='rail']
+    .p-button-label {
+    display: none;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-style='rail']
+    .p-button-icon {
+    font-size: var(--hazelspam-type-size-body, 14px);
+    line-height: 1;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-style='rail']:hover {
+    background: color-mix(in srgb, var(--hazelspam-color-accent) 16%, transparent);
+    color: var(--hazelspam-color-accent);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-style='rail'][aria-current='page'] {
+    color: var(--hazelspam-color-accent-contrast, #ffffff);
+    background: var(--hazelspam-color-accent);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-style='rail'][aria-current='page']:hover {
+    background: var(--hazelspam-color-accent-hover, var(--hazelspam-color-accent));
+    color: var(--hazelspam-color-accent-contrast, #ffffff);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    .text-tools
+    .tool-btn.hazelspam-app-button {
+    width: var(--hazelspam-size-tool-button, 24px) !important;
+    height: var(--hazelspam-size-tool-button, 24px) !important;
+    flex: 0 0 var(--hazelspam-size-tool-button, 24px);
+    padding: 0 !important;
+    border-radius: var(--hazelspam-tool-radius) !important;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    .text-tools
+    .tool-btn
+    .p-button-icon {
+    font-size: 12px;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    .text-tools
+    .tool-btn--danger.hazelspam-app-button {
+    margin-inline-start: auto;
+    margin-left: auto;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) .hazelspam-row-group {
+    display: flex;
+    align-items: center;
+    gap: var(--hazelspam-space-sm);
+    min-width: 0;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-style='row'] {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    height: var(--hazelspam-pill-height, var(--hazelspam-size-collection-row-height, 30px));
+    justify-content: flex-start;
+    border-radius: var(--hazelspam-collection-radius);
+    padding-inline: var(--hazelspam-space-lg);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-style='row']
+    .p-button-label {
+    font-size: var(--hazelspam-type-size-body-sm);
+    font-weight: var(--hazelspam-type-weight-regular);
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-style='action'] {
+    width: 100%;
+    height: var(--hazelspam-size-button-compact-height, 30px);
+    min-height: var(--hazelspam-size-button-compact-height, 30px);
+    justify-content: center;
+    border-radius: var(--hazelspam-sort-pill-radius);
+    padding-inline: var(--hazelspam-space-lg);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-style='action']
+    .p-button-label {
+    font-size: var(--hazelspam-type-size-body-sm);
+    font-weight: var(--hazelspam-type-weight-regular);
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-style='inline'] {
+    width: auto;
+    min-width: max-content;
+    height: var(--hazelspam-size-button-compact-height, 30px);
+    min-height: var(--hazelspam-size-button-compact-height, 30px);
+    flex: 0 0 auto;
+    justify-content: center;
+    border-radius: var(--hazelspam-radius-md);
+    padding-inline: var(--hazelspam-space-lg);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-style='inline']
+    .p-button-label {
+    font-size: var(--hazelspam-type-size-body-sm);
+    font-weight: var(--hazelspam-type-weight-regular);
+    text-align: center;
+    white-space: nowrap;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    :is(
+        .hazelspam-fileupload,
+        .hazelspam-fileupload .p-fileupload,
+        .hazelspam-fileupload .p-fileupload-basic
+    ) {
+    width: 100%;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    .hazelspam-fileupload
+    .p-fileupload-basic {
+    justify-content: center;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    .hazelspam-fileupload
+    .p-fileupload-header {
+    gap: var(--hazelspam-space-sm);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-style='square'] {
+    width: var(--hazelspam-pill-height, var(--hazelspam-size-collection-row-height, 30px));
+    height: var(--hazelspam-pill-height, var(--hazelspam-size-collection-row-height, 30px));
+    min-width: var(--hazelspam-pill-height, var(--hazelspam-size-collection-row-height, 30px));
+    flex: 0 0 var(--hazelspam-pill-height, var(--hazelspam-size-collection-row-height, 30px));
+    border-radius: var(--hazelspam-collection-radius);
+    padding: 0;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-style='square']
+    .p-button-icon {
+    font-size: 12px;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-style='sort'] {
+    width: 100%;
+    height: var(--hazelspam-size-button-compact-height, 30px);
+    border-radius: var(--hazelspam-sort-pill-radius);
+    background: var(--hazelspam-color-sort-btn-bg, #111827);
+    border-color: var(--hazelspam-color-sort-btn-bg, #111827);
+    color: var(--hazelspam-color-sort-btn-text, #fff);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-style='sort']:hover {
+    background: var(--hazelspam-color-sort-btn-hover-bg, #0f172a);
+    border-color: var(--hazelspam-color-sort-btn-hover-bg, #0f172a);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-style='sort']
+    .p-button-label {
+    font-size: var(--hazelspam-type-size-body-sm);
+    font-weight: var(--hazelspam-type-weight-medium);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-style='icon'] {
+    width: var(--hazelspam-icon-btn-size, var(--hazelspam-size-tool-button, 24px)) !important;
+    height: var(--hazelspam-icon-btn-size, var(--hazelspam-size-tool-button, 24px)) !important;
+    min-width: var(--hazelspam-icon-btn-size, var(--hazelspam-size-tool-button, 24px)) !important;
+    flex: 0 0 var(--hazelspam-icon-btn-size, var(--hazelspam-size-tool-button, 24px));
+    padding: 0 !important;
+    border-radius: var(--hazelspam-icon-btn-radius, var(--hazelspam-tool-radius)) !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1 / 1;
+    transition:
+        border-color var(--hazelspam-motion-duration-fast, 0.12s) var(--hazelspam-motion-ease-standard, ease),
+        background-color var(--hazelspam-motion-duration-fast, 0.12s) var(--hazelspam-motion-ease-standard, ease);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-style='icon']:disabled {
+    opacity: var(--hazelspam-icon-btn-disabled-opacity, 0.45);
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    [data-hazelspam-button-style='icon']
+    :is(.p-button-icon, .p-toast-close-icon) {
+    font-size: var(--hazelspam-icon-btn-icon-size, 12px);
+    line-height: 1;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) .hazelspam-list-item {
+    width: 100%;
+    min-height: var(--hazelspam-list-item-height, var(--hazelspam-size-emotion-pack-item-height, 56px));
+    border-radius: var(--hazelspam-list-item-radius, var(--hazelspam-radius-pill));
+    padding: var(--hazelspam-list-item-padding-y, var(--hazelspam-space-sm))
+        var(--hazelspam-list-item-padding-x, var(--hazelspam-space-md));
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: var(--hazelspam-space-sm);
+    text-align: left;
+    cursor: pointer;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) .hazelspam-list-item__cover {
+    width: var(--hazelspam-list-item-cover-size, var(--hazelspam-size-emotion-pack-icon, 30px));
+    height: var(--hazelspam-list-item-cover-size, var(--hazelspam-size-emotion-pack-icon, 30px));
+    border-radius: var(--hazelspam-emoji-radius);
+    object-fit: cover;
+    flex: 0 0 var(--hazelspam-list-item-cover-size, var(--hazelspam-size-emotion-pack-icon, 30px));
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) .hazelspam-list-item__content {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 1px;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) .hazelspam-list-item__title {
+    font-size: var(--hazelspam-type-size-body-sm);
+    color: var(--hazelspam-color-text-primary, var(--p-text-color));
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) .hazelspam-list-item__meta {
+    font-size: var(--hazelspam-type-size-caption);
+    color: var(--hazelspam-color-text-muted, var(--p-text-muted-color));
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) .hazelspam-list-item__count {
+    margin-left: auto;
+    min-width: 1.55em;
+    height: 1.55em;
+    padding: 0 calc(var(--hazelspam-space-xs) + 1px);
+    border-radius: var(--hazelspam-radius-pill);
+    border: 1px solid transparent;
+    font-size: var(--hazelspam-type-size-caption);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    .hazelspam-list-item__count--single {
+    width: 1.55em;
+    min-width: 1.55em;
+    padding-inline: 0;
+    border-radius: 50%;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) .hazelspam-grid-card {
+    border-radius: var(--hazelspam-collection-radius);
+    width: var(--hazelspam-grid-cell-size, var(--emotion-grid-cell-size));
+    height: var(--hazelspam-grid-cell-size, var(--emotion-grid-cell-size));
+    padding: var(--hazelspam-grid-card-padding-top, var(--emotion-grid-item-padding-top))
+        var(--hazelspam-grid-card-padding-x, var(--emotion-grid-item-padding-x))
+        var(--hazelspam-grid-card-padding-bottom, var(--emotion-grid-item-padding-bottom));
+    box-sizing: border-box;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows:
+        var(--hazelspam-grid-image-size, var(--emotion-grid-image-size))
+        minmax(0, 1fr);
+    justify-items: center;
+    align-items: start;
+    row-gap: var(--hazelspam-space-2xs);
+    cursor: pointer;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) .hazelspam-grid-card__image {
+    width: var(--hazelspam-grid-image-size, var(--emotion-grid-image-size));
+    height: var(--hazelspam-grid-image-size, var(--emotion-grid-image-size));
+    flex: 0 0 var(--hazelspam-grid-image-size, var(--emotion-grid-image-size));
+    border-radius: var(--hazelspam-emoji-radius);
+    display: block;
+    object-fit: cover;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    .hazelspam-grid-card__image--general {
+    width: var(--hazelspam-grid-image-size, var(--emotion-grid-image-size));
+    max-width: var(--hazelspam-grid-image-size, var(--emotion-grid-image-size));
+    min-width: var(--hazelspam-grid-image-size, var(--emotion-grid-image-size));
+    height: var(--hazelspam-grid-image-size, var(--emotion-grid-image-size));
+    max-height: var(--hazelspam-grid-image-size, var(--emotion-grid-image-size));
+    border-radius: 0;
+    object-fit: contain;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    .hazelspam-grid-card__image--emoji {
+    width: auto;
+    height: auto;
+    max-width: calc(59px * 0.67);
+    max-height: calc(59px * 0.67);
+    object-fit: contain;
+    align-self: center;
+    justify-self: center;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) .hazelspam-grid-card__text {
+    display: block;
+    width: 100%;
+    padding: 0 1px;
+    text-align: center;
+    font-size: var(--hazelspam-type-size-caption);
+    color: var(--hazelspam-color-text-muted, var(--p-text-muted-color));
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    .emotion-pack-actions
+    .emotion-clear-all-btn.hazelspam-app-button {
+    width: 100%;
+    height: var(--hazelspam-size-button-compact-height, 30px);
+    padding: 0 var(--hazelspam-space-md) !important;
+    border-radius: var(--hazelspam-radius-pill) !important;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    .emotion-pack-actions
+    .emotion-clear-all-btn
+    .p-button-label {
+    font-size: var(--hazelspam-type-size-body-sm);
+}

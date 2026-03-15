@@ -1,0 +1,121 @@
+:root {
+    /* PrimeVue preset variables are generated globally and need these primitive tokens at root. */
+    --hazelspam-space-sm: 6px;
+    --hazelspam-radius-md: 10px;
+    --hazelspam-radius-pill: 999px;
+    --hazelspam-motion-duration-fast: 0.12s;
+}
+
+#hazelspam,
+.hazelspam-modal,
+.hazelspam-dialog,
+.hazelspam-root,
+.hazelspam-toast,
+.hazelspam-tooltip,
+.hazelspam-tooltip-up,
+.hazelspam_app_btn {
+    --hazelspam-space-2xs: 2px;
+    --hazelspam-space-0: 0;
+    --hazelspam-space-xs: 4px;
+    --hazelspam-space-sm: 6px;
+    --hazelspam-space-md: 8px;
+    --hazelspam-space-lg: 10px;
+    --hazelspam-space-xl: 12px;
+    --hazelspam-space-2xl: 14px;
+    --hazelspam-space-3xl: 16px;
+    --hazelspam-space-4xl: 20px;
+    --hazelspam-space-5xl: 22px;
+    --hazelspam-space-6xl: 24px;
+
+    --hazelspam-radius-xs: 6px;
+    --hazelspam-radius-sm: 8px;
+    --hazelspam-radius-md: 10px;
+    --hazelspam-radius-lg: 12px;
+    --hazelspam-radius-xl: 14px;
+    --hazelspam-radius-2xl: 20px;
+    --hazelspam-radius-3xl: 22px;
+    --hazelspam-radius-pill: 999px;
+
+    --hazelspam-motion-duration-fast: 0.12s;
+    --hazelspam-motion-duration-normal: 0.16s;
+    --hazelspam-motion-duration-slow: 0.2s;
+    --hazelspam-motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+    --hazelspam-size-scrollbar-thin: 3px;
+    --hazelspam-size-app-button: 26px;
+    --hazelspam-size-app-icon: 24px;
+    --hazelspam-size-status-badge: 7px;
+
+    --hazelspam-size-panel-max-width: 1240px;
+    --hazelspam-size-panel-vw-gap: 48px;
+    --hazelspam-size-shell-min-height: 620px;
+    --hazelspam-size-shell-max-height-offset: 72px;
+    --hazelspam-size-shell-mobile-max-height-offset: 28px;
+    --hazelspam-size-shell-sider-width: 84px;
+
+    --hazelspam-size-dialog-max-width: 620px;
+    --hazelspam-size-dialog-max-height: 608px;
+    --hazelspam-dialog-header-padding: var(--hazelspam-space-xl) var(--hazelspam-space-2xl);
+    --hazelspam-dialog-content-padding: var(--hazelspam-space-md) var(--hazelspam-space-2xl);
+    --hazelspam-dialog-footer-padding: var(--hazelspam-space-md) var(--hazelspam-space-2xl);
+
+    --hazelspam-size-notification-min-width: 280px;
+    --hazelspam-size-notification-max-width: 420px;
+
+    --hazelspam-size-rail-width: 60px;
+    --hazelspam-size-rail-button: 44px;
+    --hazelspam-size-brand-icon: 25px;
+    --hazelspam-size-help-trigger: 22px;
+    --hazelspam-size-tooltip-gap: 10px;
+    --hazelspam-size-tooltip-arrow-offset: 4px;
+    --hazelspam-size-tooltip-nudge: 2px;
+    --hazelspam-size-tooltip-arrow-height: 5px;
+    --hazelspam-size-tooltip-arrow-width: 6px;
+
+    --hazelspam-size-editor-text-height: 135px;
+    --hazelspam-size-preview-title-height: 22px;
+    --hazelspam-size-editor-font: 17px;
+    --hazelspam-size-collection-row-height: 30px;
+    --hazelspam-size-sort-row-height: 28px;
+    --hazelspam-size-button-compact-height: 30px;
+    --hazelspam-size-tool-button: 24px;
+    --hazelspam-size-emoji-cell: 42px;
+    --hazelspam-size-emotion-grid-item-width: 110px;
+    --hazelspam-size-emotion-setting-min-width: 220px;
+    --hazelspam-size-emotion-columns-height: 360px;
+    --hazelspam-size-emotion-pack-item-height: 56px;
+    --hazelspam-size-emotion-general-item-width: 160px;
+    --hazelspam-size-inline-action-button: 18px;
+    --hazelspam-size-inline-action-icon: 13px;
+    --hazelspam-size-inline-menu-item-padding: 10px;
+
+    --hazelspam-shadow-shell:
+        0 14px 32px color-mix(in srgb, var(--hazelspam-color-shadow-outer, #000) 22%, transparent),
+        0 1px 0 color-mix(in srgb, var(--hazelspam-color-shadow-inner, #fff) 75%, transparent) inset;
+    --hazelspam-shadow-badge-ring: 0 0 0 1px
+        color-mix(in srgb, var(--hazelspam-color-tooltip-bg, #0f172a) 18%, transparent);
+
+    --hazelspam-shell-radius: var(--hazelspam-radius-3xl);
+    --hazelspam-shell-card-radius: var(--hazelspam-radius-2xl);
+    --hazelspam-shell-padding: var(--hazelspam-space-xl);
+    --hazelspam-shell-content-card-padding-y: var(--hazelspam-space-4xl);
+    --hazelspam-shell-content-card-padding-x: var(--hazelspam-space-5xl);
+    --hazelspam-shell-mobile-padding: var(--hazelspam-space-lg);
+    --hazelspam-shell-mobile-card-padding: var(--hazelspam-space-3xl);
+    --hazelspam-shell-sider-width: var(--hazelspam-size-shell-sider-width);
+
+    --hazelspam-notification-radius: var(--hazelspam-radius-lg);
+    --hazelspam-notification-padding: var(--hazelspam-space-xl);
+    --hazelspam-notification-gap: var(--hazelspam-space-md);
+
+    --hazelspam-rail-card-radius: var(--hazelspam-radius-2xl);
+    --hazelspam-rail-brand-radius: var(--hazelspam-radius-xl);
+    --hazelspam-rail-button-radius: var(--hazelspam-radius-md);
+    --hazelspam-rail-tooltip-radius: var(--hazelspam-radius-sm);
+
+    --hazelspam-panel-card-radius: var(--hazelspam-radius-lg);
+    --hazelspam-tool-radius: var(--hazelspam-radius-xs);
+    --hazelspam-collection-radius: var(--hazelspam-radius-md);
+    --hazelspam-sort-pill-radius: var(--hazelspam-radius-pill);
+    --hazelspam-emoji-radius: var(--hazelspam-radius-md);
+}
