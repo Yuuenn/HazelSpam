@@ -7,7 +7,6 @@ on:
 
 env:
     FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-    EDGEONE_PAGES_PROJECT: HazelSpam
     HAZELSPAM_RELEASE_ORIGIN: https://hazel.idols.ltd
     HAZELSPAM_CHANGELOG_URL: https://github.com/Yuuenn/HazelSpam/blob/main/CHANGELOG.md
 
@@ -46,8 +45,15 @@ jobs:
             - name: Build
               run: pnpm build
 
-            - name: Deploy to EdgeOne Pages
-              run: npx --yes edgeone@1.2.30 pages deploy ./dist -n "$EDGEONE_PAGES_PROJECT" -t "${{ secrets.EDGEONE_API_TOKEN }}"
+            - name: Trigger EdgeOne Deploy Hook
+              env:
+                  EDGEONE_DEPLOY_HOOK_URL: ${{ secrets.EDGEONE_DEPLOY_HOOK_URL }}
+              run: |
+                  if [ -z "$EDGEONE_DEPLOY_HOOK_URL" ]; then
+                    echo "Missing EDGEONE_DEPLOY_HOOK_URL secret" >&2
+                    exit 1
+                  fi
+                  curl --fail --show-error --silent -X POST "$EDGEONE_DEPLOY_HOOK_URL"
 
             - name: Create Backup Release On GitHub
               uses: softprops/action-gh-release@v2
