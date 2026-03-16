@@ -1,7 +1,7 @@
 {
     "name": "hazelspam",
     "private": true,
-    "version": "1.0.0",
+    "version": "1.0.1",
     "packageManager": "pnpm@10.30.3",
     "type": "module",
     "scripts": {

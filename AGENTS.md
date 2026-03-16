@@ -157,6 +157,12 @@
 - 宿主主题同步优先复用宿主现有 API、侧边栏控制器和实验室开关，不要直接硬改宿主 `lab-style` token 或伪造开关视觉状态
 - 任何新的宿主页面选择器、按钮插入点、主题同步规则，都要尽量复用现有工具和常量
 
+涉及宿主页面在线排查时：
+
+- 如果用户已经提供可用的 Chrome DevTools Protocol / Chrome MCP 连接，应优先用它读取真实页面状态、控制台输出、运行表达式和验证宿主时序
+- 使用 DevTools Overrides、Snippet 或控制台注入时，只做最小必要改动，并在修复确认后及时恢复或清理
+- 不要把临时调试 trace、覆盖脚本或控制台探针长期留在正式代码里
+
 优先做“在当前架构内稳妥增强”，避免用一次性 hack 解决宿主页面兼容问题。
 
 ---
@@ -273,6 +279,7 @@ pnpm format
 - `pnpm build` 会先执行类型检查，再进行 Vite 构建，并依次运行 `scripts/minifyUserscript.js`、`scripts/generateLatestReleaseManifest.js`
 - `pnpm format` 当前只格式化 `src/`
 - 提交前至少关注 `lint`、`test`、`typecheck`
+- 涉及宿主页面时序、主题同步、注入点失效等问题时，如本地可用，优先结合 Chrome CDP / DevTools 做动态验证，不要只靠静态阅读推断
 - 仓库文档要求使用约定式提交，并将 PR 合并到 `dev` 分支
 - 当用户要求生成 commit summary 或 commit message 时，优先使用 `type(scope): subject` 格式
 - `type` 常用 `feat`、`fix`、`refactor`、`docs`、`test`、`chore`

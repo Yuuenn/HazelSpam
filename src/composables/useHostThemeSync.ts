@@ -41,6 +41,7 @@ const HOST_THEME_MEDIA_QUERY = '(prefers-color-scheme: dark)'
 const HOST_DARK_MODE_LABEL = '深色模式'
 const HOST_DARK_MODE_KEY = 'dark'
 const HOST_LAB_POPUP_NAME = 'Laboratory'
+const HOST_THEME_SYNC_GRACE_PERIOD_MS = 3000
 const HOST_THEME_SYNCED_UI_CONFIGS = new Set<UiConfig>()
 const OBSERVED_UI_CONFIGS = new WeakSet<UiConfig>()
 
@@ -49,7 +50,36 @@ let hostThemeBrowserSyncEnabled = false
 let browserThemeMediaQueryList: MediaQueryList | null = null
 let browserThemeChangeListener: ((event: MediaQueryListEvent) => void) | null = null
 let hostThemePatchPollTimer: number | null = null
+let hostThemeSyncGraceTimer: number | null = null
 let programmaticThemeChangeDepth = 0
+let isHostThemeSyncInGracePeriod = false
+
+const runWithProgrammaticThemeChange = <T>(task: () => T): T => {
+    programmaticThemeChangeDepth += 1
+    try {
+        return task()
+    } finally {
+        programmaticThemeChangeDepth -= 1
+    }
+}
+
+const runWithProgrammaticThemeChangeAsync = async <T>(task: () => Promise<T>): Promise<T> => {
+    programmaticThemeChangeDepth += 1
+    try {
+        return await task()
+    } finally {
+        programmaticThemeChangeDepth -= 1
+    }
+}
+
+const cancelHostThemeSyncGracePeriod = () => {
+    if (hostThemeSyncGraceTimer === null) {
+        return
+    }
+
+    window.clearTimeout(hostThemeSyncGraceTimer)
+    hostThemeSyncGraceTimer = null
+}
 
 const isSupportedTheme = (value: unknown): value is UiConfig['theme'] =>
     value === 'dark' || value === 'light'
@@ -184,9 +214,13 @@ const applyBrowserThemeToHostViaLab = async (nextTheme: UiConfig['theme']) => {
             return true
         }
 
-        await hostDarkModeLab.vm.toggleSwitch?.(
-            { target: hostDarkModeLab.switchNode },
-            HOST_DARK_MODE_KEY
+        await runWithProgrammaticThemeChangeAsync(() =>
+            Promise.resolve(
+                hostDarkModeLab.vm.toggleSwitch?.(
+                    { target: hostDarkModeLab.switchNode },
+                    HOST_DARK_MODE_KEY
+                )
+            )
         )
         const resolvedHostTheme = unsafeWindow.bililiveThemeV2?.getTheme?.()
         applyResolvedThemeToUi(normalizeTheme(resolvedHostTheme, nextTheme))
@@ -248,8 +282,14 @@ const patchHostThemeApi = () => {
 
     hostThemeApi.changeTheme = (theme: UiConfig['theme']) => {
         const nextTheme = normalizeTheme(theme, currentHostTheme)
-        if (hostThemeBrowserSyncEnabled && programmaticThemeChangeDepth === 0) {
-            disableHostThemeBrowserSync()
+        const browserTheme = resolveBrowserTheme()
+        if (
+            hostThemeBrowserSyncEnabled &&
+            !isHostThemeSyncInGracePeriod &&
+            programmaticThemeChangeDepth === 0 &&
+            nextTheme !== browserTheme
+        ) {
+            disableHostThemeBrowserSync('host-changeTheme-outside-programmatic-guard')
         }
 
         originalChangeTheme?.(nextTheme)
@@ -269,7 +309,7 @@ const patchHostThemeApi = () => {
         applyResolvedThemeToUi(initialTheme)
     }
     if (hostThemeBrowserSyncEnabled) {
-        void applyBrowserThemeToHost()
+        void scheduleBrowserThemeSyncAfterGracePeriod()
     }
 
     return hostThemeApi
@@ -300,16 +340,38 @@ const applyBrowserThemeToHost = async () => {
 
     const hostThemeApi = patchHostThemeApi()
     if (hostThemeApi?.changeTheme) {
-        programmaticThemeChangeDepth += 1
-        try {
-            hostThemeApi.changeTheme(nextTheme)
-        } finally {
-            programmaticThemeChangeDepth -= 1
-        }
+        runWithProgrammaticThemeChange(() => hostThemeApi.changeTheme(nextTheme))
         return
     }
 
     applyResolvedThemeToUi(nextTheme)
+}
+
+const scheduleBrowserThemeSyncAfterGracePeriod = async () => {
+    if (!hostThemeBrowserSyncEnabled) {
+        return
+    }
+
+    if (isHostThemeSyncInGracePeriod) {
+        return
+    }
+
+    isHostThemeSyncInGracePeriod = true
+    cancelHostThemeSyncGracePeriod()
+
+    await new Promise<void>((resolve) => {
+        hostThemeSyncGraceTimer = window.setTimeout(() => {
+            hostThemeSyncGraceTimer = null
+            resolve()
+        }, HOST_THEME_SYNC_GRACE_PERIOD_MS)
+    })
+
+    isHostThemeSyncInGracePeriod = false
+    if (!hostThemeBrowserSyncEnabled) {
+        return
+    }
+
+    await applyBrowserThemeToHost()
 }
 
 const handleBrowserThemeChange = () => {
@@ -348,12 +410,15 @@ const ensureHostThemeBridge = () => {
     }
 }
 
-const disableHostThemeBrowserSync = () => {
+const disableHostThemeBrowserSync = (reason = 'unknown') => {
     if (!hostThemeBrowserSyncEnabled) {
         return
     }
 
+    void reason
     hostThemeBrowserSyncEnabled = false
+    isHostThemeSyncInGracePeriod = false
+    cancelHostThemeSyncGracePeriod()
     HOST_THEME_SYNCED_UI_CONFIGS.forEach((uiConfig) => {
         if (uiConfig.syncHostThemeWithBrowser) {
             uiConfig.syncHostThemeWithBrowser = false
@@ -365,10 +430,12 @@ const setHostThemeBrowserSyncEnabled = (enabled: boolean) => {
     hostThemeBrowserSyncEnabled = enabled
 
     if (!enabled) {
+        isHostThemeSyncInGracePeriod = false
+        cancelHostThemeSyncGracePeriod()
         return
     }
 
-    void applyBrowserThemeToHost()
+    void scheduleBrowserThemeSyncAfterGracePeriod()
 }
 
 export const useHostThemeSync = (uiConfig: UiConfig, options: UseHostThemeSyncOptions = {}) => {
