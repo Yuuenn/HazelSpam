@@ -472,6 +472,7 @@ onBeforeUnmount(() => {
                                     v-model="pluginThemeSelection"
                                     class="setting-theme-select"
                                     :options="pluginThemeOptions"
+                                    optionLabel="label"
                                     optionValue="value"
                                     :allowEmpty="false"
                                 >
