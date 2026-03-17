@@ -28,6 +28,7 @@ import { useUIStore } from '@/stores/useUIStore'
 import Storage from '@/utils/storage'
 import { useDiscreteAPI } from '@/utils/ui'
 import { showUpdateDialog } from '@/utils/ui/updateDialog'
+import { openExternalUrl } from '@/utils/ui/openExternalUrl'
 import { GM_info, unsafeWindow } from '$'
 import {
     APP_TOOLTIP_UP_CLASS,
@@ -104,7 +105,7 @@ const triggerTextDownload = (
 }
 
 const openExternalPage = (url: string) => {
-    unsafeWindow.open(url)
+    openExternalUrl(url)
 }
 
 const handleManualCheckUpdate = async () => {
