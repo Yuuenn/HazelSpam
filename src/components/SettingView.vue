@@ -38,7 +38,7 @@ import {
     PRODUCT_SUBTITLE,
     PROJECT_REPOSITORY_URL
 } from '@/constants/brand'
-import brandLogoUrl from '@/assets/Logo.svg?url'
+import brandLogoUrl from '@/assets/Icon.svg?url'
 
 const moduleStore = useModuleStore()
 const uiStore = useUIStore()
@@ -916,7 +916,7 @@ onBeforeUnmount(() => {
     width: 100%;
     max-width: 460px;
     display: grid;
-    grid-template-columns: 100px minmax(0, 1fr);
+    grid-template-columns: 120px minmax(0, 1fr);
     gap: var(--hazelspam-space-xl);
     align-items: start;
     justify-content: center;
@@ -924,17 +924,17 @@ onBeforeUnmount(() => {
 
 .about-logo-shell {
     align-self: center;
-    width: 100px;
-    height: 100px;
-    border: 1px solid var(--hazelspam-color-surface-border, var(--p-content-border-color));
-    border-radius: var(--hazelspam-radius-lg);
-    background: color-mix(in srgb, var(--hazelspam-color-brand, #89b4c7) 12%, transparent);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hazelspam-color-brand, #89b4c7) 25%, transparent);
-    overflow: hidden;
+    width: 120px;
+    height: 120px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--hazelspam-space-sm);
+    border-radius: var(--hazelspam-radius-xl);
+    transition:
+        background var(--hazelspam-motion-duration-normal, 0.16s)
+            var(--hazelspam-motion-ease-standard, ease),
+        box-shadow var(--hazelspam-motion-duration-normal, 0.16s)
+            var(--hazelspam-motion-ease-standard, ease);
 }
 
 .about-logo-image {
@@ -942,6 +942,45 @@ onBeforeUnmount(() => {
     height: 100%;
     object-fit: contain;
     display: block;
+    filter:
+        drop-shadow(
+            0 4px 9px
+                color-mix(in srgb, var(--hazelspam-color-shadow-outer, #000000) 14%, transparent)
+        )
+        drop-shadow(
+            0 1px 0
+                color-mix(in srgb, var(--hazelspam-color-shadow-inner, #ffffff) 44%, transparent)
+        );
+    transition:
+        filter var(--hazelspam-motion-duration-normal, 0.16s)
+            var(--hazelspam-motion-ease-standard, ease),
+        transform var(--hazelspam-motion-duration-normal, 0.16s)
+            var(--hazelspam-motion-ease-standard, ease);
+}
+
+:global(.hazelspam-dark) .about-logo-shell {
+    background: color-mix(
+        in srgb,
+        var(--hazelspam-color-shell-card-bg, #101215) 72%,
+        var(--hazelspam-color-shadow-outer, #000000) 28%
+    );
+    box-shadow:
+        0 8px 18px color-mix(in srgb, var(--hazelspam-color-shadow-outer, #000000) 54%, transparent),
+        inset 0 0 0 1px color-mix(in srgb, var(--hazelspam-color-shadow-inner, #ffffff) 12%, transparent);
+}
+
+:global(.hazelspam-dark) .about-logo-image {
+    filter:
+        brightness(0.88)
+        saturate(0.92)
+        drop-shadow(
+            0 6px 14px
+                color-mix(in srgb, var(--hazelspam-color-shadow-outer, #000000) 62%, transparent)
+        )
+        drop-shadow(
+            0 1px 0
+                color-mix(in srgb, var(--hazelspam-color-shadow-inner, #ffffff) 24%, transparent)
+        );
 }
 
 .about-details {
@@ -1048,8 +1087,8 @@ onBeforeUnmount(() => {
     }
 
     .about-logo-shell {
-        width: 100px;
-        height: 100px;
+        width: 120px;
+        height: 120px;
     }
 
     .about-details {

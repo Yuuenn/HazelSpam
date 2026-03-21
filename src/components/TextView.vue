@@ -511,7 +511,7 @@ watch(
     display: grid;
     grid-template-rows: minmax(0, 1fr);
     min-height: 0;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .editor-region--preview {
