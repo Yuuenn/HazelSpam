@@ -31,10 +31,6 @@ const handleSelect = (key: MenuIndex) => {
     uiStore.updateMenuValue(key)
 }
 
-const handleBrandClick = () => {
-    uiStore.registerRailBrandClick()
-}
-
 const isActive = (key: MenuIndex) => uiStore.uiConfig.activeMenuIndex === key
 </script>
 
@@ -47,7 +43,6 @@ const isActive = (key: MenuIndex) => uiStore.uiConfig.activeMenuIndex === key
                     class="hazelspam-brand"
                     :title="PRODUCT_NAME"
                     :aria-label="`${PRODUCT_NAME} 品牌图标`"
-                    @click="handleBrandClick"
                 >
                     <svg
                         class="hazelspam-brand__icon"

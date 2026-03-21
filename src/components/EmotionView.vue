@@ -34,7 +34,7 @@ const {
 </script>
 
 <template>
-    <div class="emotion-view">
+    <div class="emotion-view hazelspam-responsive-scope">
         <header class="emotion-view__header">
             <h2>{{ PRODUCT_NAME }} 表情独轮车</h2>
             <p>自动发送您所选择的表情内容</p>
@@ -42,7 +42,7 @@ const {
 
         <section class="hazelspam-panel-card control-panel">
             <h3>控制面板</h3>
-            <div class="control-grid">
+            <div class="control-grid hazelspam-responsive-grid" data-hazelspam-grid="6">
                 <div class="control-item">
                     <label>每条弹幕间隔时间</label>
                     <InputNumber
@@ -91,9 +91,9 @@ const {
                 <p>您已选择 {{ selectedEmotionCount }} 个表情</p>
             </header>
 
-            <div class="emotion-send__body">
+            <div class="emotion-send__body hazelspam-responsive-split" data-hazelspam-stack="fill">
                 <EmotionPackageList
-                    class="emotion-send__column"
+                    class="emotion-send__column emotion-send__column--packages hazelspam-responsive-panel"
                     :packages="packageCards"
                     :selected-count="selectedEmotionCount"
                     :disabled="isEmotionSpamRunning"
@@ -102,7 +102,7 @@ const {
                 />
 
                 <EmotionGridPanel
-                    class="emotion-send__column"
+                    class="emotion-send__column emotion-send__column--grid hazelspam-responsive-panel"
                     :package-id="selectedPackageId"
                     :emotion-items="selectedPackageEmotionCards"
                     :image-variant="selectedPackageGridVariant"
@@ -138,7 +138,9 @@ const {
     gap: var(--hazelspam-space-xl);
     height: 100%;
     min-height: 0;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: var(--hazelspam-space-2xs);
     --emotion-grid-cell-size: 104px;
     --emotion-grid-image-size: 70px;
     --emotion-grid-item-padding-x: 8px;
@@ -173,10 +175,7 @@ const {
 
 .control-grid {
     margin-top: var(--hazelspam-space-lg);
-    display: grid;
-    gap: var(--hazelspam-space-3xl);
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    align-items: start;
+    --hazelspam-responsive-grid-gap: var(--hazelspam-space-3xl);
 }
 
 .control-item {
@@ -211,6 +210,7 @@ const {
     align-items: flex-end;
     justify-content: space-between;
     gap: var(--hazelspam-space-sm) var(--hazelspam-space-md);
+    min-width: 0;
 }
 
 .emotion-send__head p {
@@ -220,9 +220,7 @@ const {
 }
 
 .emotion-send__body {
-    display: grid;
-    grid-template-columns: minmax(220px, 0.57fr) minmax(0, 2.43fr);
-    gap: var(--hazelspam-space-xl);
+    --hazelspam-responsive-split-columns: minmax(220px, 0.57fr) minmax(0, 2.43fr);
     align-items: stretch;
     min-height: 0;
 }
@@ -232,28 +230,23 @@ const {
     min-height: 0;
 }
 
-@media (max-width: 1180px) {
-    .control-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    .emotion-send__body {
-        grid-template-columns: 1fr;
-        grid-template-rows: minmax(220px, 36vh) minmax(0, 1fr);
-    }
+.emotion-send__column--packages {
+    --hazelspam-responsive-panel-min-height: clamp(190px, 34vh, 280px);
 }
 
-@media (max-width: 760px) {
-    .control-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+.emotion-send__column--grid {
+    --hazelspam-responsive-panel-min-height: clamp(230px, 44vh, 480px);
+}
+
+@container hazelspam-panel (max-width: 760px) {
+    .emotion-send {
+        flex: none;
+        min-height: clamp(360px, 66vh, 580px);
+        overflow: visible;
     }
 
     .emotion-send__head {
         align-items: flex-start;
-    }
-
-    .emotion-send__body {
-        grid-template-rows: minmax(190px, 34vh) minmax(0, 1fr);
     }
 }
 </style>

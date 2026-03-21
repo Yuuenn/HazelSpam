@@ -161,6 +161,7 @@
 
 - 如果用户已经提供可用的 Chrome DevTools Protocol / Chrome MCP 连接，应优先用它读取真实页面状态、控制台输出、运行表达式和验证宿主时序
 - 使用 DevTools Overrides、Snippet 或控制台注入时，只做最小必要改动，并在修复确认后及时恢复或清理
+- 涉及 `Tooltip`、`Toast`、`Dialog`、下拉菜单等追加到 `body` 的浮层问题时，优先在真实直播页里检查浮层 DOM、class、盒模型、滚动容器和宿主页样式干扰，不要只凭组件源码猜定位
 - 不要把临时调试 trace、覆盖脚本或控制台探针长期留在正式代码里
 
 优先做“在当前架构内稳妥增强”，避免用一次性 hack 解决宿主页面兼容问题。
@@ -196,8 +197,12 @@ Vue / 样式规则：
 - 修改 UI 时注意浅色/深色主题与 B 站跟随主题能力
 - 不要为了小改动引入新的状态管理方式
 - token 作用域按两层处理：`foundation tokens` 可放在 `:root` 供 PrimeVue preset 或兼容 token 使用；`semantic app tokens` 应优先作用在 HazelSpam 根容器、浮层容器和 Teleport 容器，避免污染宿主页面；新增浮层时同步检查 token scope
+- 面板响应式优先采用“内在响应式 / 容器驱动”方案：页面默认按当前 `3` 栏 / `6` 栏语义组织布局，优先复用 `src/theme/panelLayoutRules.css` 里的共享原语（如 `hazelspam-responsive-scope`、`hazelspam-responsive-fit-grid`、`hazelspam-responsive-grid`、`hazelspam-responsive-split`），通过 `--hazelspam-responsive-fit-min`、`--hazelspam-responsive-split-columns` 等变量声明最小可用宽度；当组件小于最小宽度时应主动堆叠，不要继续靠挤压硬撑
+- 受限宽度下优先保持壳层密度稳定，不要在 `desktop / tablet / mobile / compact` 间频繁切换 `padding`、`rail` 尺寸或按钮密度；窄宽兜底优先让底部操作按钮换行或全宽，而不是整体缩放或压缩内容
+- 滚动责任应单一且允许链式传递：避免多层 `overflow` 互相抢滚动；堆叠态下内层滚到边缘后，应允许滚轮继续传递给上层，而不是制造滚动陷阱
 - 按钮语义按两层拆分：`appStyle` 负责形状与布局语义，`tone` 负责颜色语义；业务层优先使用 `tone`，不要继续用 `severity + outlined` 手工拼出主次、危险、成功按钮
 - `src/theme/buttonRules.css` 优先基于 `data-hazelspam-button-style` 和 `data-hazelspam-button-tone` 写规则，不要把 `.p-button` 当成业务语义入口类
+- PrimeVue `v-tooltip` 在 HazelSpam 面板内必须复用 `APP_TOOLTIP_CLASS` / `APP_TOOLTIP_UP_CLASS` 这类自有浮层 class 和共享 tooltip 规则，不要在业务组件里直接改 `.p-tooltip`；tooltip 的宽度与折行优先通过共享 token 和浮层样式约束，避免在窄宽或滚动容器里退化成极窄单列气泡
 - 颜色语义以 `src/theme/colorTokens.ts` 为真源；`success`、`danger`、`brand` 等一等语义色优先走 token，不要在组件里散落硬编码；其中 `danger` 默认态使用 `#D83B44`
 - 激活、选中、当前页等 UI 状态，优先使用 `aria-current`、`aria-pressed`、`aria-selected` 或 `data-*` 属性表达；不要优先新增纯视觉状态 class，除非现有语义属性无法准确表达
 - 不要把 `.p-*` 类当成业务语义入口；如需定制 PrimeVue，优先通过包装组件、`pt`、组件 props、HazelSpam 自有 class 或 `data-*` 属性接入；仅在需要命中 PrimeVue 内部部件时，才使用 `.p-button-label`、`.p-togglebutton-content` 这类内部节点选择器

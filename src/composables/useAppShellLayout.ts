@@ -3,10 +3,16 @@ import { APP_DIALOG_STYLE_SCOPE_SELECTOR } from '@/constants/brand'
 
 const SHELL_DESIGN_HEIGHT = 760
 const SHELL_MAX_HEIGHT_OFFSET = 72
+const SHELL_MOBILE_MAX_HEIGHT_OFFSET = 28
+const SHELL_COMPACT_MAX_WIDTH = 560
+const SHELL_MOBILE_MAX_WIDTH = 760
+const SHELL_TABLET_MAX_WIDTH = 1180
 const SCROLL_HINT_TARGET_SELECTOR = '.hazelspam-faux-scroll'
 const SCROLL_HINT_EDGE_EPSILON = 2
 
 export const appShellScrollScopeSelector = APP_DIALOG_STYLE_SCOPE_SELECTOR
+
+export type AppShellLayoutTier = 'desktop' | 'tablet' | 'mobile' | 'compact'
 
 type ShellViewportMetrics = {
     scale: number
@@ -14,18 +20,42 @@ type ShellViewportMetrics = {
     renderHeight: number
 }
 
+export const resolveShellLayoutTier = (viewportWidth: number): AppShellLayoutTier => {
+    const safeViewportWidth = Number.isFinite(viewportWidth) ? Math.max(1, viewportWidth) : Infinity
+
+    if (safeViewportWidth <= SHELL_COMPACT_MAX_WIDTH) {
+        return 'compact'
+    }
+
+    if (safeViewportWidth <= SHELL_MOBILE_MAX_WIDTH) {
+        return 'mobile'
+    }
+
+    if (safeViewportWidth <= SHELL_TABLET_MAX_WIDTH) {
+        return 'tablet'
+    }
+
+    return 'desktop'
+}
+
 export const resolveShellViewportMetrics = ({
-    viewportHeight
+    viewportHeight,
+    viewportWidth
 }: {
     viewportHeight: number
+    viewportWidth?: number
 }): ShellViewportMetrics => {
     const safeViewportHeight = Number.isFinite(viewportHeight) ? Math.max(1, viewportHeight) : 1
-    const availableHeight = Math.max(1, safeViewportHeight - SHELL_MAX_HEIGHT_OFFSET)
+    const layoutTier = resolveShellLayoutTier(viewportWidth ?? Infinity)
+    const viewportOffset = layoutTier === 'compact' ? SHELL_MOBILE_MAX_HEIGHT_OFFSET : SHELL_MAX_HEIGHT_OFFSET
+    const availableHeight = Math.max(1, safeViewportHeight - viewportOffset)
+    const renderHeight = Math.min(SHELL_DESIGN_HEIGHT, availableHeight)
 
     return {
-        scale: Math.min(1, availableHeight / SHELL_DESIGN_HEIGHT),
-        stageHeight: Math.min(SHELL_DESIGN_HEIGHT, availableHeight),
-        renderHeight: SHELL_DESIGN_HEIGHT
+        // Keep width usable on short/mobile viewports by shrinking render height directly.
+        scale: 1,
+        stageHeight: renderHeight,
+        renderHeight
     }
 }
 
@@ -33,6 +63,7 @@ export const useAppShellLayout = (isPanelVisible: Ref<boolean>) => {
     const shellScale = ref(1)
     const shellStageHeight = ref(SHELL_DESIGN_HEIGHT)
     const shellRenderHeight = ref(SHELL_DESIGN_HEIGHT)
+    const shellLayoutTier = ref<AppShellLayoutTier>('desktop')
 
     const scrollHintListeners = new Map<HTMLElement, () => void>()
     const observedScrollHintRoots = new Set<Node>()
@@ -98,15 +129,28 @@ export const useAppShellLayout = (isPanelVisible: Ref<boolean>) => {
         '--hazelspam-shell-render-height': `${Math.round(shellRenderHeight.value)}px`,
         '--hazelspam-shell-scale': shellScale.value.toFixed(4)
     }))
+    const shellStageClass = computed(() => [
+        'hazelspam-layout',
+        `hazelspam-layout--${shellLayoutTier.value}`
+    ])
 
     const resolveViewportHeight = () => {
         const viewportHeight = window.visualViewport?.height ?? window.innerHeight
         return Number.isFinite(viewportHeight) ? viewportHeight : window.innerHeight
     }
 
+    const resolveViewportWidth = () => {
+        const viewportWidth = window.visualViewport?.width ?? window.innerWidth
+        return Number.isFinite(viewportWidth) ? viewportWidth : window.innerWidth
+    }
+
     const updateShellViewport = () => {
+        const viewportWidth = resolveViewportWidth()
+        shellLayoutTier.value = resolveShellLayoutTier(viewportWidth)
+
         const metrics = resolveShellViewportMetrics({
-            viewportHeight: resolveViewportHeight()
+            viewportHeight: resolveViewportHeight(),
+            viewportWidth
         })
 
         shellScale.value = metrics.scale
@@ -290,7 +334,9 @@ export const useAppShellLayout = (isPanelVisible: Ref<boolean>) => {
     })
 
     return {
+        shellStageClass,
         shellStageStyle,
+        shellLayoutTier,
         updateShellViewport
     }
 }

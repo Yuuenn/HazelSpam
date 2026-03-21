@@ -326,19 +326,21 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="setting-view">
+    <div class="setting-view hazelspam-responsive-scope">
         <header class="setting-view__header">
             <h2>{{ PRODUCT_NAME }} 设置</h2>
             <p>您可以调整 {{ PRODUCT_NAME }} 设置</p>
         </header>
 
-        <div class="settings-layout">
+        <div class="settings-layout hazelspam-responsive-fit-grid">
             <div class="settings-column-stack settings-column-stack--left">
                 <section class="hazelspam-panel-card setting-module">
                     <header class="setting-module__head">
                         <h3>通用</h3>
                     </header>
-                    <div class="setting-control-grid setting-control-grid--two">
+                    <div
+                        class="setting-control-grid setting-control-grid--two hazelspam-responsive-fit-grid"
+                    >
                         <div class="setting-control-item setting-control-item--switch">
                             <label class="setting-control-label">移除弹幕栏滚动条</label>
                             <span
@@ -510,7 +512,7 @@ onBeforeUnmount(() => {
                     </header>
 
                     <div class="about-content">
-                        <div class="about-main">
+                        <div class="about-main hazelspam-responsive-split">
                             <div class="about-logo-shell" aria-hidden="true">
                                 <img class="about-logo-image" :src="brandLogoUrl" alt="" />
                             </div>
@@ -617,13 +619,10 @@ onBeforeUnmount(() => {
                 </section>
             </div>
 
-            <SettingDebugPanel
-                v-if="uiStore.isSettingDebugModuleVisible"
-                class="settings-debug-slot"
-            />
+            <SettingDebugPanel class="settings-debug-slot" />
         </div>
 
-        <div class="hazelspam-panel-actions">
+        <div class="hazelspam-panel-actions setting-actions">
             <AppButton
                 tone="surface"
                 class="setting-close-btn"
@@ -661,25 +660,26 @@ onBeforeUnmount(() => {
 }
 
 .settings-layout {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    --hazelspam-responsive-grid-gap: var(--hazelspam-space-xl);
+    --hazelspam-responsive-fit-min: 380px;
     gap: var(--hazelspam-space-xl);
-    flex: 1;
+    flex: 0 0 auto;
     min-height: 0;
 }
 
 .settings-column-stack {
     display: grid;
     gap: var(--hazelspam-space-xl);
+    min-width: 0;
     min-height: 0;
 }
 
 .settings-column-stack--left {
-    grid-template-rows: max-content minmax(0, 1fr);
+    grid-template-rows: max-content max-content;
 }
 
 .settings-column-stack--right {
-    grid-template-rows: minmax(0, 1fr);
+    grid-template-rows: max-content;
 }
 
 .hazelspam-panel-card {
@@ -725,7 +725,8 @@ onBeforeUnmount(() => {
 }
 
 .setting-control-grid--two {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    --hazelspam-responsive-grid-gap: var(--hazelspam-space-3xl);
+    --hazelspam-responsive-fit-min: 240px;
 }
 
 .setting-control-grid--single {
@@ -915,11 +916,9 @@ onBeforeUnmount(() => {
 .about-main {
     width: 100%;
     max-width: 460px;
-    display: grid;
-    grid-template-columns: 120px minmax(0, 1fr);
-    gap: var(--hazelspam-space-xl);
+    --hazelspam-responsive-split-columns: 120px minmax(0, 1fr);
     align-items: start;
-    justify-content: center;
+    justify-content: stretch;
 }
 
 .about-logo-shell {
@@ -1044,55 +1043,40 @@ onBeforeUnmount(() => {
 
 .settings-debug-slot {
     min-height: 0;
+    min-width: 0;
+    width: 100%;
+    grid-column: 1 / -1;
 }
 
-@media (max-width: 1180px) {
+.setting-actions {
+    flex: 0 0 auto;
+}
+
+@container hazelspam-panel (max-width: 760px) {
     .settings-layout {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        grid-template-areas:
-            'left right'
-            'debug debug';
+        align-content: start;
     }
 
-    .settings-column-stack--left {
-        grid-area: left;
-    }
-
+    .settings-column-stack--left,
     .settings-column-stack--right {
-        grid-area: right;
+        grid-template-rows: none;
     }
 
-    .settings-debug-slot {
-        grid-area: debug;
-    }
-}
-
-@media (max-width: 760px) {
-    .settings-layout {
-        grid-template-columns: 1fr;
-        grid-template-areas:
-            'left'
-            'right'
-            'debug';
+    .about-content {
+        align-items: stretch;
     }
 
-    .setting-control-grid--two {
-        grid-template-columns: 1fr;
-    }
-
-    .about-main {
-        grid-template-columns: 1fr;
-        justify-items: center;
-        text-align: center;
+    .about-main,
+    .about-actions {
+        max-width: none;
     }
 
     .about-logo-shell {
-        width: 120px;
-        height: 120px;
+        align-self: flex-start;
     }
 
     .about-details {
-        align-items: center;
+        padding-top: 0;
     }
 }
 </style>

@@ -110,7 +110,7 @@ watch(
 )
 </script>
 <template>
-    <div class="hazelspam-panel-view">
+    <div class="hazelspam-panel-view hazelspam-responsive-scope">
         <header class="hazelspam-panel-view__header">
             <h2>{{ PRODUCT_NAME }} 独轮车</h2>
             <p>自动发送您所设定好的文本内容</p>
@@ -118,7 +118,7 @@ watch(
 
         <section class="hazelspam-panel-card control-panel">
             <h3>控制面板</h3>
-            <div class="control-grid">
+            <div class="control-grid hazelspam-responsive-grid" data-hazelspam-grid="6">
                 <div class="control-item">
                     <label>每条弹幕字数上限</label>
                     <Slider
@@ -187,8 +187,8 @@ watch(
             </div>
         </section>
 
-        <div class="content-split">
-            <section class="hazelspam-panel-card text-panel">
+        <div class="content-split hazelspam-responsive-split" data-hazelspam-stack="fill">
+            <section class="hazelspam-panel-card text-panel hazelspam-responsive-panel">
                 <h3>发送文本</h3>
                 <div class="text-tools">
                     <AppButton
@@ -257,7 +257,7 @@ watch(
                 </div>
             </section>
 
-            <section class="hazelspam-panel-card tabs-panel">
+            <section class="hazelspam-panel-card tabs-panel hazelspam-responsive-panel">
                 <div class="tabs-head">
                     <h3>标签页</h3>
                 </div>
@@ -409,7 +409,9 @@ watch(
     gap: var(--hazelspam-space-xl);
     height: 100%;
     min-height: 0;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: var(--hazelspam-space-2xs);
     --preview-block-gap: var(--hazelspam-space-sm);
     --editor-font-size: var(--hazelspam-size-editor-font, 17px);
     --editor-line-height: 1.55;
@@ -446,9 +448,7 @@ watch(
 }
 
 .content-split {
-    display: grid;
-    grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
-    gap: var(--hazelspam-space-xl);
+    --hazelspam-responsive-split-columns: minmax(0, 7fr) minmax(0, 3fr);
     align-items: stretch;
     flex: 1;
     min-height: 0;
@@ -465,18 +465,17 @@ watch(
 .text-panel {
     display: grid;
     grid-template-rows: auto auto minmax(0, 1fr);
+    --hazelspam-responsive-panel-min-height: clamp(320px, 62vh, 520px);
 }
 
 .tabs-panel {
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;
+    --hazelspam-responsive-panel-min-height: clamp(280px, 50vh, 430px);
 }
 
 .control-grid {
-    display: grid;
-    gap: var(--hazelspam-space-3xl);
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    align-items: start;
+    --hazelspam-responsive-grid-gap: var(--hazelspam-space-3xl);
 }
 
 .control-item {
@@ -618,10 +617,13 @@ watch(
 .tabs-head {
     display: flex;
     align-items: center;
+    gap: var(--hazelspam-space-md);
+    min-width: 0;
 }
 
 .tabs-list-shell {
     min-height: 0;
+    min-width: 0;
     overflow: hidden;
 }
 
@@ -642,6 +644,7 @@ watch(
     flex-direction: column;
     gap: var(--hazelspam-space-lg);
     min-height: 0;
+    min-width: 0;
 }
 
 .tabs-divider {
@@ -659,10 +662,12 @@ watch(
     display: flex;
     flex-direction: column;
     gap: var(--hazelspam-space-md);
+    min-width: 0;
 }
 
 .tabs-sort-action {
     margin-top: 0;
+    min-width: 0;
 }
 
 .tabs-check {
@@ -671,6 +676,12 @@ watch(
     gap: var(--hazelspam-space-md);
     font-size: var(--hazelspam-type-size-body-sm);
     color: var(--hazelspam-color-text-primary, var(--p-text-color));
+    min-width: 0;
+}
+
+.tabs-check span {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .emoji-grid {
@@ -756,19 +767,19 @@ watch(
     );
 }
 
-@media (max-width: 1180px) {
-    .content-split {
-        grid-template-columns: 1fr;
+@container hazelspam-panel (max-width: 760px) {
+    .text-panel {
+        grid-template-rows: auto auto minmax(220px, 1fr);
     }
 
-    .control-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+    .tabs-panel {
+        grid-template-rows: auto minmax(220px, 1fr) auto;
     }
-}
 
-@media (max-width: 760px) {
-    .control-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    .text-input,
+    .preview-base,
+    .tabs-strip {
+        overscroll-behavior: auto;
     }
 }
 </style>

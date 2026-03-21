@@ -81,6 +81,7 @@ const appendTestPackageLabel = () =>
 
 <style scoped>
 .setting-debug-panel {
+    width: 100%;
     min-height: 0;
     display: flex;
     flex-direction: column;
