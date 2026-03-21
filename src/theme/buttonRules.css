@@ -330,6 +330,7 @@
 :is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
     [data-hazelspam-button-style='action'] {
     width: 100%;
+    min-width: 0;
     height: var(--hazelspam-size-button-compact-height, 30px);
     min-height: var(--hazelspam-size-button-compact-height, 30px);
     justify-content: center;
@@ -343,6 +344,7 @@
     font-size: var(--hazelspam-type-size-body-sm);
     font-weight: var(--hazelspam-type-weight-regular);
     text-align: center;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -530,7 +532,8 @@
 
 :is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) .hazelspam-grid-card {
     border-radius: var(--hazelspam-collection-radius);
-    width: var(--hazelspam-grid-cell-size, var(--emotion-grid-cell-size));
+    width: 100%;
+    max-width: var(--hazelspam-grid-cell-size, var(--emotion-grid-cell-size));
     height: var(--hazelspam-grid-cell-size, var(--emotion-grid-cell-size));
     padding: var(--hazelspam-grid-card-padding-top, var(--emotion-grid-item-padding-top))
         var(--hazelspam-grid-card-padding-x, var(--emotion-grid-item-padding-x))
@@ -545,6 +548,7 @@
     align-items: start;
     row-gap: var(--hazelspam-space-2xs);
     cursor: pointer;
+    justify-self: center;
 }
 
 :is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) .hazelspam-grid-card__image {

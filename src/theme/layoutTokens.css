@@ -47,7 +47,7 @@
     --hazelspam-size-status-badge: 7px;
 
     --hazelspam-size-panel-max-width: 1240px;
-    --hazelspam-size-panel-vw-gap: 48px;
+    --hazelspam-size-panel-vw-gap: clamp(12px, 4vw, 48px);
     --hazelspam-size-shell-min-height: 620px;
     --hazelspam-size-shell-max-height-offset: 72px;
     --hazelspam-size-shell-mobile-max-height-offset: 28px;
@@ -71,6 +71,7 @@
     --hazelspam-size-tooltip-nudge: 2px;
     --hazelspam-size-tooltip-arrow-height: 5px;
     --hazelspam-size-tooltip-arrow-width: 6px;
+    --hazelspam-size-tooltip-max-width: 240px;
 
     --hazelspam-size-editor-text-height: 135px;
     --hazelspam-size-preview-title-height: 22px;
@@ -100,8 +101,6 @@
     --hazelspam-shell-padding: var(--hazelspam-space-xl);
     --hazelspam-shell-content-card-padding-y: var(--hazelspam-space-4xl);
     --hazelspam-shell-content-card-padding-x: var(--hazelspam-space-5xl);
-    --hazelspam-shell-mobile-padding: var(--hazelspam-space-lg);
-    --hazelspam-shell-mobile-card-padding: var(--hazelspam-space-3xl);
     --hazelspam-shell-sider-width: var(--hazelspam-size-shell-sider-width);
 
     --hazelspam-notification-radius: var(--hazelspam-radius-lg);

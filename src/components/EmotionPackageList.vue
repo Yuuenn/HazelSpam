@@ -102,4 +102,10 @@ const getPackageButtonClass = (isCurrent: boolean) => ({
     justify-content: center;
     align-items: center;
 }
+
+@container hazelspam-panel (max-width: 760px) {
+    .emotion-pack-list {
+        overscroll-behavior: auto;
+    }
+}
 </style>

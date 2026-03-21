@@ -31,10 +31,6 @@ const handleSelect = (key: MenuIndex) => {
     uiStore.updateMenuValue(key)
 }
 
-const handleBrandClick = () => {
-    uiStore.registerRailBrandClick()
-}
-
 const isActive = (key: MenuIndex) => uiStore.uiConfig.activeMenuIndex === key
 </script>
 
@@ -47,8 +43,10 @@ const isActive = (key: MenuIndex) => uiStore.uiConfig.activeMenuIndex === key
                     class="hazelspam-brand"
                     :title="PRODUCT_NAME"
                     :aria-label="`${PRODUCT_NAME} 品牌图标`"
-                    @click="handleBrandClick"
                 >
+                    <!-- Hidden debug brand-click entry is intentionally not wired right now.
+                         Keep the reveal logic in useUIStore for future re-enable, but avoid
+                         introducing hidden side effects on the current settings UI path. -->
                     <svg
                         class="hazelspam-brand__icon"
                         xmlns="http://www.w3.org/2000/svg"

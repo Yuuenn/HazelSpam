@@ -8,6 +8,8 @@ const DEBUG_MODULE_REVEAL_CLICK_TARGET = 22
 
 export const useUIStore = defineStore('ui', () => {
     const uiConfig: UiConfig = reactive(Storage.getUiConfig())
+    // Keep the hidden debug reveal state machine available for future re-enable.
+    // The settings UI currently does not mount the debug panel, so this state stays dormant.
     const isSettingDebugModuleVisible = ref(false)
     const settingDebugRevealProgress = ref(0)
 

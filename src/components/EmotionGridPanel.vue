@@ -112,7 +112,7 @@ const getEmotionGridButtonClass = (item: EmotionGridItem) => ({
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    padding-right: var(--hazelspam-space-xs);
+    padding-inline: var(--hazelspam-space-xs);
     padding-block: 5px;
     box-sizing: border-box;
     flex: 1;
@@ -125,17 +125,16 @@ const getEmotionGridButtonClass = (item: EmotionGridItem) => ({
 .emotion-grid {
     display: grid;
     align-self: flex-start;
-    grid-template-columns: repeat(7, var(--emotion-grid-cell-size));
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--emotion-grid-cell-size), 100%), 1fr));
     grid-auto-rows: var(--emotion-grid-cell-size);
     gap: var(--hazelspam-space-md);
-    width: max-content;
-    min-width: 100%;
+    width: 100%;
     justify-content: center;
     align-content: start;
 }
 
 .emotion-grid--general {
-    grid-template-columns: repeat(7, var(--emotion-grid-cell-size));
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--emotion-grid-cell-size), 100%), 1fr));
 }
 
 .emotion-empty {
@@ -154,5 +153,11 @@ const getEmotionGridButtonClass = (item: EmotionGridItem) => ({
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+@container hazelspam-panel (max-width: 760px) {
+    .emotion-list__content {
+        overscroll-behavior: auto;
+    }
 }
 </style>

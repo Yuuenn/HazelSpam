@@ -17,30 +17,27 @@ import {
 } from './src/constants/brand'
 
 function createUserscriptIconDataUrl() {
-    const iconSize = 64
-    const iconPadding = 4
-    const iconPath = fileURLToPath(new URL('./src/assets/Logo.svg', import.meta.url))
-    const rawSvg = readFileSync(iconPath, 'utf8').replace(/^\s*<\?xml[^>]*>\s*/u, '').trim()
-    const viewBoxMatch = rawSvg.match(/viewBox="[^"]*\s([\d.]+)\s([\d.]+)"/u)
+    const iconPath = fileURLToPath(new URL('./src/assets/Icon.svg', import.meta.url))
+    const rawSvg = readFileSync(iconPath, 'utf8')
+    const normalizedSvg = rawSvg
+        .replace(/^\s*<\?xml[^>]*>\s*/u, '')
+        .replace(/<!--[\s\S]*?-->/gu, '')
+        .replace(/>\s+</gu, '><')
+        .replace(/\s{2,}/gu, ' ')
+        .replace(/[\n\r\t]+/gu, ' ')
+        .replace(/\s*=\s*/gu, '=')
+        .trim()
 
-    if (!viewBoxMatch) {
-        throw new Error('Logo.svg 缺少 viewBox，无法生成 userscript 图标。')
+    if (!/\bviewBox=/u.test(normalizedSvg)) {
+        throw new Error('Icon.svg 缺少 viewBox，无法生成 userscript 图标。')
     }
 
-    const sourceWidth = Number(viewBoxMatch[1])
-    const sourceHeight = Number(viewBoxMatch[2])
-    const targetHeight = iconSize - iconPadding * 2
-    const targetWidth = (sourceWidth / sourceHeight) * targetHeight
-    const x = (iconSize - targetWidth) / 2
-    const encodedInnerSvg = encodeURIComponent(rawSvg)
-    const wrappedSvg =
-        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${iconSize} ${iconSize}">` +
-        `<image href="data:image/svg+xml;utf8,${encodedInnerSvg}" x="${x}" y="${iconPadding}" ` +
-        `width="${targetWidth}" height="${targetHeight}" preserveAspectRatio="xMidYMid meet"/>` +
-        `</svg>`
+    const base64Svg = Buffer.from(normalizedSvg, 'utf8').toString('base64')
 
-    return `data:image/svg+xml,${encodeURIComponent(wrappedSvg)}`
+    return `data:image/svg+xml;base64,${base64Svg}`
 }
+
+const userscriptIconDataUrl = createUserscriptIconDataUrl()
 
 export default defineConfig({
     resolve: {
@@ -67,7 +64,8 @@ export default defineConfig({
         monkey({
             entry: 'src/main.ts',
             userscript: {
-                icon: createUserscriptIconDataUrl(),
+                icon: userscriptIconDataUrl,
+                icon64: userscriptIconDataUrl,
                 name: { '': USERSCRIPT_NAME, zh: '灰宝独轮车 - 后现代 B 站弹幕工具' },
                 description: { '': PRODUCT_DESCRIPTION, zh: PRODUCT_DESCRIPTION },
                 namespace: GITHUB_PROFILE_URL,

@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="100" src="src/assets/Logo.svg" alt="HazelSpam Logo">
+  <img width="100" src="images/Logo.svg" alt="HazelSpam Logo">
 
 [![GitHub Release](https://img.shields.io/github/v/release/Yuuenn/HazelSpam)](https://hazel.idols.ltd/HazelSpam.min.user.js)
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Yuuenn/HazelSpam/ci.yml)](https://github.com/Yuuenn/HazelSpam/actions/workflows/ci.yml)

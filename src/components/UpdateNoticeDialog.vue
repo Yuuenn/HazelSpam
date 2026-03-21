@@ -2,8 +2,8 @@
 import { computed } from 'vue'
 import AppButton from './AppButton.vue'
 import AppDialog from './AppDialog.vue'
-import { unsafeWindow } from '$'
 import { PRODUCT_NAME } from '@/constants/brand'
+import { openExternalUrl } from '@/utils/ui/openExternalUrl'
 import { useUpdateDialogState } from '@/utils/ui/updateDialog'
 
 const updateDialogState = useUpdateDialogState()
@@ -20,12 +20,12 @@ const dialogTitle = computed(() =>
 )
 
 const openChangelog = () => {
-    unsafeWindow.open(updateDialogState.changelogUrl)
+    openExternalUrl(updateDialogState.changelogUrl)
 }
 
 const installUpdate = () => {
     if (!updateDialogState.downloadUrl) return
-    unsafeWindow.open(updateDialogState.downloadUrl)
+    openExternalUrl(updateDialogState.downloadUrl)
 }
 </script>
 

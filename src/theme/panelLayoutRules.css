@@ -1,0 +1,127 @@
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) .hazelspam-responsive-scope {
+    container-type: inline-size;
+    container-name: hazelspam-panel;
+    min-width: 0;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) .hazelspam-responsive-split {
+    display: grid;
+    gap: var(--hazelspam-responsive-gap, var(--hazelspam-space-xl));
+    align-items: stretch;
+    min-height: 0;
+    grid-template-columns: var(
+        --hazelspam-responsive-split-columns,
+        minmax(0, 1fr) minmax(0, 1fr)
+    );
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    :is(.hazelspam-responsive-split > *, .hazelspam-responsive-panel) {
+    min-width: 0;
+    min-height: 0;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    :is(.hazelspam-responsive-grid, .hazelspam-responsive-fit-grid) {
+    display: grid;
+    gap: var(--hazelspam-responsive-grid-gap, var(--hazelspam-space-3xl));
+    align-items: start;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    :is(.hazelspam-responsive-grid, .hazelspam-responsive-fit-grid)
+    > * {
+    min-width: 0;
+    min-height: 0;
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) .hazelspam-responsive-fit-grid {
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(min(var(--hazelspam-responsive-fit-min, 320px), 100%), 1fr)
+    );
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    .hazelspam-responsive-grid[data-hazelspam-grid='6'] {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    .hazelspam-responsive-grid[data-hazelspam-grid='3'] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+:is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+    .hazelspam-responsive-grid[data-hazelspam-grid='2'] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@container hazelspam-panel (max-width: 1080px) {
+    :is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+        .hazelspam-responsive-grid[data-hazelspam-grid='3'] {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@container hazelspam-panel (max-width: 960px) {
+    :is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+        .hazelspam-responsive-grid[data-hazelspam-grid='6'] {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@container hazelspam-panel (max-width: 760px) {
+    :is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+        .hazelspam-responsive-split {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+    }
+
+    :is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+        .hazelspam-responsive-split[data-hazelspam-stack='fill'] {
+        flex: none;
+    }
+
+    :is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+        .hazelspam-responsive-split[data-hazelspam-stack='fill']
+        > .hazelspam-responsive-panel {
+        height: auto;
+        min-height: var(--hazelspam-responsive-panel-min-height, auto);
+    }
+
+    :is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+        .hazelspam-responsive-grid[data-hazelspam-grid='6'] {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    :is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+        :is(
+            .hazelspam-responsive-grid[data-hazelspam-grid='3'],
+            .hazelspam-responsive-grid[data-hazelspam-grid='2']
+        ) {
+        grid-template-columns: 1fr;
+    }
+
+    :is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) .hazelspam-faux-scroll {
+        overscroll-behavior: auto;
+    }
+}
+
+@container hazelspam-panel (max-width: 560px) {
+    :is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+        .hazelspam-responsive-grid[data-hazelspam-grid='6'] {
+        grid-template-columns: 1fr;
+    }
+
+    :is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root) .hazelspam-panel-actions {
+        flex-wrap: wrap;
+        justify-content: stretch;
+    }
+
+    :is(#hazelspam, .hazelspam-modal, .hazelspam-dialog, .hazelspam-root)
+        .hazelspam-panel-actions
+        :is(.hazelspam-app-button, [data-hazelspam-button-style]) {
+        flex: 1 1 100%;
+    }
+}

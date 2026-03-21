@@ -4,7 +4,6 @@ import FileUpload, { type FileUploadUploaderEvent } from 'primevue/fileupload'
 import SelectButton from 'primevue/selectbutton'
 import ToggleSwitch from 'primevue/toggleswitch'
 import AppButton from './AppButton.vue'
-import SettingDebugPanel from './SettingDebugPanel.vue'
 import { createAppButtonProps } from '@/constants/button'
 import { PROJECT_HOMEPAGE_URL } from '@/constants/brand'
 import { checkUpdate } from '@/utils/checkUpdate'
@@ -28,6 +27,7 @@ import { useUIStore } from '@/stores/useUIStore'
 import Storage from '@/utils/storage'
 import { useDiscreteAPI } from '@/utils/ui'
 import { showUpdateDialog } from '@/utils/ui/updateDialog'
+import { openExternalUrl } from '@/utils/ui/openExternalUrl'
 import { GM_info, unsafeWindow } from '$'
 import {
     APP_TOOLTIP_UP_CLASS,
@@ -37,7 +37,7 @@ import {
     PRODUCT_SUBTITLE,
     PROJECT_REPOSITORY_URL
 } from '@/constants/brand'
-import brandLogoUrl from '@/assets/Logo.svg?url'
+import brandLogoUrl from '@/assets/Icon.svg?url'
 
 const moduleStore = useModuleStore()
 const uiStore = useUIStore()
@@ -104,7 +104,7 @@ const triggerTextDownload = (
 }
 
 const openExternalPage = (url: string) => {
-    unsafeWindow.open(url)
+    openExternalUrl(url)
 }
 
 const handleManualCheckUpdate = async () => {
@@ -325,19 +325,21 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="setting-view">
+    <div class="setting-view hazelspam-responsive-scope">
         <header class="setting-view__header">
             <h2>{{ PRODUCT_NAME }} 设置</h2>
             <p>您可以调整 {{ PRODUCT_NAME }} 设置</p>
         </header>
 
-        <div class="settings-layout">
+        <div class="settings-layout hazelspam-responsive-fit-grid">
             <div class="settings-column-stack settings-column-stack--left">
                 <section class="hazelspam-panel-card setting-module">
                     <header class="setting-module__head">
                         <h3>通用</h3>
                     </header>
-                    <div class="setting-control-grid setting-control-grid--two">
+                    <div
+                        class="setting-control-grid setting-control-grid--two hazelspam-responsive-fit-grid"
+                    >
                         <div class="setting-control-item setting-control-item--switch">
                             <label class="setting-control-label">移除弹幕栏滚动条</label>
                             <span
@@ -509,7 +511,7 @@ onBeforeUnmount(() => {
                     </header>
 
                     <div class="about-content">
-                        <div class="about-main">
+                        <div class="about-main hazelspam-responsive-split">
                             <div class="about-logo-shell" aria-hidden="true">
                                 <img class="about-logo-image" :src="brandLogoUrl" alt="" />
                             </div>
@@ -616,13 +618,12 @@ onBeforeUnmount(() => {
                 </section>
             </div>
 
-            <SettingDebugPanel
-                v-if="uiStore.isSettingDebugModuleVisible"
-                class="settings-debug-slot"
-            />
+            <!-- Hidden debug panel is intentionally not mounted in the settings UI for now.
+                 Keep SettingDebugPanel/useSettingDebugPanel and the reveal state machine for
+                 future re-enable, but keep the current layout free of debug-only content. -->
         </div>
 
-        <div class="hazelspam-panel-actions">
+        <div class="hazelspam-panel-actions setting-actions">
             <AppButton
                 tone="surface"
                 class="setting-close-btn"
@@ -660,21 +661,30 @@ onBeforeUnmount(() => {
 }
 
 .settings-layout {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    --hazelspam-responsive-grid-gap: var(--hazelspam-space-xl);
+    --hazelspam-responsive-fit-min: 380px;
+    align-items: stretch;
     gap: var(--hazelspam-space-xl);
     flex: 1;
     min-height: 0;
+    overflow: hidden;
 }
 
 .settings-column-stack {
     display: grid;
+    grid-auto-rows: max-content;
+    align-content: start;
+    align-self: stretch;
     gap: var(--hazelspam-space-xl);
+    min-width: 0;
     min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
 }
 
 .settings-column-stack--left {
-    grid-template-rows: max-content minmax(0, 1fr);
+    grid-template-rows: max-content max-content;
 }
 
 .settings-column-stack--right {
@@ -724,7 +734,8 @@ onBeforeUnmount(() => {
 }
 
 .setting-control-grid--two {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    --hazelspam-responsive-grid-gap: var(--hazelspam-space-3xl);
+    --hazelspam-responsive-fit-min: 240px;
 }
 
 .setting-control-grid--single {
@@ -914,26 +925,24 @@ onBeforeUnmount(() => {
 .about-main {
     width: 100%;
     max-width: 460px;
-    display: grid;
-    grid-template-columns: 100px minmax(0, 1fr);
-    gap: var(--hazelspam-space-xl);
+    --hazelspam-responsive-split-columns: 120px minmax(0, 1fr);
     align-items: start;
-    justify-content: center;
+    justify-content: stretch;
 }
 
 .about-logo-shell {
     align-self: center;
-    width: 100px;
-    height: 100px;
-    border: 1px solid var(--hazelspam-color-surface-border, var(--p-content-border-color));
-    border-radius: var(--hazelspam-radius-lg);
-    background: color-mix(in srgb, var(--hazelspam-color-brand, #89b4c7) 12%, transparent);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hazelspam-color-brand, #89b4c7) 25%, transparent);
-    overflow: hidden;
+    width: 120px;
+    height: 120px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--hazelspam-space-sm);
+    border-radius: var(--hazelspam-radius-xl);
+    transition:
+        background var(--hazelspam-motion-duration-normal, 0.16s)
+            var(--hazelspam-motion-ease-standard, ease),
+        box-shadow var(--hazelspam-motion-duration-normal, 0.16s)
+            var(--hazelspam-motion-ease-standard, ease);
 }
 
 .about-logo-image {
@@ -941,6 +950,45 @@ onBeforeUnmount(() => {
     height: 100%;
     object-fit: contain;
     display: block;
+    filter:
+        drop-shadow(
+            0 4px 9px
+                color-mix(in srgb, var(--hazelspam-color-shadow-outer, #000000) 14%, transparent)
+        )
+        drop-shadow(
+            0 1px 0
+                color-mix(in srgb, var(--hazelspam-color-shadow-inner, #ffffff) 44%, transparent)
+        );
+    transition:
+        filter var(--hazelspam-motion-duration-normal, 0.16s)
+            var(--hazelspam-motion-ease-standard, ease),
+        transform var(--hazelspam-motion-duration-normal, 0.16s)
+            var(--hazelspam-motion-ease-standard, ease);
+}
+
+:global(.hazelspam-dark) .about-logo-shell {
+    background: color-mix(
+        in srgb,
+        var(--hazelspam-color-shell-card-bg, #101215) 72%,
+        var(--hazelspam-color-shadow-outer, #000000) 28%
+    );
+    box-shadow:
+        0 8px 18px color-mix(in srgb, var(--hazelspam-color-shadow-outer, #000000) 54%, transparent),
+        inset 0 0 0 1px color-mix(in srgb, var(--hazelspam-color-shadow-inner, #ffffff) 12%, transparent);
+}
+
+:global(.hazelspam-dark) .about-logo-image {
+    filter:
+        brightness(0.88)
+        saturate(0.92)
+        drop-shadow(
+            0 6px 14px
+                color-mix(in srgb, var(--hazelspam-color-shadow-outer, #000000) 62%, transparent)
+        )
+        drop-shadow(
+            0 1px 0
+                color-mix(in srgb, var(--hazelspam-color-shadow-inner, #ffffff) 24%, transparent)
+        );
 }
 
 .about-details {
@@ -1002,57 +1050,38 @@ onBeforeUnmount(() => {
     gap: var(--hazelspam-space-md);
 }
 
-.settings-debug-slot {
-    min-height: 0;
+.setting-actions {
+    flex: 0 0 auto;
 }
 
-@media (max-width: 1180px) {
+@container hazelspam-panel (max-width: 760px) {
     .settings-layout {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        grid-template-areas:
-            'left right'
-            'debug debug';
+        flex: 0 0 auto;
+        align-content: start;
+        overflow: visible;
     }
 
-    .settings-column-stack--left {
-        grid-area: left;
-    }
-
+    .settings-column-stack--left,
     .settings-column-stack--right {
-        grid-area: right;
+        grid-template-rows: none;
+        overflow: visible;
     }
 
-    .settings-debug-slot {
-        grid-area: debug;
-    }
-}
-
-@media (max-width: 760px) {
-    .settings-layout {
-        grid-template-columns: 1fr;
-        grid-template-areas:
-            'left'
-            'right'
-            'debug';
+    .about-content {
+        align-items: stretch;
     }
 
-    .setting-control-grid--two {
-        grid-template-columns: 1fr;
-    }
-
-    .about-main {
-        grid-template-columns: 1fr;
-        justify-items: center;
-        text-align: center;
+    .about-main,
+    .about-actions {
+        max-width: none;
     }
 
     .about-logo-shell {
-        width: 100px;
-        height: 100px;
+        align-self: flex-start;
     }
 
     .about-details {
-        align-items: center;
+        padding-top: 0;
     }
 }
 </style>

@@ -72,6 +72,7 @@ ${scrollbarScope} *:focus-within::-webkit-scrollbar-thumb {
 ${tooltipSelector},
 ${tooltipUpSelector} {
     --hazelspam-tooltip-bg-current: color-mix(in srgb, var(--hazelspam-color-tooltip-bg, #0f172a) 92%, transparent);
+    max-width: min(var(--hazelspam-size-tooltip-max-width, 240px), calc(100vw - 24px));
 }
 ${tooltipSelector}.p-tooltip-right,
 ${tooltipSelector}.p-tooltip-left,
@@ -87,6 +88,9 @@ ${tooltipUpSelector}.p-tooltip-bottom {
 }
 ${tooltipSelector} .p-tooltip-text,
 ${tooltipUpSelector} .p-tooltip-text {
+    display: inline-block;
+    width: max-content;
+    max-width: 100%;
     border-radius: var(--hazelspam-radius-sm, 8px);
     padding: var(--hazelspam-space-sm, 6px) var(--hazelspam-space-md, 8px);
     background: var(--hazelspam-tooltip-bg-current);

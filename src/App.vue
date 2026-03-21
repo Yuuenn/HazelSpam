@@ -24,6 +24,7 @@ import {
 import './theme/typographyTokens.css'
 import './theme/typographyRules.css'
 import './theme/layoutTokens.css'
+import './theme/panelLayoutRules.css'
 import './theme/interactionRules.css'
 import './theme/buttonRules.css'
 
@@ -32,7 +33,7 @@ const biliStore = useBiliStore()
 uiStore.uiConfig.isShowPanel = false
 
 const panelVisible = toRef(uiStore.uiConfig, 'isShowPanel')
-const { shellStageStyle, updateShellViewport } = useAppShellLayout(panelVisible)
+const { shellStageClass, shellStageStyle, updateShellViewport } = useAppShellLayout(panelVisible)
 const { syncThemeFromHost } = useHostThemeSync(uiStore.uiConfig, { syncColorTokens: true })
 const isDarkTheme = computed(() => uiStore.uiConfig.theme === 'dark')
 const rootClass = computed(() => [APP_ROOT_CLASS, { [APP_DARK_CLASS]: isDarkTheme.value }])
@@ -74,7 +75,7 @@ useGlobalScrollbarStyle()
                 content: { style: 'padding: 0; overflow: visible; background: transparent;' }
             }"
         >
-            <div class="hazelspam-shell-stage" :style="shellStageStyle">
+            <div :class="['hazelspam-shell-stage', shellStageClass]" :style="shellStageStyle">
                 <div class="hazelspam-shell">
                     <aside class="hazelspam-shell__sider">
                         <PanelMenu />
@@ -455,14 +456,4 @@ useGlobalScrollbarStyle()
     line-height: 1.45;
 }
 
-@media (max-width: 920px) {
-    .hazelspam-shell__content {
-        padding: var(--hazelspam-shell-mobile-padding) var(--hazelspam-shell-mobile-padding)
-            var(--hazelspam-shell-mobile-padding) 0;
-    }
-
-    .hazelspam-shell__content-card {
-        padding: var(--hazelspam-shell-mobile-card-padding);
-    }
-}
 </style>
