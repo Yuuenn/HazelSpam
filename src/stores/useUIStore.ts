@@ -1,14 +1,34 @@
 import { defineStore } from 'pinia'
-import { reactive, watch } from 'vue'
+import { reactive, ref, watch } from 'vue'
 import _ from 'lodash'
 import { MenuIndex, UiConfig } from '@/types'
 import Storage from '@/utils/storage'
 
+const DEBUG_MODULE_REVEAL_CLICK_TARGET = 22
+
 export const useUIStore = defineStore('ui', () => {
     const uiConfig: UiConfig = reactive(Storage.getUiConfig())
+    // Keep the hidden debug reveal state machine available for future re-enable.
+    // The settings UI currently does not mount the debug panel, so this state stays dormant.
+    const isSettingDebugModuleVisible = ref(false)
+    const settingDebugRevealProgress = ref(0)
 
     const updateMenuValue = (key: MenuIndex) => {
         uiConfig.activeMenuIndex = key
+    }
+
+    const registerRailBrandClick = () => {
+        if (isSettingDebugModuleVisible.value) return
+
+        settingDebugRevealProgress.value += 1
+
+        if (settingDebugRevealProgress.value < DEBUG_MODULE_REVEAL_CLICK_TARGET) {
+            return
+        }
+
+        isSettingDebugModuleVisible.value = true
+        settingDebugRevealProgress.value = DEBUG_MODULE_REVEAL_CLICK_TARGET
+        uiConfig.activeMenuIndex = 'SettingView'
     }
 
     watch(
@@ -18,6 +38,8 @@ export const useUIStore = defineStore('ui', () => {
 
     return {
         uiConfig,
-        updateMenuValue
+        updateMenuValue,
+        isSettingDebugModuleVisible,
+        registerRailBrandClick
     }
 })

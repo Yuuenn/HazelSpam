@@ -4,7 +4,6 @@ import FileUpload, { type FileUploadUploaderEvent } from 'primevue/fileupload'
 import SelectButton from 'primevue/selectbutton'
 import ToggleSwitch from 'primevue/toggleswitch'
 import AppButton from './AppButton.vue'
-import SettingDebugPanel from './SettingDebugPanel.vue'
 import { createAppButtonProps } from '@/constants/button'
 import { PROJECT_HOMEPAGE_URL } from '@/constants/brand'
 import { checkUpdate } from '@/utils/checkUpdate'
@@ -619,7 +618,9 @@ onBeforeUnmount(() => {
                 </section>
             </div>
 
-            <SettingDebugPanel class="settings-debug-slot" />
+            <!-- Hidden debug panel is intentionally not mounted in the settings UI for now.
+                 Keep SettingDebugPanel/useSettingDebugPanel and the reveal state machine for
+                 future re-enable, but keep the current layout free of debug-only content. -->
         </div>
 
         <div class="hazelspam-panel-actions setting-actions">
@@ -662,16 +663,24 @@ onBeforeUnmount(() => {
 .settings-layout {
     --hazelspam-responsive-grid-gap: var(--hazelspam-space-xl);
     --hazelspam-responsive-fit-min: 380px;
+    align-items: stretch;
     gap: var(--hazelspam-space-xl);
-    flex: 0 0 auto;
+    flex: 1;
     min-height: 0;
+    overflow: hidden;
 }
 
 .settings-column-stack {
     display: grid;
+    grid-auto-rows: max-content;
+    align-content: start;
+    align-self: stretch;
     gap: var(--hazelspam-space-xl);
     min-width: 0;
     min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
 }
 
 .settings-column-stack--left {
@@ -679,7 +688,7 @@ onBeforeUnmount(() => {
 }
 
 .settings-column-stack--right {
-    grid-template-rows: max-content;
+    grid-template-rows: minmax(0, 1fr);
 }
 
 .hazelspam-panel-card {
@@ -1041,25 +1050,21 @@ onBeforeUnmount(() => {
     gap: var(--hazelspam-space-md);
 }
 
-.settings-debug-slot {
-    min-height: 0;
-    min-width: 0;
-    width: 100%;
-    grid-column: 1 / -1;
-}
-
 .setting-actions {
     flex: 0 0 auto;
 }
 
 @container hazelspam-panel (max-width: 760px) {
     .settings-layout {
+        flex: 0 0 auto;
         align-content: start;
+        overflow: visible;
     }
 
     .settings-column-stack--left,
     .settings-column-stack--right {
         grid-template-rows: none;
+        overflow: visible;
     }
 
     .about-content {

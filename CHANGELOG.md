@@ -12,6 +12,22 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Fixed
 
+## [1.0.2] - 2026-03-21
+
+### Added
+
+### Changed
+
+- 收口面板响应式布局规则，新增共享的容器驱动布局原语，并统一 `TextView`、`EmotionView`、`SettingView` 的窄宽处理方式。
+- 更新 HazelSpam 图标资源与 userscript 图标接线，统一使用 `Icon.svg` 生成脚本图标。
+- 根目录 `AGENTS.md` 补充面板响应式、浮层 tooltip 与 Chrome MCP 排查约定。
+
+### Fixed
+
+- 修复多处按钮与交互控件的焦点描边裁切问题。
+- 修复设置页与响应式堆叠态下的 tooltip 宽度异常与定位退化问题。
+- 修复设置页在正常宽度下的主区高度语义不一致问题，并暂时移除设置页中的调试模块展示以便后续排查。
+
 ## [1.0.1] - 2026-03-16
 
 ### Added
