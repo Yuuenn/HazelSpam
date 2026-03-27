@@ -10,9 +10,8 @@ import { PRODUCT_NAME } from '@/constants/brand'
 
 const {
     packageCards,
+    packagePanels,
     selectedPackageId,
-    selectedPackageEmotionCards,
-    selectedPackageGridVariant,
     hasSelectedInCurrentPackage,
     selectedEmotionCount,
     handleSelectPackage,
@@ -104,8 +103,7 @@ const {
                 <EmotionGridPanel
                     class="emotion-send__column emotion-send__column--grid hazelspam-responsive-panel"
                     :package-id="selectedPackageId"
-                    :emotion-items="selectedPackageEmotionCards"
-                    :image-variant="selectedPackageGridVariant"
+                    :package-panels="packagePanels"
                     :has-selected-in-current-package="hasSelectedInCurrentPackage"
                     :disabled="isEmotionSpamRunning"
                     @toggle-emotion="toggleEmotionSelection"

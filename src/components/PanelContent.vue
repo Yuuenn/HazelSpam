@@ -22,7 +22,9 @@ export default defineComponent({
 
 <template>
     <div class="panel-content">
-        <component :is="uiStore.uiConfig.activeMenuIndex"></component>
+        <KeepAlive>
+            <component :is="uiStore.uiConfig.activeMenuIndex"></component>
+        </KeepAlive>
     </div>
 </template>
 
