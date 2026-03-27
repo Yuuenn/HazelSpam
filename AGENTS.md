@@ -159,7 +159,10 @@
 - 当前已验证的直播页启动脚本会按 `document.documentElement.getAttribute('lab-style')` 调用 `bililiveThemeV2.initThemeWithCSR(...)`；因此刷新后的宿主主题会重新回到 `lab-style` 对应状态
 - 当前已验证的 `bililiveThemeV2.changeTheme()` 只会切换 `#__css-map__` 并写入 `theme_style` cookie，不会同步实验室 `dark` 状态；它只能代表“当前页临时切换结果”，不要把它当成刷新后仍成立的持久真值
 - 当前已验证的跨会话浏览器主题同步场景里，如果上一会话持久态仍是 `dark`，则新开页首屏即使浏览器已经是 `light`，宿主仍会先按 `lab-style=dark` 完成一次 `initThemeWithCSR('dark')`，随后还可能再补一次等值 `changeTheme('dark')`；实现浏览器主题同步时，必须把这类“宿主启动期重放当前主题”与“用户手动改主题”区分开
-- 当前已验证的 `blackboard` 顶层页和 `/blanc/...?...liteVersion=true` 页面不具备直播页那种“完整宿主题切换”能力；这两类页面的明暗同步应按 UI-only 浏览器同步处理，不要把它们的 `cssMap` 或 `bililiveThemeV2.changeTheme()` 当成宿主完整主题真值
+- 当前已验证的 `blackboard` 顶层页不具备直播页那种“完整宿主题切换”能力；这类页面应优先走 `surface-patch/UI-only`。
+- 对 `/blanc/...?...liteVersion=true` 页面不要只按 URL 直接降级；应优先做“能力优先”判断：
+  - 若可拿到实验室 `dark` 开关 VM（`getStatus/toggleSwitch`），应优先走 `host-complete`。
+  - 若该能力不可用，再回退到 `surface-patch` 或 `ui-only`。
 - 需要让宿主主题在刷新后仍保持一致时，应优先通过实验室 `dark` 开关或对应 VM 进行切换，再用 `bililiveThemeV2`、`lab-style` 和首屏桥接结果做交叉校验；不要仅凭 `getTheme()` 或 cookie 判定宿主持久状态
 - B 站直播页宿主题的已验证状态模型、对照截图依据和几个“部分 dark / 完整 dark”差异点，统一记录在 `docs/bilibili-live-theme-model.md`；后续改主题同步逻辑前优先先看这份文档，避免重复在线排查
 - `Dark Reader` 对直播页的判定更接近“当前渲染结果是否已经足够暗”，不是“宿主是否进入完整 dark”；它可能把“`dark.css` 已挂载但 `lab-style` 仍为空”的部分 dark 误判成站点自带暗色，因此不要把 `Dark Reader` 的接管/跳过结果当成宿主真值

@@ -187,20 +187,23 @@
 - 顶层页虽然带有通用的 `#__css-map__ -> short/bili-theme/light.css`，但这类信号不足以代表可控宿主题
 - 顶层页可以直接把 `#__css-map__` 在 `short/bili-theme/light.css` 和 `short/bili-theme/dark.css` 之间切换；再配合 `color-scheme`，顶部栏、搜索和页脚会走 B 站自己的原生暗色样式
 - 顶层页的“活动主视觉”本身不应被整体重画；真正需要补的是 B 站通用壳层，如顶部栏、搜索和页脚
-- 内嵌的 `/blanc/...?...liteVersion=true` 房间 iframe 虽然存在 `bililiveThemeV2`，但没有实验室控制器，`changeTheme()` 只会切 `cssMap`，不会形成直播页那种“完整 dark”
-- `liteVersion` iframe 同样可以直接在 `laputa-css/light.css` 和 `laputa-css/dark.css` 之间切换；关键壳层会随原生样式一并进入 dark
+- `liteVersion` iframe 不能再简单按“全部不可控”处理：已验证存在两类实现
+  - 一类页面没有实验室 `dark` 控制能力，只能依赖 `cssMap + color-scheme + surface-patch`
+  - 另一类页面可以通过实验室 `dark` VM 完成完整切换，行为更接近普通直播页
+- `liteVersion` 页面可直接在 `laputa-css/light.css` 和 `laputa-css/dark.css` 之间切换；关键壳层会随原生样式一并进入 dark
 - `liteVersion` iframe 最明显的浅色宿主壳层包括：
   - `.head-info-section`
   - `.gift-control-panel`
   - `.chat-history-panel`
   - `.chat-input-ctnr`
-- 这两类页面当前都不具备“宿主完整 dark”切换链路，但已经可以优先通过“原生 `cssMap` 切换 + `color-scheme`”进入稳定暗色；只有原生链路不成立时，才应回退到自定义 `surface-patch`
+- `blackboard` 顶层页当前仍不具备“宿主完整 dark”切换链路，应优先通过“原生 `cssMap` 切换 + `color-scheme`”，只有原生链路不成立时才回退到自定义 `surface-patch`
+- `liteVersion` 页面应按能力分流：能拿到实验室 `dark` VM 时优先走完整宿主切换；拿不到时再按 `surface-patch` 处理
 
 对实现的直接约束：
 
-- `blackboard` 顶层页和 `/blanc/...?...liteVersion=true` 页面，都应视为“不可控宿主题真值上下文”
-- 这两类页面里，不要再尝试通过 `bililiveThemeV2` 推断或切换宿主完整主题
-- 浏览器同步应优先尝试 `surface-patch`：
+- `blackboard` 顶层页应视为“不可控宿主题真值上下文”，不要尝试通过 `bililiveThemeV2` 推断完整宿主题
+- `/blanc/...?...liteVersion=true` 页面应先尝试拿实验室 `dark` VM；可用时走完整宿主同步，不可用时再走 `surface-patch`
+- 浏览器同步在 `surface-patch` 分支里应优先尝试：
   - 先切宿主自己的 `#__css-map__` 到 `dark.css` / `light.css`
   - 同步 `color-scheme`
   - 只有原生样式链路仍不足时，才补自定义壳层样式

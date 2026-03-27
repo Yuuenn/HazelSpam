@@ -614,6 +614,95 @@ describe('useHostThemeSync', () => {
         expect(originalInitThemeWithCSR).not.toHaveBeenCalled()
     })
 
+    it('prefers host-complete flow on lite live pages when laboratory dark toggle is available', async () => {
+        vi.resetModules()
+        vi.useFakeTimers()
+
+        const documentMock = createDocumentMock()
+        installCommonDomMocks(documentMock)
+        vi.stubGlobal('location', {
+            pathname: '/blanc/6',
+            search: '?liteVersion=true'
+        })
+        vi.stubGlobal('matchMedia', vi.fn(() => ({
+            matches: true,
+            addEventListener: vi.fn(),
+            addListener: vi.fn()
+        })))
+
+        const toggleSwitch = vi.fn(async () => {
+            hostThemeApi.theme = 'dark'
+            documentMock.__setThemeSignals({
+                labStyle: 'dark',
+                cssMapTheme: 'dark',
+                navbarTheme: 'dark',
+                roomTheme: 'dark'
+            })
+        })
+        const labPanelVm = {
+            configs: {
+                dark: { status: 0, option: {} }
+            },
+            plugs: {
+                dark: { status: 1, option: {} }
+            },
+            getStatus: vi.fn(() => 'off' as const),
+            toggleSwitch
+        }
+        const switchNode = {
+            __vue__: {
+                $parent: labPanelVm
+            }
+        } as unknown as HTMLElement
+        const labItem = {
+            querySelector: vi.fn((selector: string) => {
+                if (selector === '.lab-title') {
+                    return { textContent: '深色模式' } as HTMLElement
+                }
+                if (selector === '.bl-switch') {
+                    return switchNode
+                }
+                return null
+            })
+        } as unknown as HTMLElement
+        documentMock.querySelectorAll = vi.fn((selector: string) =>
+            selector === '.lab-item' ? [labItem] : []
+        )
+
+        const hostThemeApi = {
+            theme: 'light' as UiConfig['theme'],
+            getTheme: vi.fn(() => hostThemeApi.theme),
+            changeTheme: vi.fn((theme: UiConfig['theme']) => {
+                hostThemeApi.theme = theme
+            }),
+            initThemeWithCSR: vi.fn((theme: UiConfig['theme']) => {
+                hostThemeApi.theme = theme
+            })
+        }
+        ;(globalThis as typeof globalThis & { bililiveThemeV2?: typeof hostThemeApi }).bililiveThemeV2 =
+            hostThemeApi
+
+        const { getBiliThemeRuntimeSnapshot, useHostThemeSync } = await import(
+            '@/composables/useHostThemeSync'
+        )
+        const uiConfig = reactive(createUiConfig())
+
+        useHostThemeSync(uiConfig)
+        await nextTick()
+        await Promise.resolve()
+        await vi.advanceTimersByTimeAsync(3000)
+
+        expect(toggleSwitch).toHaveBeenCalledTimes(1)
+        expect(toggleSwitch).toHaveBeenCalledWith({ target: switchNode }, 'dark')
+        expect(uiConfig.theme).toBe('dark')
+        expect(documentMock.documentElement.style.colorScheme).toBe('dark')
+        expect(getBiliThemeRuntimeSnapshot()).toMatchObject({
+            strategy: 'lite-live',
+            effectiveMode: 'host-complete',
+            effectiveTheme: 'dark'
+        })
+    })
+
     it('adds and removes the Dark Reader complete-dark signal from bridge snapshots', async () => {
         vi.resetModules()
 

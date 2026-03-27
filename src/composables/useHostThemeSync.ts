@@ -231,7 +231,9 @@ const resolveBiliThemeStrategy = (): BiliThemeStrategy => {
         return {
             id: 'lite-live',
             surfaceContext,
-            supportsHostComplete: false,
+            // Some liteVersion pages now expose the same laboratory dark-mode flow as normal live rooms.
+            // Try host-complete first, then fall back to surface-patch/ui-only if unavailable.
+            supportsHostComplete: true,
             supportsSurfacePatch: true,
             unavailableMode: 'ui-only'
         }
