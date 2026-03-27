@@ -280,6 +280,12 @@ const handleConfigUpload = async (event: FileUploadUploaderEvent) => {
 
         appendImportedTabSnapshot(importedPayload.textTabs)
         configImportUploadRef.value?.clear()
+        notification.success({
+            title: '导入成功',
+            content: `已追加 ${importedPayload.textTabs.tabPanels.length} 个文本标签页`,
+            closable: false,
+            duration: 2500
+        })
     } catch {
         dialog.error({
             title: '导入失败',
