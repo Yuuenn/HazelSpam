@@ -10,6 +10,7 @@ class EmotionSpamModule extends BaseModule {
     private intervalId: NodeJS.Timeout | null = null
     private timeLimitId: NodeJS.Timeout | null = null
     private generalEmojiTextMap: Map<string, string> = new Map()
+    private isSending = false
 
     private formatTime(time: number): number {
         return time * 1000
@@ -24,6 +25,7 @@ class EmotionSpamModule extends BaseModule {
             clearTimeout(this.timeLimitId)
             this.timeLimitId = null
         }
+        this.isSending = false
     }
 
     private buildGeneralEmojiTextMap(): Map<string, string> {
@@ -113,9 +115,16 @@ class EmotionSpamModule extends BaseModule {
                 this.cleanUp()
                 return
             }
+            if (this.isSending) return
 
-            await this.sendEmotion(emotions[currentIndex], roomid)
-            currentIndex = (currentIndex + 1) % emotions.length
+            this.isSending = true
+
+            try {
+                await this.sendEmotion(emotions[currentIndex], roomid)
+                currentIndex = (currentIndex + 1) % emotions.length
+            } finally {
+                this.isSending = false
+            }
         }
 
         sendNextEmotion()
@@ -131,10 +140,17 @@ class EmotionSpamModule extends BaseModule {
                 this.cleanUp()
                 return
             }
+            if (this.isSending) return
 
-            const emotion = this.pickByShuffleQueue(emotions, shuffleQueue, lastSentEmotion)
-            await this.sendEmotion(emotion, roomid)
-            lastSentEmotion = emotion
+            this.isSending = true
+
+            try {
+                const emotion = this.pickByShuffleQueue(emotions, shuffleQueue, lastSentEmotion)
+                await this.sendEmotion(emotion, roomid)
+                lastSentEmotion = emotion
+            } finally {
+                this.isSending = false
+            }
         }
 
         sendNextEmotion()
