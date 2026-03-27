@@ -155,6 +155,14 @@
 - 修改 userscript 元信息时，务必谨慎对待 `match`、`connect`、`downloadURL`、`updateURL`、`homepageURL` 等字段
 - 修改 `vite.config.ts` 中 `vite-plugin-monkey` 配置时，不要破坏外部 CDN 映射和构建入口
 - 宿主主题同步优先复用宿主现有 API、侧边栏控制器和实验室开关，不要直接硬改宿主 `lab-style` token 或伪造开关视觉状态
+- 当前已验证的 B 站直播页主题优先级里，首屏 SSR 会直接返回 `html[lab-style]` 和 `#__css-map__` 指向的 `light.css` / `dark.css`；宿主页面初始主题应优先以这两个信号为准，不要只看 `theme_style` cookie
+- 当前已验证的直播页启动脚本会按 `document.documentElement.getAttribute('lab-style')` 调用 `bililiveThemeV2.initThemeWithCSR(...)`；因此刷新后的宿主主题会重新回到 `lab-style` 对应状态
+- 当前已验证的 `bililiveThemeV2.changeTheme()` 只会切换 `#__css-map__` 并写入 `theme_style` cookie，不会同步实验室 `dark` 状态；它只能代表“当前页临时切换结果”，不要把它当成刷新后仍成立的持久真值
+- 当前已验证的跨会话浏览器主题同步场景里，如果上一会话持久态仍是 `dark`，则新开页首屏即使浏览器已经是 `light`，宿主仍会先按 `lab-style=dark` 完成一次 `initThemeWithCSR('dark')`，随后还可能再补一次等值 `changeTheme('dark')`；实现浏览器主题同步时，必须把这类“宿主启动期重放当前主题”与“用户手动改主题”区分开
+- 当前已验证的 `blackboard` 顶层页和 `/blanc/...?...liteVersion=true` 页面不具备直播页那种“完整宿主题切换”能力；这两类页面的明暗同步应按 UI-only 浏览器同步处理，不要把它们的 `cssMap` 或 `bililiveThemeV2.changeTheme()` 当成宿主完整主题真值
+- 需要让宿主主题在刷新后仍保持一致时，应优先通过实验室 `dark` 开关或对应 VM 进行切换，再用 `bililiveThemeV2`、`lab-style` 和首屏桥接结果做交叉校验；不要仅凭 `getTheme()` 或 cookie 判定宿主持久状态
+- B 站直播页宿主题的已验证状态模型、对照截图依据和几个“部分 dark / 完整 dark”差异点，统一记录在 `docs/bilibili-live-theme-model.md`；后续改主题同步逻辑前优先先看这份文档，避免重复在线排查
+- `Dark Reader` 对直播页的判定更接近“当前渲染结果是否已经足够暗”，不是“宿主是否进入完整 dark”；它可能把“`dark.css` 已挂载但 `lab-style` 仍为空”的部分 dark 误判成站点自带暗色，因此不要把 `Dark Reader` 的接管/跳过结果当成宿主真值
 - 任何新的宿主页面选择器、按钮插入点、主题同步规则，都要尽量复用现有工具和常量
 
 涉及宿主页面在线排查时：
@@ -163,6 +171,8 @@
 - 使用 DevTools Overrides、Snippet 或控制台注入时，只做最小必要改动，并在修复确认后及时恢复或清理
 - 涉及 `Tooltip`、`Toast`、`Dialog`、下拉菜单等追加到 `body` 的浮层问题时，优先在真实直播页里检查浮层 DOM、class、盒模型、滚动容器和宿主页样式干扰，不要只凭组件源码猜定位
 - 不要把临时调试 trace、覆盖脚本或控制台探针长期留在正式代码里
+- 记录在仓库内的 Markdown、`AGENTS.md` 或长期文档里的页面案例，应优先写成“某个真实直播间”“某个 `blackboard` 专题页”“某个 `liteVersion` 页面”这类泛化描述；除非确有必要，不要固化具体直播间号、专题页 URL 或其他可直接定位到单个页面的地址
+- 仓库内的 Markdown、`AGENTS.md` 和长期文档不要写入本地绝对路径、本地用户名、机器名或其他与开发者本机环境强绑定的信息；引用仓库文件时优先使用仓库内相对路径
 
 优先做“在当前架构内稳妥增强”，避免用一次性 hack 解决宿主页面兼容问题。
 

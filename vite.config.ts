@@ -77,7 +77,7 @@ export default defineConfig({
                 downloadURL: USERSCRIPT_DOWNLOAD_URL,
                 updateURL: USERSCRIPT_UPDATE_URL,
                 match: ['*://live.bilibili.com/*'],
-                'run-at': 'document-end',
+                'run-at': 'document-start',
                 connect: [
                     'api.bilibili.com',
                     'api.live.bilibili.com',
@@ -86,6 +86,7 @@ export default defineConfig({
                 ]
             },
             build: {
+                fileName: 'HazelSpam.user.js',
                 externalGlobals: {
                     vue: cdn
                         .jsdelivr('Vue', 'dist/vue.global.prod.js')
