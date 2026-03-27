@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, toRef, watch } from 'vue'
 import AppButton from './AppButton.vue'
-import type { EmotionGridItem, EmotionGridVariant } from '@/composables/useEmotionPackages'
+import type { EmotionGridItem, EmotionPackagePanel } from '@/composables/useEmotionPackages'
+import {
+    useEmotionImageWarmup,
+    type EmotionImageWarmupPanel
+} from '@/composables/useEmotionImageWarmup'
 
 const props = defineProps<{
     packageId: number | null
-    emotionItems: EmotionGridItem[]
-    imageVariant: EmotionGridVariant
+    packagePanels: EmotionPackagePanel[]
     hasSelectedInCurrentPackage: boolean
     disabled: boolean
 }>()
@@ -17,8 +20,35 @@ const emit = defineEmits<{
 }>()
 
 const hasPackage = computed(() => props.packageId !== null)
-const isGeneralVariant = computed(() => props.imageVariant === 'general')
-const isEmojiVariant = computed(() => props.imageVariant === 'emoji')
+const visitedPackageIds = ref<number[]>([])
+const packageImagePanels = computed<EmotionImageWarmupPanel[]>(() =>
+    props.packagePanels.map((panel) => ({
+        packageId: panel.packageId,
+        imageUrls: panel.emotionItems.map((item) => item.imageUrl)
+    }))
+)
+
+useEmotionImageWarmup({
+    packagePanels: packageImagePanels,
+    currentPackageId: toRef(props, 'packageId')
+})
+
+watch(
+    () => props.packageId,
+    (packageId) => {
+        if (packageId === null || visitedPackageIds.value.includes(packageId)) {
+            return
+        }
+
+        visitedPackageIds.value.push(packageId)
+    },
+    { immediate: true }
+)
+
+const visiblePackagePanels = computed(() => {
+    const visitedSet = new Set(visitedPackageIds.value)
+    return props.packagePanels.filter((panel) => visitedSet.has(panel.packageId))
+})
 
 const getEmotionGridButtonClass = (item: EmotionGridItem) => ({
     'emotion-grid-item--selected': item.isSelected,
@@ -33,37 +63,46 @@ const getEmotionGridButtonClass = (item: EmotionGridItem) => ({
                 <div class="hazelspam-scroll-hint-shell hazelspam-scroll-hint-shell--fill">
                     <div class="emotion-list__content hazelspam-faux-scroll">
                         <div
-                            class="emotion-grid"
-                            :class="{ 'emotion-grid--general': isGeneralVariant }"
+                            v-for="panel in visiblePackagePanels"
+                            :key="panel.packageId"
+                            v-show="panel.packageId === packageId"
+                            class="emotion-grid-panel"
                         >
-                            <AppButton
-                                v-for="item in emotionItems"
-                                :key="item.id"
-                                class="emotion-grid-item hazelspam-grid-card"
-                                :class="getEmotionGridButtonClass(item)"
-                                :tone="item.isSelected ? 'primary' : 'surface'"
-                                size="small"
-                                :title="item.title"
-                                :disabled="item.isDisabled"
-                                @click="emit('toggle-emotion', item.unique)"
+                            <div
+                                class="emotion-grid"
+                                :class="{ 'emotion-grid--general': panel.imageVariant === 'general' }"
                             >
-                                <img
-                                    class="emotion-grid-item__image hazelspam-grid-card__image"
-                                    :class="{
-                                        'emotion-grid-item__image--general': isGeneralVariant,
-                                        'hazelspam-grid-card__image--general': isGeneralVariant,
-                                        'emotion-grid-item__image--emoji':
-                                            !isGeneralVariant && isEmojiVariant,
-                                        'hazelspam-grid-card__image--emoji':
-                                            !isGeneralVariant && isEmojiVariant
-                                    }"
-                                    :src="item.imageUrl"
-                                    :alt="item.title"
-                                />
-                                <span class="emotion-grid-item__text hazelspam-grid-card__text">
-                                    {{ item.title }}
-                                </span>
-                            </AppButton>
+                                <AppButton
+                                    v-for="item in panel.emotionItems"
+                                    :key="item.id"
+                                    class="emotion-grid-item hazelspam-grid-card"
+                                    :class="getEmotionGridButtonClass(item)"
+                                    :tone="item.isSelected ? 'primary' : 'surface'"
+                                    size="small"
+                                    :title="item.title"
+                                    :disabled="item.isDisabled"
+                                    @click="emit('toggle-emotion', item.unique)"
+                                >
+                                    <img
+                                        class="emotion-grid-item__image hazelspam-grid-card__image"
+                                        :class="{
+                                            'emotion-grid-item__image--general':
+                                                panel.imageVariant === 'general',
+                                            'hazelspam-grid-card__image--general':
+                                                panel.imageVariant === 'general',
+                                            'emotion-grid-item__image--emoji':
+                                                panel.imageVariant === 'emoji',
+                                            'hazelspam-grid-card__image--emoji':
+                                                panel.imageVariant === 'emoji'
+                                        }"
+                                        :src="item.imageUrl"
+                                        :alt="item.title"
+                                    />
+                                    <span class="emotion-grid-item__text hazelspam-grid-card__text">
+                                        {{ item.title }}
+                                    </span>
+                                </AppButton>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -131,6 +170,10 @@ const getEmotionGridButtonClass = (item: EmotionGridItem) => ({
     width: 100%;
     justify-content: center;
     align-content: start;
+}
+
+.emotion-grid-panel {
+    width: 100%;
 }
 
 .emotion-grid--general {

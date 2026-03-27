@@ -26,6 +26,12 @@ export type EmotionGridItem = {
     isDisabled: boolean
 }
 
+export type EmotionPackagePanel = {
+    packageId: number
+    imageVariant: EmotionGridVariant
+    emotionItems: EmotionGridItem[]
+}
+
 type PackageDisplayInfo = {
     name: string
     descript: string
@@ -171,7 +177,14 @@ export const useEmotionPackages = () => {
                 return
             }
 
-            moduleStore.moduleConfig.emotionSpam.selectedPackageId = list[0].pkg_id
+            const currentSelectedPackageId = moduleStore.moduleConfig.emotionSpam.selectedPackageId
+            const hasCurrentSelection = list.some(
+                (pkg) => pkg.pkg_id === currentSelectedPackageId
+            )
+
+            if (!hasCurrentSelection) {
+                moduleStore.moduleConfig.emotionSpam.selectedPackageId = list[0].pkg_id
+            }
         },
         { immediate: true }
     )
@@ -265,6 +278,29 @@ export const useEmotionPackages = () => {
         }))
     })
 
+    const packagePanels = computed<EmotionPackagePanel[]>(() => {
+        return packageList.value.map((pkg) => {
+            const imageVariant: EmotionGridVariant = isGeneralPackage(pkg)
+                ? 'general'
+                : isEmojiPackage(pkg)
+                  ? 'emoji'
+                  : 'default'
+
+            return {
+                packageId: pkg.pkg_id,
+                imageVariant,
+                emotionItems: pkg.emoticons.map((item) => ({
+                    id: item.emoticon_id,
+                    unique: String(item.emoticon_unique),
+                    title: item.emoji || item.descript || `表情 ${item.emoticon_id}`,
+                    imageUrl: item.url,
+                    isSelected: isEmotionSelected(item),
+                    isDisabled: isEmotionDisabled(item)
+                }))
+            }
+        })
+    })
+
     const hasSelectedInCurrentPackage = computed(() => {
         if (selectedPackageId.value === null) {
             return false
@@ -275,6 +311,7 @@ export const useEmotionPackages = () => {
 
     return {
         packageCards,
+        packagePanels,
         selectedPackageId,
         selectedPackageEmotionCards,
         selectedPackageGridVariant,
