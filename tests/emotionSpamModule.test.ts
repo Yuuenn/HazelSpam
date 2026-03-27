@@ -89,4 +89,37 @@ describe('EmotionSpamModule', () => {
 
         module.stop()
     })
+
+    it('does not overlap emotion sends while the previous request is still pending', async () => {
+        const moduleStoreMock = moduleStoreState.current!
+        let resolveSendEmotion: ((value: { code: number }) => void) | null = null
+
+        sendEmotionMock.mockImplementation(
+            () =>
+                new Promise((resolve) => {
+                    resolveSendEmotion = resolve
+                })
+        )
+
+        moduleStoreMock.moduleConfig.emotionSpam.enable = true
+        moduleStoreMock.moduleConfig.emotionSpam.msg = ['doge', '2233']
+        moduleStoreMock.moduleConfig.emotionSpam.timeInterval = 1
+        moduleStoreMock.moduleConfig.emotionSpam.sequentialMode = true
+
+        const module = new EmotionSpamModule('EmotionSpamTest')
+        await module.run()
+
+        moduleStoreMock.emitter.emit('emotionSpam', { module: 'emotionSpam' })
+        await Promise.resolve()
+
+        expect(sendEmotionMock).toHaveBeenCalledTimes(1)
+
+        await vi.advanceTimersByTimeAsync(1000)
+        expect(sendEmotionMock).toHaveBeenCalledTimes(1)
+
+        resolveSendEmotion?.({ code: 0 })
+        await Promise.resolve()
+
+        module.stop()
+    })
 })
