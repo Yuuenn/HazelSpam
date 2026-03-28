@@ -1,5 +1,5 @@
 import { watch } from 'vue'
-import { dq } from '@/utils/dom'
+import { createSvgIconElement, createSvgIconWrapper, dq } from '@/utils/dom'
 import { BILIAPI } from '@/utils/bili'
 import { useDiscreteAPI } from '@/utils/ui'
 import { useBiliStore } from '@/stores/useBiliStore'
@@ -14,7 +14,10 @@ import BaseModule from '@/modules/BaseModule'
 
 const INLINE_COPY_SVG = `
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
-    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m12 20l-7.5-7.428A5 5 0 1 1 12 6.006a5 5 0 1 1 7.907 6.12M19 16v6m3-3l-3 3l-3-3"/>
+    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+        <path d="M7 9.667A2.667 2.667 0 0 1 9.667 7h8.666A2.667 2.667 0 0 1 21 9.667v8.666A2.667 2.667 0 0 1 18.333 21H9.667A2.667 2.667 0 0 1 7 18.333z"/>
+        <path d="M4.012 16.737A2 2 0 0 1 3 15V5c0-1.1.9-2 2-2h10c.75 0 1.158.385 1.5 1M11 14h6m-3-3v6"/>
+    </g>
 </svg>
 `
 
@@ -25,19 +28,19 @@ const INLINE_REPEAT_SVG = `
 `
 
 const TOOLBAR_REPEAT_SVG = `
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="2 0 20 24" fill="none" aria-hidden="true" focusable="false">
-    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 19a2 2 0 0 0 2 2c2 0 2-4 3-9s1-9 3-9a2 2 0 0 1 2 2m-8 7h6m4 0l6 6m-6 0l6-6"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="1 1 22 22" fill="none" aria-hidden="true" focusable="false">
+    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12V9a3 3 0 0 1 3-3h13m-3-3l3 3l-3 3m3 3v3a3 3 0 0 1-3 3H4m3 3l-3-3l3-3m4-4l1-1v4"/>
 </svg>
 `
 
 const TOOLBAR_CLEAR_SVG = `
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="2 0 20 24" fill="none" aria-hidden="true" focusable="false">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="1 1 22 22" fill="none" aria-hidden="true" focusable="false">
     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16m-10 4v6m4-6v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/>
 </svg>
 `
 
 const CRYBABY_INACTIVE_SVG = `
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="2 0 20 24" fill="none" aria-hidden="true" focusable="false">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="1 1 22 22" fill="none" aria-hidden="true" focusable="false">
     <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
         <path d="M15.349 5.349L18.65 8.65a1.2 1.2 0 0 1 0 1.698l-.972.972a7.5 7.5 0 1 1-5-5l.972-.972a1.2 1.2 0 0 1 1.698 0z"/>
         <path d="m17 7l1.293-1.293A2.4 2.4 0 0 0 19 4a1 1 0 0 1 1-1h1M7 13a3 3 0 0 1 3-3"/>
@@ -46,7 +49,7 @@ const CRYBABY_INACTIVE_SVG = `
 `
 
 const CRYBABY_ACTIVE_SVG = `
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="2 0 20 24" aria-hidden="true" focusable="false">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="1 1 22 22" aria-hidden="true" focusable="false">
     <g fill="currentColor">
         <path d="M14.499 3.996a2.2 2.2 0 0 1 1.556.645l3.302 3.301a2.2 2.2 0 0 1 0 3.113l-.567.567l.043.192a8.5 8.5 0 0 1-3.732 8.83l-.23.144a8.5 8.5 0 1 1-2.687-15.623l.192.042l.567-.566a2.2 2.2 0 0 1 1.362-.636zM10 9a4 4 0 0 0-4 4a1 1 0 0 0 2 0a2 2 0 0 1 2-2a1 1 0 0 0 0-2"/>
         <path d="M21 2a1 1 0 0 1 .117 1.993L21 4h-1c0 .83-.302 1.629-.846 2.25L19 6.413l-1.293 1.293a1 1 0 0 1-1.497-1.32l.083-.094L17.586 5c.232-.232.375-.537.407-.86L18 4a2 2 0 0 1 1.85-1.995L20 2z"/>
@@ -1205,19 +1208,6 @@ class DanmakuActionsModule extends BaseModule {
         return true
     }
 
-    private createButtonIcon(svgMarkup: string, ...iconClasses: string[]): SVGElement | null {
-        const iconTemplate = document.createElement('template')
-        iconTemplate.innerHTML = svgMarkup.trim()
-        const icon = iconTemplate.content.firstElementChild
-        if (!(icon instanceof SVGElement)) {
-            return null
-        }
-        if (iconClasses.length > 0) {
-            icon.classList.add(...iconClasses)
-        }
-        return icon
-    }
-
     private createInlineActionButton(
         iconSvg: string,
         label: string,
@@ -1232,7 +1222,7 @@ class DanmakuActionsModule extends BaseModule {
             button.classList.add(buttonClass)
         }
 
-        const icon = this.createButtonIcon(iconSvg, this.inlineActionIconClass)
+        const icon = createSvgIconElement(iconSvg, [this.inlineActionIconClass])
         if (icon) {
             button.appendChild(icon)
         }
@@ -1315,17 +1305,21 @@ class DanmakuActionsModule extends BaseModule {
         button.ariaLabel = label
         button.classList.add(this.composerToolbarButtonClass, APP_HOST_TOOLBAR_BUTTON_CLASS)
 
-        const iconWrapper = document.createElement('div')
-        iconWrapper.classList.add(APP_HOST_TOOLBAR_ICON_WRAPPER_CLASS)
-        const icon = this.createButtonIcon(
+        const iconWrapper = createSvgIconWrapper(
             svgMarkup,
-            APP_HOST_TOOLBAR_ICON_CLASS,
-            this.composerToolbarIconClass
+            APP_HOST_TOOLBAR_ICON_WRAPPER_CLASS,
+            [
+                APP_HOST_TOOLBAR_ICON_CLASS,
+                this.composerToolbarIconClass
+            ]
         )
-        if (icon) {
-            iconWrapper.append(icon)
+        if (!iconWrapper) {
+            const fallbackWrapper = document.createElement('div')
+            fallbackWrapper.classList.add(APP_HOST_TOOLBAR_ICON_WRAPPER_CLASS)
+            button.append(fallbackWrapper)
+        } else {
+            button.append(iconWrapper)
         }
-        button.append(iconWrapper)
 
         button.addEventListener('click', onClick)
         root.append(button)
@@ -1402,6 +1396,7 @@ class DanmakuActionsModule extends BaseModule {
                 void this.repeatFromComposerToolbar()
             }
         )
+        repeatItem.button.dataset.hazelspamToolbarAction = 'repeat'
 
         const clearItem = this.createHostToolbarItem(
             TOOLBAR_CLEAR_SVG,
@@ -1411,6 +1406,7 @@ class DanmakuActionsModule extends BaseModule {
                 this.clearComposerInput()
             }
         )
+        clearItem.button.dataset.hazelspamToolbarAction = 'clear'
 
         this.composerToolbarItems = [crybabyItem, repeatItem, clearItem]
         this.mountHostToolbarItems(
@@ -1434,18 +1430,15 @@ class DanmakuActionsModule extends BaseModule {
         ) {
             return
         }
-        const nextIcon = this.createButtonIcon(
+        const iconWrapper = createSvgIconWrapper(
             active ? CRYBABY_ACTIVE_SVG : CRYBABY_INACTIVE_SVG,
-            APP_HOST_TOOLBAR_ICON_CLASS,
-            this.composerToolbarIconClass
+            APP_HOST_TOOLBAR_ICON_WRAPPER_CLASS,
+            [APP_HOST_TOOLBAR_ICON_CLASS, this.composerToolbarIconClass]
         )
         this.crybabyToggleButton.replaceChildren()
-        const iconWrapper = document.createElement('div')
-        iconWrapper.classList.add(APP_HOST_TOOLBAR_ICON_WRAPPER_CLASS)
-        if (nextIcon) {
-            iconWrapper.append(nextIcon)
+        if (iconWrapper) {
+            this.crybabyToggleButton.append(iconWrapper)
         }
-        this.crybabyToggleButton.append(iconWrapper)
         this.crybabyToggleActiveState = active
     }
 
@@ -1521,9 +1514,6 @@ class DanmakuActionsModule extends BaseModule {
 
         const btnContainer = document.createElement('div')
         btnContainer.classList.add(this.actionGroupClass)
-        btnContainer.style.cssText =
-            'display:inline-flex;align-items:center;gap:var(--hazelspam-space-2xs, 2px);' +
-            'margin-left:var(--hazelspam-space-2xs, 2px);padding-top:var(--hazelspam-space-xs, 4px);vertical-align:middle;'
 
         const copyButton = this.createInlineActionButton(INLINE_COPY_SVG, '复制弹幕', (e) => {
             e.stopPropagation()
