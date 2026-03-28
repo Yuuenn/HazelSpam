@@ -11,6 +11,7 @@ describe('storage schema', () => {
         expect(config.textSpam.splitMode).toBe('byLine')
         expect(config.textSpam.tabSplitMode).toBe('byLine')
         expect(config.settings.danmakuActions.enable).toBe(true)
+        expect(config.settings.danmakuActions.crybabyEnabled).toBe(false)
         expect(ui.activeMenuIndex).toBe('TextView')
         expect(ui.isShowPanel).toBe(false)
         expect(ui.syncHostThemeWithBrowser).toBe(true)

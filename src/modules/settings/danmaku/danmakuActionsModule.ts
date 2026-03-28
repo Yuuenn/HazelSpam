@@ -33,21 +33,70 @@ interface NativeChatComposerState {
     atIsMystery: boolean
 }
 
+interface ComposerDraft {
+    bodyText: string
+    replyMid: number
+    replyAttr: number
+    replyUname: string
+    replayDmid: string
+}
+
+interface NativeComposerContext {
+    panel: NativeChatControlPanelVm
+    textarea: HTMLTextAreaElement
+    sendButton: HTMLButtonElement
+    container: HTMLElement
+}
+
+interface PendingSendIntent {
+    id: number
+    draft: ComposerDraft
+}
+
 class DanmakuActionsModule extends BaseModule {
     config = this.moduleStore.moduleConfig.settings.danmakuActions
     private readonly inlineActionButtonClass = 'hazelspam-inline-action-btn'
     private readonly inlineActionIconClass = 'hazelspam-inline-action-btn__icon'
     private readonly actionGroupClass = 'hazelspam-dm-action-group'
+    private readonly composerToolbarClass = 'hazelspam-dm-composer-toolbar'
+    private readonly composerToolbarButtonClass = 'hazelspam-dm-composer-toolbar-btn'
+    private readonly boundaryPunctuationRegex = /[\s,.;:!?，。！？；：、~～\-—()（）[\]【】{}<>《》"“”'‘’`]/
+    private readonly sendLockDurationMs = 1000
+    private readonly sendLockToastCooldownMs = 900
     private dmObserver: MutationObserver | null = null
     private waitForDmAreaTimer: number | null = null
+    private waitForComposerAreaTimer: number | null = null
     private configWatchReady = false
     private pendingBindNodes = new Set<HTMLElement>()
     private pendingBindFrameId: number | null = null
+    private composerToolbarElement: HTMLElement | null = null
+    private crybabyToggleButton: HTMLButtonElement | null = null
+    private nativeComposerListenersBound = false
+    private pendingSendIntent: PendingSendIntent | null = null
+    private pendingSendIntentTimer: number | null = null
+    private sendIntentCounter = 0
+    private sendLockUntil = 0
+    private sendLockToastAt = 0
+    private internalSendGuard = false
 
     private stopWaitingForDanmakuArea() {
         if (this.waitForDmAreaTimer === null) return
         window.clearInterval(this.waitForDmAreaTimer)
         this.waitForDmAreaTimer = null
+    }
+
+    private stopWaitingForComposerArea() {
+        if (this.waitForComposerAreaTimer === null) return
+        window.clearInterval(this.waitForComposerAreaTimer)
+        this.waitForComposerAreaTimer = null
+    }
+
+    private clearPendingSendIntent() {
+        this.pendingSendIntent = null
+        if (this.pendingSendIntentTimer !== null) {
+            window.clearTimeout(this.pendingSendIntentTimer)
+            this.pendingSendIntentTimer = null
+        }
     }
 
     private isTextDanmakuItem(node: Node | null): node is HTMLElement {
@@ -151,6 +200,12 @@ class DanmakuActionsModule extends BaseModule {
         document.querySelectorAll(`.${this.actionGroupClass}`).forEach((group) => group.remove())
     }
 
+    private clearComposerToolbar() {
+        this.composerToolbarElement?.remove()
+        this.composerToolbarElement = null
+        this.crybabyToggleButton = null
+    }
+
     private startDanmakuObserver(dmArea: Element) {
         this.dmObserver?.disconnect()
         this.clearPendingBindTasks()
@@ -191,7 +246,13 @@ class DanmakuActionsModule extends BaseModule {
             (enable) => {
                 if (enable) {
                     this.scanExistingDanmakuItems()
+                    this.ensureComposerEnhancements()
                 } else {
+                    this.sendLockUntil = 0
+                    this.clearPendingSendIntent()
+                    this.stopWaitingForComposerArea()
+                    this.unbindNativeComposerListeners()
+                    this.clearComposerToolbar()
                     this.clearDirectActionButtons()
                 }
             },
@@ -217,6 +278,150 @@ class DanmakuActionsModule extends BaseModule {
         return value === 'true' || value === '1'
     }
 
+    private parsePositiveIntegerFromUnknown(value: unknown): number {
+        if (typeof value === 'number' && Number.isFinite(value)) {
+            return value > 0 ? Math.floor(value) : 0
+        }
+        if (typeof value === 'string') {
+            return this.parsePositiveInteger(value)
+        }
+        return 0
+    }
+
+    private normalizeMentionUname(value: string): string {
+        return value.replace(/^@+/, '').trim()
+    }
+
+    private getTextLength(value: string): number {
+        return Array.from(value).length
+    }
+
+    private resolveComposerLengthLimit(textarea: HTMLTextAreaElement): number {
+        const textareaLimit = Number(textarea.maxLength)
+        if (Number.isFinite(textareaLimit) && textareaLimit > 0) {
+            return Math.floor(textareaLimit)
+        }
+
+        const storeLimit = useBiliStore().danmuLengthLimit
+        if (typeof storeLimit === 'number' && Number.isFinite(storeLimit) && storeLimit > 0) {
+            return Math.floor(storeLimit)
+        }
+
+        return 40
+    }
+
+    private isWithinComposerLengthLimit(textarea: HTMLTextAreaElement, value: string): boolean {
+        return this.getTextLength(value) <= this.resolveComposerLengthLimit(textarea)
+    }
+
+    private toComposerDraft(payload: DanmakuActionPayload): ComposerDraft {
+        return {
+            bodyText: payload.sendContent,
+            replyMid: payload.replyMid,
+            replyAttr: payload.replyAttr,
+            replyUname: this.normalizeMentionUname(payload.replyUname),
+            replayDmid: payload.replayDmid
+        }
+    }
+
+    private readComposerDraft(panel: NativeChatControlPanelVm, textarea: HTMLTextAreaElement): ComposerDraft {
+        const replyMid = this.parsePositiveIntegerFromUnknown(panel.atUid)
+        const replyUname = this.normalizeMentionUname(panel.atUserName || panel.tempAtUserName || '')
+        const rawText = textarea.value.replace(/\u00a0/g, ' ')
+
+        if (replyMid <= 0 || replyUname.length === 0) {
+            return {
+                bodyText: rawText,
+                replyMid: 0,
+                replyAttr: 0,
+                replyUname: '',
+                replayDmid: ''
+            }
+        }
+
+        const mentionPrefix = `@${replyUname}`
+        const bodyText = rawText.startsWith(mentionPrefix)
+            ? rawText.slice(mentionPrefix.length)
+            : rawText
+
+        return {
+            bodyText,
+            replyMid,
+            replyAttr: Number(panel.atIsMystery),
+            replyUname,
+            replayDmid: panel.atReplyDmId || ''
+        }
+    }
+
+    private renderComposerDraft(draft: ComposerDraft): string {
+        if (draft.replyMid <= 0 || draft.replyUname.length === 0) {
+            return draft.bodyText
+        }
+
+        const mentionPrefix = `@${draft.replyUname}`
+        if (draft.bodyText.length === 0) {
+            return mentionPrefix
+        }
+
+        if (draft.bodyText.startsWith(' ') || draft.bodyText.startsWith('\n')) {
+            return `${mentionPrefix}${draft.bodyText}`
+        }
+
+        return `${mentionPrefix} ${draft.bodyText}`
+    }
+
+    private canDraftBeSent(draft: ComposerDraft): boolean {
+        return draft.bodyText.trim().length > 0
+    }
+
+    private needsSpaceBetween(left: string, right: string): boolean {
+        if (left.length === 0 || right.length === 0) return false
+        const leftChar = left.charAt(left.length - 1)
+        const rightChar = right[0] ?? ''
+        if (leftChar.length === 0 || rightChar.length === 0) return false
+
+        if (this.boundaryPunctuationRegex.test(leftChar)) return false
+        if (this.boundaryPunctuationRegex.test(rightChar)) return false
+        return true
+    }
+
+    private smartJoinText(left: string, right: string): string {
+        if (left.length === 0) return right
+        if (right.length === 0) return left
+        return this.needsSpaceBetween(left, right) ? `${left} ${right}` : `${left}${right}`
+    }
+
+    private mergeDraftForAppend(currentDraft: ComposerDraft, incomingDraft: ComposerDraft): ComposerDraft {
+        if (incomingDraft.replyMid > 0 && incomingDraft.replyUname.length > 0) {
+            if (
+                currentDraft.replyMid > 0 &&
+                currentDraft.replyUname.length > 0 &&
+                currentDraft.replyMid === incomingDraft.replyMid
+            ) {
+                return {
+                    ...currentDraft,
+                    bodyText: this.smartJoinText(currentDraft.bodyText, incomingDraft.bodyText)
+                }
+            }
+
+            if (currentDraft.replyMid <= 0 && currentDraft.bodyText.trim().length === 0) {
+                return {
+                    ...incomingDraft
+                }
+            }
+
+            return {
+                ...currentDraft,
+                bodyText: this.smartJoinText(currentDraft.bodyText, this.renderComposerDraft(incomingDraft))
+            }
+        }
+
+        return {
+            ...currentDraft,
+            bodyText: this.smartJoinText(currentDraft.bodyText, incomingDraft.bodyText)
+        }
+    }
+
     private createDanmakuActionPayload(node: HTMLElement): DanmakuActionPayload | null {
         const msgElement = this.getDanmakuMessageElement(node)
         const msgDataset = msgElement?.dataset
@@ -234,14 +439,15 @@ class DanmakuActionsModule extends BaseModule {
                 nodeDataset.replyMid
         )
         const replyMid = mentionReplyMid || datasetReplyMid
-        const replyUname =
+        const replyUname = this.normalizeMentionUname(
             mentionElement?.dataset.uname?.trim() ??
-            mentionElement?.textContent?.replace(/^@/, '').trim() ??
-            msgDataset?.replyUname?.trim() ??
-            msgDataset?.replyuname?.trim() ??
-            nodeDataset.replyUname?.trim() ??
-            nodeDataset.replyuname?.trim() ??
-            ''
+                mentionElement?.textContent ??
+                msgDataset?.replyUname?.trim() ??
+                msgDataset?.replyuname?.trim() ??
+                nodeDataset.replyUname?.trim() ??
+                nodeDataset.replyuname?.trim() ??
+                ''
+        )
         const mentionMystery = this.parseBoolean(mentionElement?.dataset.mystery)
         const datasetMystery = this.parseBoolean(
             msgDataset?.mystery ?? nodeDataset.mystery ?? nodeDataset.replyMystery
@@ -314,23 +520,63 @@ class DanmakuActionsModule extends BaseModule {
         )
     }
 
-    private getNativeChatControlPanelVm() {
+    private getNativeComposerContext(): NativeComposerContext | null {
         if (typeof document === 'undefined') return null
-        const panel = document.querySelector<HTMLElement>('.chat-control-panel') as
+        const panelElement = document.querySelector<HTMLElement>('.chat-control-panel') as
             | (HTMLElement & { __vue__?: unknown })
             | null
-        if (!panel) return null
+        if (!panelElement || !this.isNativeChatControlPanelVm(panelElement.__vue__)) {
+            return null
+        }
 
-        return this.isNativeChatControlPanelVm(panel.__vue__) ? panel.__vue__ : null
+        const panel = panelElement.__vue__
+        const closestContainer =
+            typeof panelElement.closest === 'function'
+                ? panelElement.closest<HTMLElement>('.chat-input-ctnr')
+                : null
+        const scopedContainer = closestContainer ?? document.querySelector<HTMLElement>('.chat-input-ctnr')
+        const textarea =
+            scopedContainer?.querySelector<HTMLTextAreaElement>('textarea.chat-input') ??
+            document.querySelector<HTMLTextAreaElement>('.chat-input-ctnr textarea.chat-input')
+        const container =
+            scopedContainer ??
+            (typeof textarea?.closest === 'function'
+                ? textarea.closest<HTMLElement>('.chat-input-ctnr')
+                : null) ??
+            panelElement
+
+        if (!textarea) return null
+        const sendButton = this.findNativeSendButton(container)
+        if (!sendButton) return null
+
+        return {
+            panel,
+            textarea,
+            sendButton,
+            container
+        }
     }
 
-    private getNativeChatInput() {
-        if (typeof document === 'undefined') return null
-        return document.querySelector<HTMLTextAreaElement>('.chat-input-ctnr textarea.chat-input')
-    }
+    private findNativeSendButton(scope: ParentNode): HTMLButtonElement | null {
+        const queryRoot =
+            typeof (scope as { querySelectorAll?: unknown }).querySelectorAll === 'function'
+                ? scope
+                : document
+        const candidates = Array.from(queryRoot.querySelectorAll<HTMLButtonElement>('button'))
+        const textMatched = candidates.find((button) => button.textContent?.trim() === '发送')
+        if (textMatched) {
+            return textMatched
+        }
 
-    private getNativeSendButton() {
-        if (typeof document === 'undefined') return null
+        const sendLike = candidates.find((button) => {
+            const className = button.className || ''
+            const report = button.getAttribute('data-report') || ''
+            return /send/i.test(className) || /send/i.test(report)
+        })
+        if (sendLike) {
+            return sendLike
+        }
+
         return (
             Array.from(document.querySelectorAll<HTMLButtonElement>('.control-panel-ctnr button')).find(
                 (button) => button.textContent?.trim() === '发送'
@@ -352,6 +598,231 @@ class DanmakuActionsModule extends BaseModule {
         textarea.dispatchEvent(new Event('change', { bubbles: true }))
     }
 
+    private applyComposerDraft(context: NativeComposerContext, draft: ComposerDraft): boolean {
+        const nextText = this.renderComposerDraft(draft)
+        if (!this.isWithinComposerLengthLimit(context.textarea, nextText)) {
+            const { message } = useDiscreteAPI(['message'])
+            message.warning(`已超过输入上限（${this.resolveComposerLengthLimit(context.textarea)}），未填入输入框`)
+            return false
+        }
+
+        context.panel.clearAtInfo?.()
+        if (draft.replyMid > 0 && draft.replyUname.length > 0) {
+            const mentionPrefix = `@${draft.replyUname}`
+            context.panel.atUserName = mentionPrefix
+            context.panel.tempAtUserName = mentionPrefix
+            context.panel.atUid = draft.replyMid
+            context.panel.atReplyDmId = draft.replayDmid
+            context.panel.atIsMystery = draft.replyAttr > 0
+        } else {
+            context.panel.atUserName = ''
+            context.panel.tempAtUserName = ''
+            context.panel.atUid = 0
+            context.panel.atReplyDmId = ''
+            context.panel.atIsMystery = false
+        }
+        this.setNativeChatInputValue(context.textarea, nextText)
+        return true
+    }
+
+    private appendDraftToComposer(incomingDraft: ComposerDraft): boolean {
+        const context = this.getNativeComposerContext()
+        if (!context) {
+            const { message } = useDiscreteAPI(['message'])
+            message.warning('未找到直播间输入框，未追加到输入框')
+            return false
+        }
+
+        const currentDraft = this.readComposerDraft(context.panel, context.textarea)
+        const mergedDraft = this.mergeDraftForAppend(currentDraft, incomingDraft)
+        return this.applyComposerDraft(context, mergedDraft)
+    }
+
+    private normalizeForDiff(text: string): string {
+        return text.replace(/\s+/g, ' ').trim()
+    }
+
+    private createCrybabyDraft(lastDraft: ComposerDraft, textarea: HTMLTextAreaElement): ComposerDraft | null {
+        const baseBody = lastDraft.bodyText
+        const baseNormalized = this.normalizeForDiff(baseBody)
+        if (baseNormalized.length === 0) {
+            return null
+        }
+
+        const suffixCandidates = ['!', '!!', '~', '？', '。', '…', '！']
+        const candidates: string[] = []
+        suffixCandidates.forEach((suffix) => {
+            candidates.push(this.smartJoinText(baseBody, suffix))
+        })
+
+        if (baseBody.length > 0) {
+            const head = baseBody.slice(0, -1)
+            suffixCandidates.forEach((suffix) => {
+                candidates.push(`${head}${suffix}`)
+            })
+        }
+
+        const maxLength = this.resolveComposerLengthLimit(textarea)
+        for (const bodyText of candidates) {
+            if (this.normalizeForDiff(bodyText) === baseNormalized) {
+                continue
+            }
+
+            const draft: ComposerDraft = {
+                ...lastDraft,
+                bodyText
+            }
+            if (this.getTextLength(this.renderComposerDraft(draft)) <= maxLength) {
+                return draft
+            }
+        }
+
+        return null
+    }
+
+    private disableCrybabyWithNotice(content: string) {
+        this.config.crybabyEnabled = false
+        this.updateCrybabyToggleState()
+        const { message } = useDiscreteAPI(['message'])
+        message.warning(content)
+    }
+
+    private lockNativeSend(durationMs: number) {
+        this.sendLockUntil = Math.max(this.sendLockUntil, Date.now() + durationMs)
+    }
+
+    private isNativeSendLocked(): boolean {
+        return Date.now() < this.sendLockUntil
+    }
+
+    private blockNativeSend(event: Event) {
+        event.preventDefault()
+        event.stopPropagation()
+        if ('stopImmediatePropagation' in event && typeof event.stopImmediatePropagation === 'function') {
+            event.stopImmediatePropagation()
+        }
+
+        const now = Date.now()
+        if (now - this.sendLockToastAt < this.sendLockToastCooldownMs) {
+            return
+        }
+
+        this.sendLockToastAt = now
+        const { message } = useDiscreteAPI(['message'])
+        message.info('Crybaby 冷却中，请稍后发送')
+    }
+
+    private captureUserSendIntent(context: NativeComposerContext, isTrusted: boolean) {
+        if (!this.config.crybabyEnabled) return
+        if (!isTrusted || this.internalSendGuard) return
+
+        const draft = this.readComposerDraft(context.panel, context.textarea)
+        if (!this.canDraftBeSent(draft)) {
+            return
+        }
+
+        const intentId = this.sendIntentCounter + 1
+        this.sendIntentCounter = intentId
+        this.pendingSendIntent = {
+            id: intentId,
+            draft
+        }
+
+        if (this.pendingSendIntentTimer !== null) {
+            window.clearTimeout(this.pendingSendIntentTimer)
+        }
+
+        this.pendingSendIntentTimer = window.setTimeout(() => {
+            this.pendingSendIntentTimer = null
+            this.handlePendingSendIntent(intentId)
+        }, 120)
+    }
+
+    private handlePendingSendIntent(intentId: number) {
+        if (!this.config.enable || !this.config.crybabyEnabled) {
+            this.clearPendingSendIntent()
+            return
+        }
+
+        const pending = this.pendingSendIntent
+        if (!pending || pending.id !== intentId) {
+            return
+        }
+
+        this.pendingSendIntent = null
+        const context = this.getNativeComposerContext()
+        if (!context) {
+            return
+        }
+
+        if (context.textarea.value.trim().length > 0) {
+            return
+        }
+
+        const nextDraft = this.createCrybabyDraft(pending.draft, context.textarea)
+        if (!nextDraft) {
+            this.disableCrybabyWithNotice('Crybaby 无法生成差异化弹幕，已自动关闭')
+            return
+        }
+
+        if (!this.applyComposerDraft(context, nextDraft)) {
+            this.disableCrybabyWithNotice('Crybaby 未能填入输入框（超出上限），已自动关闭')
+            return
+        }
+
+        this.lockNativeSend(this.sendLockDurationMs)
+    }
+
+    private bindNativeComposerListeners() {
+        if (this.nativeComposerListenersBound) return
+        this.nativeComposerListenersBound = true
+        document.addEventListener('click', this.handleNativeSendClickCapture, true)
+        document.addEventListener('keydown', this.handleNativeSendKeydownCapture, true)
+    }
+
+    private unbindNativeComposerListeners() {
+        if (!this.nativeComposerListenersBound) return
+        this.nativeComposerListenersBound = false
+        document.removeEventListener('click', this.handleNativeSendClickCapture, true)
+        document.removeEventListener('keydown', this.handleNativeSendKeydownCapture, true)
+    }
+
+    private readonly handleNativeSendClickCapture = (event: Event) => {
+        if (!this.config.enable) return
+        const context = this.getNativeComposerContext()
+        if (!context) return
+
+        const target = event.target
+        if (!(target instanceof Node) || !context.sendButton.contains(target)) {
+            return
+        }
+
+        if (this.isNativeSendLocked()) {
+            this.blockNativeSend(event)
+            return
+        }
+
+        this.captureUserSendIntent(context, event.isTrusted)
+    }
+
+    private readonly handleNativeSendKeydownCapture = (event: Event) => {
+        if (!this.config.enable || !(event instanceof KeyboardEvent)) return
+        if (event.key !== 'Enter' || event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) {
+            return
+        }
+        if (event.isComposing) return
+
+        const context = this.getNativeComposerContext()
+        if (!context || event.target !== context.textarea) return
+
+        if (this.isNativeSendLocked()) {
+            this.blockNativeSend(event)
+            return
+        }
+
+        this.captureUserSendIntent(context, event.isTrusted)
+    }
+
     private buildNativeMentionMessage(payload: DanmakuActionPayload) {
         const bodyText = payload.sendContent.startsWith(' ')
             ? payload.sendContent
@@ -366,17 +837,16 @@ class DanmakuActionsModule extends BaseModule {
     }
 
     private restoreNativeChatComposer(state: NativeChatComposerState) {
-        const panel = this.getNativeChatControlPanelVm()
-        const textarea = this.getNativeChatInput()
-        if (!panel || !textarea) return
+        const context = this.getNativeComposerContext()
+        if (!context) return
 
-        panel.clearAtInfo?.()
-        panel.atUserName = state.atUserName
-        panel.tempAtUserName = state.tempAtUserName
-        panel.atUid = state.atUid
-        panel.atReplyDmId = state.atReplyDmId
-        panel.atIsMystery = state.atIsMystery
-        this.setNativeChatInputValue(textarea, state.text)
+        context.panel.clearAtInfo?.()
+        context.panel.atUserName = state.atUserName
+        context.panel.tempAtUserName = state.tempAtUserName
+        context.panel.atUid = state.atUid
+        context.panel.atReplyDmId = state.atReplyDmId
+        context.panel.atIsMystery = state.atIsMystery
+        this.setNativeChatInputValue(context.textarea, state.text)
     }
 
     private waitForNextFrame() {
@@ -390,35 +860,46 @@ class DanmakuActionsModule extends BaseModule {
             return false
         }
 
-        const panel = this.getNativeChatControlPanelVm()
-        const textarea = this.getNativeChatInput()
-        const sendButton = this.getNativeSendButton()
-        if (!panel || !textarea || !sendButton || sendButton.disabled) {
+        const context = this.getNativeComposerContext()
+        if (!context || context.sendButton.disabled) {
             return false
         }
 
         const previousState: NativeChatComposerState = {
-            text: textarea.value,
-            atUserName: panel.atUserName,
-            tempAtUserName: panel.tempAtUserName,
-            atUid: panel.atUid,
-            atReplyDmId: panel.atReplyDmId,
-            atIsMystery: panel.atIsMystery
+            text: context.textarea.value,
+            atUserName: context.panel.atUserName,
+            tempAtUserName: context.panel.tempAtUserName,
+            atUid: context.panel.atUid,
+            atReplyDmId: context.panel.atReplyDmId,
+            atIsMystery: context.panel.atIsMystery
         }
 
         const mentionPrefix = `@${payload.replyUname}`
-        panel.clearAtInfo?.()
-        panel.atUserName = mentionPrefix
-        panel.tempAtUserName = mentionPrefix
-        panel.atUid = payload.replyMid
-        panel.atReplyDmId = payload.replayDmid
-        panel.atIsMystery = payload.replyAttr > 0
-        this.setNativeChatInputValue(textarea, this.buildNativeMentionMessage(payload))
+        context.panel.clearAtInfo?.()
+        context.panel.atUserName = mentionPrefix
+        context.panel.tempAtUserName = mentionPrefix
+        context.panel.atUid = payload.replyMid
+        context.panel.atReplyDmId = payload.replayDmid
+        context.panel.atIsMystery = payload.replyAttr > 0
+        this.setNativeChatInputValue(context.textarea, this.buildNativeMentionMessage(payload))
         await this.waitForNextFrame()
-        sendButton.click()
+
+        this.internalSendGuard = true
+        try {
+            context.sendButton.click()
+        } finally {
+            window.setTimeout(() => {
+                this.internalSendGuard = false
+            }, 0)
+        }
 
         if (this.shouldRestoreNativeChatComposer(previousState)) {
             window.setTimeout(() => {
+                const latestContext = this.getNativeComposerContext()
+                if (!latestContext) return
+                if (latestContext.textarea.value.trim().length > 0) {
+                    return
+                }
                 this.restoreNativeChatComposer(previousState)
             }, 120)
         }
@@ -429,13 +910,17 @@ class DanmakuActionsModule extends BaseModule {
     private createInlineActionButton(
         iconClass: string,
         title: string,
-        onClick: (event: MouseEvent) => void
+        onClick: (event: MouseEvent) => void,
+        buttonClass?: string
     ) {
         const button = document.createElement('button')
         button.type = 'button'
         button.title = title
         button.ariaLabel = title
         button.classList.add(this.inlineActionButtonClass)
+        if (buttonClass) {
+            button.classList.add(buttonClass)
+        }
 
         const icon = document.createElement('i')
         icon.className = `${iconClass} ${this.inlineActionIconClass}`.trim()
@@ -444,6 +929,121 @@ class DanmakuActionsModule extends BaseModule {
         button.addEventListener('click', onClick)
 
         return button
+    }
+
+    private mountComposerToolbar() {
+        if (!this.config.enable) return
+
+        const context = this.getNativeComposerContext()
+        if (!context) return
+        if (this.composerToolbarElement && document.contains(this.composerToolbarElement)) {
+            return
+        }
+
+        const toolbar = document.createElement('div')
+        toolbar.className = this.composerToolbarClass
+        toolbar.style.cssText =
+            'display:flex;align-items:center;gap:6px;margin-bottom:6px;justify-content:flex-end;'
+
+        const copyButton = this.createInlineActionButton(
+            'pi pi-copy',
+            '复制当前输入并追加到输入框',
+            (event) => {
+                event.stopPropagation()
+                void this.copyFromComposerToolbar()
+            },
+            this.composerToolbarButtonClass
+        )
+
+        const clearButton = this.createInlineActionButton(
+            'pi pi-trash',
+            '清空输入框',
+            (event) => {
+                event.stopPropagation()
+                this.clearComposerInput()
+            },
+            this.composerToolbarButtonClass
+        )
+
+        const crybabyButton = this.createInlineActionButton(
+            'pi pi-megaphone',
+            '切换 Crybaby 模式',
+            (event) => {
+                event.stopPropagation()
+                this.config.crybabyEnabled = !this.config.crybabyEnabled
+                this.updateCrybabyToggleState()
+                const { message } = useDiscreteAPI(['message'])
+                message.info(this.config.crybabyEnabled ? 'Crybaby 已开启' : 'Crybaby 已关闭')
+            },
+            this.composerToolbarButtonClass
+        )
+
+        toolbar.append(copyButton, clearButton, crybabyButton)
+        const textareaParent = context.textarea.parentElement
+        if (textareaParent) {
+            textareaParent.insertBefore(toolbar, context.textarea)
+        } else {
+            context.container.prepend(toolbar)
+        }
+
+        this.composerToolbarElement = toolbar
+        this.crybabyToggleButton = crybabyButton
+        this.updateCrybabyToggleState()
+    }
+
+    private updateCrybabyToggleState() {
+        if (!this.crybabyToggleButton) return
+        const active = Boolean(this.config.crybabyEnabled)
+        this.crybabyToggleButton.setAttribute('aria-pressed', String(active))
+        this.crybabyToggleButton.style.opacity = active ? '1' : '0.72'
+        this.crybabyToggleButton.style.filter = active ? 'none' : 'saturate(0.4)'
+    }
+
+    private ensureComposerEnhancements() {
+        if (!this.config.enable) return
+
+        this.bindNativeComposerListeners()
+        this.mountComposerToolbar()
+        if (this.waitForComposerAreaTimer !== null) return
+
+        this.waitForComposerAreaTimer = window.setInterval(() => {
+            if (!this.config.enable) return
+            this.mountComposerToolbar()
+            this.updateCrybabyToggleState()
+        }, 500)
+    }
+
+    private clearComposerInput() {
+        const context = this.getNativeComposerContext()
+        if (!context) return
+
+        context.panel.clearAtInfo?.()
+        context.panel.atUserName = ''
+        context.panel.tempAtUserName = ''
+        context.panel.atUid = 0
+        context.panel.atReplyDmId = ''
+        context.panel.atIsMystery = false
+        this.setNativeChatInputValue(context.textarea, '')
+    }
+
+    private async copyFromComposerToolbar() {
+        const context = this.getNativeComposerContext()
+        if (!context) return
+
+        const displayText = context.textarea.value.replace(/\u00a0/g, ' ')
+        if (displayText.trim().length === 0) {
+            return
+        }
+
+        await this.dmCopy(displayText)
+        const draft = this.readComposerDraft(context.panel, context.textarea)
+        this.appendDraftToComposer(draft)
+    }
+
+    private async copyPayloadToClipboardAndComposer(payload: DanmakuActionPayload) {
+        if (payload.displayContent.trim().length === 0) return
+        await this.dmCopy(payload.displayContent)
+        this.appendDraftToComposer(this.toComposerDraft(payload))
     }
 
     private renderDirectly(node: HTMLElement) {
@@ -462,7 +1062,7 @@ class DanmakuActionsModule extends BaseModule {
 
         const copyButton = this.createInlineActionButton('pi pi-clipboard', '复制弹幕', (e) => {
             e.stopPropagation()
-            void this.dmCopy(payload.displayContent)
+            void this.copyPayloadToClipboardAndComposer(payload)
         })
 
         const repeatButton = this.createInlineActionButton('pi pi-comments', '弹幕 +1', (e) => {

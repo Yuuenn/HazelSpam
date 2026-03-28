@@ -75,7 +75,8 @@ export const storageDefaultValues: StorageDefaultValues = {
                 enable: true
             },
             danmakuActions: {
-                enable: true
+                enable: true,
+                crybabyEnabled: false
             }
         }
     }
@@ -388,6 +389,10 @@ export const sanitizeModuleConfig = (raw: unknown): ModuleConfig => {
                 enable: normalizeBoolean(
                     mergedModuleConfig.settings.danmakuActions.enable,
                     storageDefaultValues.modules.settings.danmakuActions.enable
+                ),
+                crybabyEnabled: normalizeBoolean(
+                    mergedModuleConfig.settings.danmakuActions.crybabyEnabled,
+                    storageDefaultValues.modules.settings.danmakuActions.crybabyEnabled
                 )
             }
         }
