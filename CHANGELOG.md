@@ -12,6 +12,18 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Fixed
 
+## [1.1.1] - 2026-03-28
+
+### Added
+
+### Changed
+
+### Fixed
+
+- 修复正式发行版中 crybaby 触发 `Toast` 时外层灰框先于消息卡出现的问题，恢复半透明模糊的提示表现。
+- 修复设置页关于区暗色装饰规则的作用域泄漏，避免 `.hazelspam-dark` 浮层节点误吃背景和阴影。
+- 修复 `Toast` 关闭按钮在正式发行版中的定位与尺寸异常。
+
 ## [1.1.0] - 2026-03-28
 
 ### Added
