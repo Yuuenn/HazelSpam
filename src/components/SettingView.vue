@@ -967,7 +967,7 @@ onBeforeUnmount(() => {
             var(--hazelspam-motion-ease-standard, ease);
 }
 
-:global(.hazelspam-dark) .about-logo-shell {
+:global(.hazelspam-dark .setting-module--about .about-logo-shell) {
     background: color-mix(
         in srgb,
         var(--hazelspam-color-shell-card-bg, #101215) 72%,
@@ -978,7 +978,7 @@ onBeforeUnmount(() => {
         inset 0 0 0 1px color-mix(in srgb, var(--hazelspam-color-shadow-inner, #ffffff) 12%, transparent);
 }
 
-:global(.hazelspam-dark) .about-logo-image {
+:global(.hazelspam-dark .setting-module--about .about-logo-image) {
     filter:
         brightness(0.88)
         saturate(0.92)
