@@ -97,8 +97,9 @@ class EmotionSpamModule extends BaseModule {
             } else {
                 this.logger.error(`${payloadType} ${payload} 发送失败`, response)
                 notification.error({
+                    title: String(response.message ?? `${payloadType}发送失败`),
                     closable: false,
-                    content: `${payloadType}"${payload}"发送失败: ${response.message}`,
+                    content: `内容：${payloadType}「${payload}」`,
                     duration: 3000
                 })
             }

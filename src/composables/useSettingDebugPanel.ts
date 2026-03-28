@@ -6,16 +6,28 @@ import { useUIStore } from '@/stores/useUIStore'
 import { cloneModuleConfig, cloneUiConfig } from '@/utils/storage/schema'
 
 type DebugResultTone = 'success' | 'info' | 'warn' | 'danger'
-type DebugTriggerSeverity = 'success' | 'error' | 'warning' | 'info'
+type DebugToastSeverity = 'success' | 'error' | 'warn' | 'info'
+type DebugDialogSeverity = 'success' | 'error' | 'warning' | 'info'
 type DangerActionId = 'append-test-package'
 
 const DANGER_CONFIRM_WINDOW_MS = 2400
-const RANDOM_DEBUG_SEVERITIES: DebugTriggerSeverity[] = ['success', 'error', 'warning', 'info']
+const RANDOM_DEBUG_TOAST_SEVERITIES: DebugToastSeverity[] = ['success', 'error', 'warn', 'info']
+const RANDOM_DEBUG_DIALOG_SEVERITIES: DebugDialogSeverity[] = [
+    'success',
+    'error',
+    'warning',
+    'info'
+]
 
 const getDebugApi = () => window.__HAZELSPAM_NOTIFY__ ?? null
 
-const pickRandomSeverity = (): DebugTriggerSeverity =>
-    RANDOM_DEBUG_SEVERITIES[Math.floor(Math.random() * RANDOM_DEBUG_SEVERITIES.length)]
+const pickRandomToastSeverity = (): DebugToastSeverity =>
+    RANDOM_DEBUG_TOAST_SEVERITIES[Math.floor(Math.random() * RANDOM_DEBUG_TOAST_SEVERITIES.length)]
+
+const pickRandomDialogSeverity = (): DebugDialogSeverity =>
+    RANDOM_DEBUG_DIALOG_SEVERITIES[
+        Math.floor(Math.random() * RANDOM_DEBUG_DIALOG_SEVERITIES.length)
+    ]
 
 const mapResultTone = (ok: boolean, fallback: DebugResultTone = 'info'): DebugResultTone =>
     ok ? fallback : 'danger'
@@ -98,7 +110,7 @@ export const useSettingDebugPanel = () => {
     }
 
     const triggerDialog = () => {
-        const severity = pickRandomSeverity()
+        const severity = pickRandomDialogSeverity()
         runWithDebugApi(
             '系统弹窗',
             (debugApi) => debugApi.dialog(undefined, undefined, severity),
@@ -117,7 +129,7 @@ export const useSettingDebugPanel = () => {
     }
 
     const triggerMessageToast = () => {
-        const severity = pickRandomSeverity()
+        const severity = pickRandomToastSeverity()
         runWithDebugApi(
             '消息 Toast',
             (debugApi) => debugApi.message(undefined, severity),
@@ -127,7 +139,7 @@ export const useSettingDebugPanel = () => {
     }
 
     const triggerNotificationToast = () => {
-        const severity = pickRandomSeverity()
+        const severity = pickRandomToastSeverity()
         runWithDebugApi(
             '通知 Toast',
             (debugApi) => debugApi.notification(undefined, undefined, severity),

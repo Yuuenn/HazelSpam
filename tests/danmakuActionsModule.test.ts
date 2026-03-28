@@ -59,7 +59,7 @@ vi.mock('@/utils/ui', () => ({
         },
         message: {
             error: messageErrorMock,
-            warning: messageWarningMock,
+            warn: messageWarningMock,
             info: messageInfoMock
         }
     })

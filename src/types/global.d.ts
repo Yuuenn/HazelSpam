@@ -1,7 +1,7 @@
 type DebugNotifyApi = {
     message: (
         content?: string,
-        severity?: 'success' | 'error' | 'warning' | 'info',
+        severity?: 'success' | 'error' | 'warn' | 'info',
         duration?: number
     ) => {
         ok: boolean
@@ -14,7 +14,7 @@ type DebugNotifyApi = {
     notification: (
         content?: string,
         title?: string,
-        severity?: 'success' | 'error' | 'warning' | 'info',
+        severity?: 'success' | 'error' | 'warn' | 'info',
         duration?: number
     ) => {
         ok: boolean

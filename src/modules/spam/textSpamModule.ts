@@ -135,7 +135,7 @@ class TextSpamModule extends BaseModule {
             this.logger.error(`弹幕 ${message} 发送失败`, response)
             notification.error({
                 title: String(response.message ?? '发送失败'),
-                content: message,
+                content: `内容：${message}`,
                 closable: false,
                 duration: 3000
             })

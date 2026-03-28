@@ -676,7 +676,7 @@ class DanmakuActionsModule extends BaseModule {
         const nextText = this.renderComposerDraft(draft)
         if (!this.isWithinComposerLengthLimit(context.textarea, nextText)) {
             const { message } = useDiscreteAPI(['message'])
-            message.warning(`已超过输入上限（${this.resolveComposerLengthLimit(context.textarea)}），未填入输入框`)
+            message.warn(`已超过输入上限（${this.resolveComposerLengthLimit(context.textarea)}），未填入输入框`)
             return false
         }
 
@@ -703,7 +703,7 @@ class DanmakuActionsModule extends BaseModule {
         const context = this.getNativeComposerContext()
         if (!context) {
             const { message } = useDiscreteAPI(['message'])
-            message.warning('未找到直播间输入框，未追加到输入框')
+            message.warn('未找到直播间输入框，未追加到输入框')
             return false
         }
 
@@ -965,7 +965,7 @@ class DanmakuActionsModule extends BaseModule {
         this.resetCrybabyDraftCycle()
         this.updateCrybabyToggleState()
         const { message } = useDiscreteAPI(['message'])
-        message.warning(content)
+        message.warn(content)
     }
 
     private lockNativeSend(durationMs: number) {
@@ -1466,7 +1466,7 @@ class DanmakuActionsModule extends BaseModule {
         if (!this.canDraftBeSent(currentDraft)) {
             this.resetComposerToolbarRepeatState()
             const { message } = useDiscreteAPI(['message'])
-            message.warning('输入框内容为空，无法复读')
+            message.warn('输入框内容为空，无法复读')
             return
         }
 
@@ -1530,7 +1530,7 @@ class DanmakuActionsModule extends BaseModule {
         if (!roomid) {
             notification.error({
                 title: '发送失败',
-                content: '未获取到直播间信息，请刷新页面重试',
+                content: '原因：未获取到直播间信息，请刷新页面重试。',
                 closable: false,
                 duration: 3000
             })
@@ -1557,7 +1557,7 @@ class DanmakuActionsModule extends BaseModule {
                 this.logger.log(`弹幕 ${displayContent} 发送成功`, response)
                 notification.success({
                     title: '发送成功',
-                    content: displayContent,
+                    content: `内容：${displayContent}`,
                     closable: false,
                     duration: 2500
                 })
@@ -1565,7 +1565,7 @@ class DanmakuActionsModule extends BaseModule {
                 this.logger.error(`弹幕 ${displayContent} 发送失败`, response)
                 notification.error({
                     title: String(response.message ?? '发送失败'),
-                    content: displayContent,
+                    content: `内容：${displayContent}`,
                     closable: false,
                     duration: 3000
                 })
@@ -1574,7 +1574,7 @@ class DanmakuActionsModule extends BaseModule {
             this.logger.error(`弹幕 ${displayContent} 发送失败`, error)
             notification.error({
                 title: '发送失败',
-                content: displayContent,
+                content: `内容：${displayContent}`,
                 closable: false,
                 duration: 3000
             })
