@@ -73,6 +73,14 @@
 <img width="520" src="images/ToolBar.svg" alt="HazelSpam ToolBar">
 </div>
 
+### 弹幕快捷操作：弹幕列表内联按钮
+
+在直播间弹幕列表内可直接使用“复制弹幕 / 弹幕 +1”按钮，减少来回切换输入框的操作成本。
+
+<div align="center">
+<img width="520" src="images/Inline.svg" alt="HazelSpam Inline Actions">
+</div>
+
 ### 主界面（浅色模式）
 
 <div align="center">

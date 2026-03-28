@@ -2,7 +2,7 @@ import { onBeforeUnmount, onMounted, watch } from 'vue'
 import { useBiliStore } from '@/stores/useBiliStore'
 import { useModuleStore } from '@/stores/useModuleStore'
 import { resolveHostTheme } from '@/composables/useHostThemeSync'
-import { dq, pollingQuery } from '@/utils/dom'
+import { createSvgIconWrapper, dq, pollingQuery } from '@/utils/dom'
 import Logger from '@/utils/logger'
 import {
     APP_HOST_BUTTON_CLASS,
@@ -28,16 +28,14 @@ const APP_BUTTON_RUNNING_ROTATE_SPEED = 90
 const APP_BUTTON_RUNNING_ROTATE_LIMIT = 45
 const APP_BUTTON_ERROR_ROTATE_SPEED = 540
 
-const APP_BUTTON_ICON_MARKUP = `
-<div class="${APP_HOST_TOOLBAR_ICON_WRAPPER_CLASS}">
-    <svg class="${APP_HOST_BUTTON_ICON_CLASS} ${APP_HOST_TOOLBAR_ICON_CLASS}" width="24" height="24" viewBox="2 0 20 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-        <path d="M3 12A9 9 0 1 0 21 12A9 9 0 1 0 3 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M10 12A2 2 0 1 0 14 12A2 2 0 1 0 10 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M12 14V21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M10 12L3.25 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M14 12L20.75 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-</div>
+const APP_BUTTON_ICON_SVG = `
+<svg width="24" height="24" viewBox="1 1 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <path d="M3 12A9 9 0 1 0 21 12A9 9 0 1 0 3 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M10 12A2 2 0 1 0 14 12A2 2 0 1 0 10 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M12 14V21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M10 12L3.25 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M14 12L20.75 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
 `
 
 export const useAppButtonInjection = ({ onOpenPanel }: UseAppButtonInjectionOptions) => {
@@ -261,11 +259,13 @@ export const useAppButtonInjection = ({ onOpenPanel }: UseAppButtonInjectionOpti
             button.ariaLabel = APP_BUTTON_LABEL
             button.addEventListener('click', onOpenPanel)
 
-            const iconTemplate = document.createElement('template')
-            iconTemplate.innerHTML = APP_BUTTON_ICON_MARKUP.trim()
-            const iconWrapper = iconTemplate.content.firstElementChild
+            const iconWrapper = createSvgIconWrapper(
+                APP_BUTTON_ICON_SVG,
+                APP_HOST_TOOLBAR_ICON_WRAPPER_CLASS,
+                [APP_HOST_BUTTON_ICON_CLASS, APP_HOST_TOOLBAR_ICON_CLASS]
+            )
 
-            if (!(iconWrapper instanceof HTMLElement)) {
+            if (!(iconWrapper instanceof HTMLDivElement)) {
                 throw new Error('HazelSpam 入口图标初始化失败')
             }
 

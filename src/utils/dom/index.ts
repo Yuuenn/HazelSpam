@@ -34,4 +34,32 @@ const pollingQuery = (
     })
 }
 
-export { dq, dqa, dce, pollingQuery }
+const createSvgIconElement = (svgMarkup: string, iconClasses: string[] = []): SVGElement | null => {
+    const iconTemplate = document.createElement('template')
+    iconTemplate.innerHTML = svgMarkup.trim()
+    const icon = iconTemplate.content.firstElementChild
+    if (!(icon instanceof SVGElement)) {
+        return null
+    }
+    if (iconClasses.length > 0) {
+        icon.classList.add(...iconClasses)
+    }
+    return icon
+}
+
+const createSvgIconWrapper = (
+    svgMarkup: string,
+    wrapperClass: string,
+    iconClasses: string[] = []
+): HTMLDivElement | null => {
+    const icon = createSvgIconElement(svgMarkup, iconClasses)
+    if (!icon) {
+        return null
+    }
+    const wrapper = document.createElement('div')
+    wrapper.classList.add(wrapperClass)
+    wrapper.append(icon)
+    return wrapper
+}
+
+export { dq, dqa, dce, pollingQuery, createSvgIconElement, createSvgIconWrapper }
