@@ -197,7 +197,145 @@
 }
 
 .hazelspam-dm-action-group .hazelspam-inline-action-btn__icon {
-    font-size: var(--hazelspam-size-inline-action-icon, 13px);
+    width: var(--hazelspam-size-inline-action-icon, 14px);
+    height: var(--hazelspam-size-inline-action-icon, 14px);
+    display: block;
+    pointer-events: none;
+}
+
+.icon-left-part > .hazelspam-host-toolbar-item {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    margin-left: var(--hazelspam-space-xs, 4px);
+    --hazelspam-crybaby-flow-duration: 2s;
+    --hazelspam-crybaby-flow-gradient: conic-gradient(
+        from 90deg,
+        #f97316,
+        #f59e0b,
+        #eab308,
+        #84cc16,
+        #22c55e,
+        #10b981,
+        #14b8a6,
+        #06b6d4,
+        #0ea5e9,
+        #3b82f6,
+        #6366f1,
+        #8b5cf6,
+        #a855f7,
+        #d946ef,
+        #ec4899,
+        #f43f5e
+    );
+    --hazelspam-crybaby-active-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%222%200%2020%2024%22%3E%3Cg%20fill%3D%22black%22%3E%3Cpath%20d%3D%22M14.499%203.996a2.2%202.2%200%200%201%201.556.645l3.302%203.301a2.2%202.2%200%200%201%200%203.113l-.567.567l.043.192a8.5%208.5%200%200%201-3.732%208.83l-.23.144a8.5%208.5%200%201%201-2.687-15.623l.192.042l.567-.566a2.2%202.2%200%200%201%201.362-.636zM10%209a4%204%200%200%200-4%204a1%201%200%200%200%202%200a2%202%200%200%201%202-2a1%201%200%200%200%200-2%22%2F%3E%3Cpath%20d%3D%22M21%202a1%201%200%200%201%20.117%201.993L21%204h-1c0%20.83-.302%201.629-.846%202.25L19%206.413l-1.293%201.293a1%201%200%200%201-1.497-1.32l.083-.094L17.586%205c.232-.232.375-.537.407-.86L18%204a2%202%200%200%201%201.85-1.995L20%202z%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+}
+
+.icon-left-part > .hazelspam-host-toolbar-item > .hazelspam-host-toolbar-btn,
+.hazelspam-dm-composer-toolbar-item .hazelspam-host-toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--hazelspam-host-button-color, #c9ccd0);
+    cursor: pointer;
+}
+
+.icon-left-part .hazelspam-host-toolbar-btn:focus-visible {
+    outline: none;
+}
+
+.hazelspam_app_btn {
+    width: var(--hazelspam-size-app-button, 26px);
+    height: var(--hazelspam-size-app-button, 26px);
+}
+
+.hazelspam-host-toolbar-icon-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.hazelspam-host-toolbar-icon {
+    display: block;
+    width: 24px;
+    height: 24px;
+    pointer-events: none;
+}
+
+.hazelspam_app_btn_icon {
+    transform-origin: center;
+    will-change: transform;
+}
+
+.icon-left-part > .hazelspam-dm-composer-toolbar-item .hazelspam-dm-composer-toolbar-btn {
+    width: 24px;
+    height: 24px;
+    margin: 0;
+}
+
+.hazelspam-dm-composer-toolbar-item .hazelspam-dm-composer-toolbar-btn:focus-visible {
+    box-shadow: var(
+        --hazelspam-focus-ring-shadow,
+        var(--p-focus-ring-shadow, 0 0 0 2px color-mix(in srgb, var(--hazelspam-color-accent, #23ade5) 28%, transparent))
+    );
+    outline: var(--hazelspam-focus-ring-width, var(--p-focus-ring-width, 2px))
+        var(--hazelspam-focus-ring-style, var(--p-focus-ring-style, solid))
+        var(
+            --hazelspam-focus-ring-color,
+            var(--p-focus-ring-color, color-mix(in srgb, var(--hazelspam-color-accent, #23ade5) 42%, transparent))
+        );
+    outline-offset: var(--hazelspam-focus-ring-offset, var(--p-focus-ring-offset, 1px));
+}
+
+.hazelspam-dm-composer-toolbar-icon [stroke] {
+    stroke-width: 1.5;
+}
+
+@supports ((-webkit-mask-image: url("")) or (mask-image: url(""))) {
+    .hazelspam-dm-composer-toolbar-btn[data-hazelspam-toolbar-action='crybaby'][aria-pressed='true']
+        .hazelspam-host-toolbar-icon-wrapper {
+        isolation: isolate;
+        -webkit-mask-image: var(--hazelspam-crybaby-active-mask-image);
+        mask-image: var(--hazelspam-crybaby-active-mask-image);
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        -webkit-mask-size: 24px 24px;
+        mask-size: 24px 24px;
+    }
+
+    .hazelspam-dm-composer-toolbar-btn[data-hazelspam-toolbar-action='crybaby'][aria-pressed='true']
+        .hazelspam-host-toolbar-icon-wrapper::before {
+        content: '';
+        position: absolute;
+        inset: -35%;
+        background: var(--hazelspam-crybaby-flow-gradient);
+        filter: saturate(1.08) brightness(1.02);
+        animation: hazelspam-crybaby-flow-spin var(--hazelspam-crybaby-flow-duration) linear infinite;
+        will-change: transform;
+    }
+
+    .hazelspam-dm-composer-toolbar-btn[data-hazelspam-toolbar-action='crybaby'][aria-pressed='true']
+        .hazelspam-dm-composer-toolbar-icon {
+        opacity: 0;
+    }
+}
+
+@keyframes hazelspam-crybaby-flow-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -205,5 +343,10 @@
         :is(.emotion-pack-item, .emotion-grid-item, .emoji-cell),
     .hazelspam-dm-action-group .hazelspam-inline-action-btn {
         transition-duration: 0.01ms !important;
+    }
+
+    .hazelspam-dm-composer-toolbar-btn[data-hazelspam-toolbar-action='crybaby'][aria-pressed='true']
+        .hazelspam-host-toolbar-icon-wrapper::before {
+        animation: none;
     }
 }

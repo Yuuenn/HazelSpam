@@ -4,27 +4,23 @@ import { useModuleStore } from '@/stores/useModuleStore'
 import { resolveHostTheme } from '@/composables/useHostThemeSync'
 import { dq, pollingQuery } from '@/utils/dom'
 import Logger from '@/utils/logger'
-import { APP_HOST_BUTTON_CLASS, APP_HOST_BUTTON_ICON_CLASS } from '@/constants/brand'
-
-type AppButtonStyle = Partial<CSSStyleDeclaration>
+import {
+    APP_HOST_BUTTON_CLASS,
+    APP_HOST_BUTTON_ICON_CLASS,
+    APP_HOST_TOOLBAR_BUTTON_CLASS,
+    APP_HOST_TOOLBAR_ICON_CLASS,
+    APP_HOST_TOOLBAR_ICON_WRAPPER_CLASS,
+    APP_HOST_TOOLBAR_ITEM_CLASS
+} from '@/constants/brand'
 type AppButtonState = 'running' | 'ready' | 'error'
 
 type UseAppButtonInjectionOptions = {
     onOpenPanel: () => void
 }
 
-const APP_BUTTON_STYLE =
-    'position:relative;display:inline-flex;align-items:center;justify-content:center;' +
-    'width:var(--hazelspam-size-app-button, 26px);height:var(--hazelspam-size-app-button, 26px);' +
-    'padding:0;border:none;background:transparent;' +
-    'color:var(--hazelspam-host-button-color, #c9ccd0);cursor:pointer;'
-
 const APP_BUTTON_HOST_SELECTOR = '.icon-left-part'
 const APP_BUTTON_READY_SELECTOR = '#control-panel-ctnr-box'
-const APP_BUTTON_HOST_STYLE: AppButtonStyle = {
-    marginLeft: 'var(--hazelspam-space-xs, 4px)',
-    display: 'inline-block'
-}
+const APP_BUTTON_LABEL = '打开 HazelSpam 面板'
 const APP_BUTTON_DEFAULT_COLOR = '#C9CCD0'
 const APP_BUTTON_DARK_COLOR = '#46494D'
 const APP_BUTTON_SKIN_COLOR = '#FFFFFF'
@@ -33,13 +29,15 @@ const APP_BUTTON_RUNNING_ROTATE_LIMIT = 45
 const APP_BUTTON_ERROR_ROTATE_SPEED = 540
 
 const APP_BUTTON_ICON_MARKUP = `
-<svg class="${APP_HOST_BUTTON_ICON_CLASS}" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-    <path d="M3 12A9 9 0 1 0 21 12A9 9 0 1 0 3 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M10 12A2 2 0 1 0 14 12A2 2 0 1 0 10 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M12 14V21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M10 12L3.25 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M14 12L20.75 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
+<div class="${APP_HOST_TOOLBAR_ICON_WRAPPER_CLASS}">
+    <svg class="${APP_HOST_BUTTON_ICON_CLASS} ${APP_HOST_TOOLBAR_ICON_CLASS}" width="24" height="24" viewBox="2 0 20 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+        <path d="M3 12A9 9 0 1 0 21 12A9 9 0 1 0 3 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M10 12A2 2 0 1 0 14 12A2 2 0 1 0 10 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 14V21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M10 12L3.25 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M14 12L20.75 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+</div>
 `
 
 export const useAppButtonInjection = ({ onOpenPanel }: UseAppButtonInjectionOptions) => {
@@ -208,10 +206,47 @@ export const useAppButtonInjection = ({ onOpenPanel }: UseAppButtonInjectionOpti
         })
     }
 
-    const renderAppButton = async (
-        containerSelector: string,
-        appStyle: AppButtonStyle
-    ): Promise<void> => {
+    const stripAppButtonBaseInlineStyles = (button: HTMLButtonElement) => {
+        ;[
+            'position',
+            'display',
+            'align-items',
+            'justify-content',
+            'width',
+            'height',
+            'padding',
+            'border',
+            'background',
+            'color',
+            'cursor',
+            'margin-left'
+        ].forEach((property) => button.style.removeProperty(property))
+    }
+
+    const ensureAppButtonHostItem = (
+        hostElement: HTMLElement,
+        button: HTMLButtonElement
+    ): HTMLDivElement => {
+        const existingItem = button.closest(`.${APP_HOST_TOOLBAR_ITEM_CLASS}`)
+        if (existingItem instanceof HTMLDivElement) {
+            existingItem.removeAttribute('title')
+            return existingItem
+        }
+
+        const hostItem = document.createElement('div')
+        hostItem.classList.add(APP_HOST_TOOLBAR_ITEM_CLASS)
+
+        if (button.parentElement) {
+            button.parentElement.insertBefore(hostItem, button)
+        } else {
+            hostElement.append(hostItem)
+        }
+
+        hostItem.append(button)
+        return hostItem
+    }
+
+    const renderAppButton = async (containerSelector: string): Promise<void> => {
         const hostElement = await pollingQuery(document, containerSelector, 300, 1200, true)
         if (!(hostElement instanceof HTMLElement)) return
 
@@ -222,26 +257,26 @@ export const useAppButtonInjection = ({ onOpenPanel }: UseAppButtonInjectionOpti
         if (!button) {
             button = document.createElement('button')
             button.type = 'button'
-            button.classList.add(APP_HOST_BUTTON_CLASS)
-            button.style.cssText = APP_BUTTON_STYLE
+            button.classList.add(APP_HOST_BUTTON_CLASS, APP_HOST_TOOLBAR_BUTTON_CLASS)
+            button.ariaLabel = APP_BUTTON_LABEL
             button.addEventListener('click', onOpenPanel)
 
             const iconTemplate = document.createElement('template')
             iconTemplate.innerHTML = APP_BUTTON_ICON_MARKUP.trim()
-            const icon = iconTemplate.content.firstElementChild
+            const iconWrapper = iconTemplate.content.firstElementChild
 
-            if (!(icon instanceof SVGElement)) {
+            if (!(iconWrapper instanceof HTMLElement)) {
                 throw new Error('HazelSpam 入口图标初始化失败')
             }
 
-            button.append(icon)
-            hostElement.appendChild(button)
+            button.append(iconWrapper)
         }
 
-        Object.entries(appStyle).forEach(([key, value]) => {
-            if (value === undefined || value === null) return
-            ;(button.style as unknown as Record<string, string>)[key] = String(value)
-        })
+        button.type = 'button'
+        button.classList.add(APP_HOST_BUTTON_CLASS, APP_HOST_TOOLBAR_BUTTON_CLASS)
+        button.ariaLabel = APP_BUTTON_LABEL
+        stripAppButtonBaseInlineStyles(button)
+        ensureAppButtonHostItem(hostElement, button)
 
         appButton = button
         appButtonIcon = button.querySelector(`.${APP_HOST_BUTTON_ICON_CLASS}`) as SVGElement | null
@@ -255,7 +290,7 @@ export const useAppButtonInjection = ({ onOpenPanel }: UseAppButtonInjectionOpti
 
         isHostInitializing = true
 
-        void renderAppButton(APP_BUTTON_HOST_SELECTOR, APP_BUTTON_HOST_STYLE)
+        void renderAppButton(APP_BUTTON_HOST_SELECTOR)
             .then(() => {
                 isHostInitialized = true
                 hostMutationObserver?.disconnect()

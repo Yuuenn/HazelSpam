@@ -2,19 +2,12 @@ import { watch } from 'vue'
 import { GM_addStyle } from '$'
 import { appShellScrollScopeSelector } from '@/composables/useAppShellLayout'
 import { useUIStore } from '@/stores/useUIStore'
-import {
-    APP_HOST_BUTTON_CLASS,
-    APP_HOST_BUTTON_ICON_CLASS,
-    APP_TOOLTIP_CLASS,
-    APP_TOOLTIP_UP_CLASS
-} from '@/constants/brand'
+import { APP_TOOLTIP_CLASS, APP_TOOLTIP_UP_CLASS } from '@/constants/brand'
 
 const scrollbarScope = `:is(${appShellScrollScopeSelector})`
 const scrollbarActiveColor = 'color-mix(in srgb, var(--p-text-color, #8f8f8f) 34%, transparent)'
 const tooltipSelector = `.${APP_TOOLTIP_CLASS}`
 const tooltipUpSelector = `.${APP_TOOLTIP_UP_CLASS}`
-const appButtonSelector = `.${APP_HOST_BUTTON_CLASS}`
-const appButtonIconSelector = `.${APP_HOST_BUTTON_ICON_CLASS}`
 const hostDanmakuHistoryListSelector = `:is(.chat-history-list, .chat-history-list.h-100.p-relative.border-box.with-brush-prompt)`
 const hostDanmakuScrollbarStyleId = 'hazelspam-host-danmaku-scrollbar-style'
 
@@ -133,19 +126,6 @@ ${tooltipUpSelector}.p-tooltip-top .p-tooltip-arrow {
     border-width: var(--hazelspam-size-tooltip-arrow-height, 5px) var(--hazelspam-size-tooltip-arrow-width, 6px) 0
         var(--hazelspam-size-tooltip-arrow-width, 6px) !important;
     border-top-color: var(--hazelspam-tooltip-bg-current) !important;
-}
-${appButtonSelector} {
-    color: var(--hazelspam-host-button-color, #c9ccd0);
-}
-${appButtonSelector}:focus-visible {
-    outline: none;
-}
-${appButtonIconSelector} {
-    display: block;
-    width: var(--hazelspam-size-app-icon, 24px);
-    height: var(--hazelspam-size-app-icon, 24px);
-    transform-origin: center;
-    will-change: transform;
 }
 `
 

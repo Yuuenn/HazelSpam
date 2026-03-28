@@ -3,7 +3,56 @@ import { dq } from '@/utils/dom'
 import { BILIAPI } from '@/utils/bili'
 import { useDiscreteAPI } from '@/utils/ui'
 import { useBiliStore } from '@/stores/useBiliStore'
+import {
+    APP_HOST_BUTTON_CLASS,
+    APP_HOST_TOOLBAR_BUTTON_CLASS,
+    APP_HOST_TOOLBAR_ICON_CLASS,
+    APP_HOST_TOOLBAR_ICON_WRAPPER_CLASS,
+    APP_HOST_TOOLBAR_ITEM_CLASS
+} from '@/constants/brand'
 import BaseModule from '@/modules/BaseModule'
+
+const INLINE_COPY_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m12 20l-7.5-7.428A5 5 0 1 1 12 6.006a5 5 0 1 1 7.907 6.12M19 16v6m3-3l-3 3l-3-3"/>
+</svg>
+`
+
+const INLINE_REPEAT_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12h6M6 9v6m12 4V5l-4 4"/>
+</svg>
+`
+
+const TOOLBAR_REPEAT_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="2 0 20 24" fill="none" aria-hidden="true" focusable="false">
+    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 19a2 2 0 0 0 2 2c2 0 2-4 3-9s1-9 3-9a2 2 0 0 1 2 2m-8 7h6m4 0l6 6m-6 0l6-6"/>
+</svg>
+`
+
+const TOOLBAR_CLEAR_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="2 0 20 24" fill="none" aria-hidden="true" focusable="false">
+    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16m-10 4v6m4-6v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/>
+</svg>
+`
+
+const CRYBABY_INACTIVE_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="2 0 20 24" fill="none" aria-hidden="true" focusable="false">
+    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+        <path d="M15.349 5.349L18.65 8.65a1.2 1.2 0 0 1 0 1.698l-.972.972a7.5 7.5 0 1 1-5-5l.972-.972a1.2 1.2 0 0 1 1.698 0z"/>
+        <path d="m17 7l1.293-1.293A2.4 2.4 0 0 0 19 4a1 1 0 0 1 1-1h1M7 13a3 3 0 0 1 3-3"/>
+    </g>
+</svg>
+`
+
+const CRYBABY_ACTIVE_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="2 0 20 24" aria-hidden="true" focusable="false">
+    <g fill="currentColor">
+        <path d="M14.499 3.996a2.2 2.2 0 0 1 1.556.645l3.302 3.301a2.2 2.2 0 0 1 0 3.113l-.567.567l.043.192a8.5 8.5 0 0 1-3.732 8.83l-.23.144a8.5 8.5 0 1 1-2.687-15.623l.192.042l.567-.566a2.2 2.2 0 0 1 1.362-.636zM10 9a4 4 0 0 0-4 4a1 1 0 0 0 2 0a2 2 0 0 1 2-2a1 1 0 0 0 0-2"/>
+        <path d="M21 2a1 1 0 0 1 .117 1.993L21 4h-1c0 .83-.302 1.629-.846 2.25L19 6.413l-1.293 1.293a1 1 0 0 1-1.497-1.32l.083-.094L17.586 5c.232-.232.375-.537.407-.86L18 4a2 2 0 0 1 1.85-1.995L20 2z"/>
+    </g>
+</svg>
+`
 
 interface DanmakuActionPayload {
     displayContent: string
@@ -53,13 +102,21 @@ interface PendingSendIntent {
     draft: ComposerDraft
 }
 
+interface HostToolbarItemRef {
+    root: HTMLDivElement
+    button: HTMLButtonElement
+}
+
 class DanmakuActionsModule extends BaseModule {
     config = this.moduleStore.moduleConfig.settings.danmakuActions
+    private readonly crybabySuffixCandidates = ['.', ',', ';', ':', '-'] as const
     private readonly inlineActionButtonClass = 'hazelspam-inline-action-btn'
     private readonly inlineActionIconClass = 'hazelspam-inline-action-btn__icon'
     private readonly actionGroupClass = 'hazelspam-dm-action-group'
-    private readonly composerToolbarClass = 'hazelspam-dm-composer-toolbar'
+    private readonly composerToolbarItemClass = 'hazelspam-dm-composer-toolbar-item'
     private readonly composerToolbarButtonClass = 'hazelspam-dm-composer-toolbar-btn'
+    private readonly composerToolbarIconClass = 'hazelspam-dm-composer-toolbar-icon'
+    private readonly hostToolbarContainerSelector = '.icon-left-part'
     private readonly boundaryPunctuationRegex = /[\s,.;:!?，。！？；：、~～\-—()（）[\]【】{}<>《》"“”'‘’`]/
     private readonly sendLockDurationMs = 1000
     private readonly sendLockToastCooldownMs = 900
@@ -69,8 +126,9 @@ class DanmakuActionsModule extends BaseModule {
     private configWatchReady = false
     private pendingBindNodes = new Set<HTMLElement>()
     private pendingBindFrameId: number | null = null
-    private composerToolbarElement: HTMLElement | null = null
+    private composerToolbarItems: HostToolbarItemRef[] = []
     private crybabyToggleButton: HTMLButtonElement | null = null
+    private crybabyToggleActiveState: boolean | null = null
     private nativeComposerListenersBound = false
     private pendingSendIntent: PendingSendIntent | null = null
     private pendingSendIntentTimer: number | null = null
@@ -78,6 +136,9 @@ class DanmakuActionsModule extends BaseModule {
     private sendLockUntil = 0
     private sendLockToastAt = 0
     private internalSendGuard = false
+    private crybabyDraftCycle: ComposerDraft[] = []
+    private composerToolbarRepeatBaseDraft: ComposerDraft | null = null
+    private composerToolbarRepeatLastAppliedDraft: ComposerDraft | null = null
 
     private stopWaitingForDanmakuArea() {
         if (this.waitForDmAreaTimer === null) return
@@ -97,6 +158,15 @@ class DanmakuActionsModule extends BaseModule {
             window.clearTimeout(this.pendingSendIntentTimer)
             this.pendingSendIntentTimer = null
         }
+    }
+
+    private resetCrybabyDraftCycle() {
+        this.crybabyDraftCycle = []
+    }
+
+    private resetComposerToolbarRepeatState() {
+        this.composerToolbarRepeatBaseDraft = null
+        this.composerToolbarRepeatLastAppliedDraft = null
     }
 
     private isTextDanmakuItem(node: Node | null): node is HTMLElement {
@@ -201,9 +271,13 @@ class DanmakuActionsModule extends BaseModule {
     }
 
     private clearComposerToolbar() {
-        this.composerToolbarElement?.remove()
-        this.composerToolbarElement = null
+        this.composerToolbarItems.forEach(({ root }) => root.remove())
+        this.composerToolbarItems = []
+        document.querySelectorAll(`.${this.composerToolbarItemClass}`).forEach((element) => element.remove())
         this.crybabyToggleButton = null
+        this.crybabyToggleActiveState = null
+        this.resetCrybabyDraftCycle()
+        this.resetComposerToolbarRepeatState()
     }
 
     private startDanmakuObserver(dmArea: Element) {
@@ -638,6 +712,21 @@ class DanmakuActionsModule extends BaseModule {
         return this.applyComposerDraft(context, mergedDraft)
     }
 
+    private resolveComposerToolbarRepeatBaseDraft(currentDraft: ComposerDraft): ComposerDraft {
+        const shouldResetBase =
+            !this.composerToolbarRepeatBaseDraft ||
+            !this.composerToolbarRepeatLastAppliedDraft ||
+            !this.isSameComposerDraft(currentDraft, this.composerToolbarRepeatLastAppliedDraft)
+
+        if (shouldResetBase) {
+            this.composerToolbarRepeatBaseDraft = this.cloneComposerDraft(currentDraft)
+            this.composerToolbarRepeatLastAppliedDraft = null
+        }
+
+        const repeatBaseDraft = this.composerToolbarRepeatBaseDraft ?? currentDraft
+        return this.cloneComposerDraft(repeatBaseDraft)
+    }
+
     private normalizeForDiff(text: string): string {
         return text.trim()
     }
@@ -694,88 +783,186 @@ class DanmakuActionsModule extends BaseModule {
         return null
     }
 
+    private replaceFirstOutsideSquareBracketWithReplacer(
+        text: string,
+        matcher: (char: string, index: number, source: string) => boolean,
+        replacement: (char: string, index: number, source: string) => string
+    ): string | null {
+        let bracketDepth = 0
+        for (let index = 0; index < text.length; index += 1) {
+            const char = text.charAt(index)
+            if (char === '[') {
+                bracketDepth += 1
+                continue
+            }
+            if (char === ']') {
+                if (bracketDepth > 0) {
+                    bracketDepth -= 1
+                }
+                continue
+            }
+            if (bracketDepth > 0) {
+                continue
+            }
+
+            if (!matcher(char, index, text)) {
+                continue
+            }
+
+            return `${text.slice(0, index)}${replacement(char, index, text)}${text.slice(index + 1)}`
+        }
+
+        return null
+    }
+
+    private resolveCrybabyHalfwidthRotation(char: string): string | null {
+        switch (char) {
+            case ' ':
+                return ','
+            case '.':
+                return ','
+            case ',':
+                return ';'
+            case ';':
+                return ':'
+            case ':':
+                return '-'
+            case '-':
+                return '.'
+            default:
+                return null
+        }
+    }
+
     private buildCrybabyReplacementCandidates(baseBody: string): string[] {
         const candidates: string[] = []
+        const seenBodies = new Set([baseBody])
         const pushCandidate = (next: string | null) => {
-            if (!next || next === baseBody) {
+            if (!next || seenBodies.has(next)) {
                 return
             }
             candidates.push(next)
+            seenBodies.add(next)
         }
 
-        pushCandidate(this.replaceFirstOutsideSquareBracket(baseBody, (char) => char === ' ', '　'))
-        pushCandidate(this.replaceFirstOutsideSquareBracket(baseBody, (char) => char === '　', ' '))
-        pushCandidate(
+        const normalizedHalfwidthCandidate =
+            this.replaceFirstOutsideSquareBracket(baseBody, (char) => char === '　', ' ') ??
             this.replaceFirstOutsideSquareBracket(
                 baseBody,
                 (char, index, source) =>
                     char === '，' && this.isSafePunctuationMutationIndex(source, index),
                 ','
             )
-        )
-        pushCandidate(
-            this.replaceFirstOutsideSquareBracket(
-                baseBody,
-                (char, index, source) =>
-                    char === ',' && this.isSafePunctuationMutationIndex(source, index),
-                '，'
-            )
-        )
-        pushCandidate(
+            ??
             this.replaceFirstOutsideSquareBracket(
                 baseBody,
                 (char, index, source) =>
                     char === '。' && this.isSafePunctuationMutationIndex(source, index),
                 '.'
             )
-        )
-        pushCandidate(
-            this.replaceFirstOutsideSquareBracket(
-                baseBody,
-                (char, index, source) =>
-                    char === '.' && this.isSafePunctuationMutationIndex(source, index),
-                '。'
-            )
-        )
 
-        return Array.from(new Set(candidates))
+        pushCandidate(normalizedHalfwidthCandidate)
+
+        let currentBody = normalizedHalfwidthCandidate ?? baseBody
+        for (let step = 0; step < this.crybabySuffixCandidates.length; step += 1) {
+            const nextBody = this.replaceFirstOutsideSquareBracketWithReplacer(
+                currentBody,
+                (char, index, source) =>
+                    this.resolveCrybabyHalfwidthRotation(char) !== null &&
+                    this.isSafePunctuationMutationIndex(source, index),
+                (char) => this.resolveCrybabyHalfwidthRotation(char) ?? char
+            )
+
+            if (!nextBody || seenBodies.has(nextBody)) {
+                break
+            }
+
+            pushCandidate(nextBody)
+            currentBody = nextBody
+        }
+
+        return candidates
+    }
+
+    private isSameComposerDraft(left: ComposerDraft, right: ComposerDraft): boolean {
+        return (
+            left.bodyText === right.bodyText &&
+            left.replyMid === right.replyMid &&
+            left.replyAttr === right.replyAttr &&
+            left.replyUname === right.replyUname &&
+            left.replayDmid === right.replayDmid
+        )
+    }
+
+    private cloneComposerDraft(draft: ComposerDraft): ComposerDraft {
+        return {
+            ...draft
+        }
+    }
+
+    private buildCrybabyDraftCycle(
+        baseDraft: ComposerDraft,
+        textarea: HTMLTextAreaElement
+    ): ComposerDraft[] {
+        const baseBody = baseDraft.bodyText
+        const baseNormalized = this.normalizeForDiff(baseBody)
+        if (baseNormalized.length === 0) {
+            return []
+        }
+
+        const maxLength = this.resolveComposerLengthLimit(textarea)
+        const bodyCandidates = this.crybabySuffixCandidates
+            .map((suffix) => this.smartJoinText(baseBody, suffix))
+            .filter(
+                (bodyText, index, candidates) =>
+                    this.normalizeForDiff(bodyText) !== baseNormalized &&
+                    candidates.indexOf(bodyText) === index
+            )
+            .filter((bodyText) => {
+                const draft: ComposerDraft = {
+                    ...baseDraft,
+                    bodyText
+                }
+                return this.getTextLength(this.renderComposerDraft(draft)) <= maxLength
+            })
+
+        const finalBodyCycle =
+            bodyCandidates.length > 0 ? bodyCandidates : this.buildCrybabyReplacementCandidates(baseBody)
+
+        const cycleDrafts = [baseBody, ...finalBodyCycle].map((bodyText) => ({
+            ...baseDraft,
+            bodyText
+        }))
+
+        return cycleDrafts.filter(
+            (draft, index, drafts) =>
+                drafts.findIndex((candidate) => this.isSameComposerDraft(candidate, draft)) === index
+        )
     }
 
     private createCrybabyDraft(lastDraft: ComposerDraft, textarea: HTMLTextAreaElement): ComposerDraft | null {
-        const baseBody = lastDraft.bodyText
-        const baseNormalized = this.normalizeForDiff(baseBody)
-        if (baseNormalized.length === 0) {
+        const currentCycle = this.crybabyDraftCycle
+        let cycleIndex = currentCycle.findIndex((draft) => this.isSameComposerDraft(draft, lastDraft))
+
+        if (cycleIndex < 0) {
+            this.crybabyDraftCycle = this.buildCrybabyDraftCycle(lastDraft, textarea)
+            cycleIndex = this.crybabyDraftCycle.findIndex((draft) =>
+                this.isSameComposerDraft(draft, lastDraft)
+            )
+        }
+
+        if (this.crybabyDraftCycle.length <= 1 || cycleIndex < 0) {
+            this.resetCrybabyDraftCycle()
             return null
         }
 
-        const suffixCandidates = ['.', ',', ';', ':', '-']
-        const candidates: string[] = []
-        suffixCandidates.forEach((suffix) => {
-            candidates.push(this.smartJoinText(baseBody, suffix))
-        })
-
-        candidates.push(...this.buildCrybabyReplacementCandidates(baseBody))
-
-        const maxLength = this.resolveComposerLengthLimit(textarea)
-        for (const bodyText of candidates) {
-            if (this.normalizeForDiff(bodyText) === baseNormalized) {
-                continue
-            }
-
-            const draft: ComposerDraft = {
-                ...lastDraft,
-                bodyText
-            }
-            if (this.getTextLength(this.renderComposerDraft(draft)) <= maxLength) {
-                return draft
-            }
-        }
-
-        return null
+        const nextIndex = (cycleIndex + 1) % this.crybabyDraftCycle.length
+        return this.cloneComposerDraft(this.crybabyDraftCycle[nextIndex])
     }
 
     private disableCrybabyWithNotice(content: string) {
         this.config.crybabyEnabled = false
+        this.resetCrybabyDraftCycle()
         this.updateCrybabyToggleState()
         const { message } = useDiscreteAPI(['message'])
         message.warning(content)
@@ -807,6 +994,7 @@ class DanmakuActionsModule extends BaseModule {
     }
 
     private captureUserSendIntent(context: NativeComposerContext, isTrusted: boolean) {
+        this.resetComposerToolbarRepeatState()
         if (!this.config.crybabyEnabled) return
         if (!isTrusted || this.internalSendGuard) return
 
@@ -1001,96 +1189,244 @@ class DanmakuActionsModule extends BaseModule {
         return true
     }
 
+    private createButtonIcon(svgMarkup: string, ...iconClasses: string[]): SVGElement | null {
+        const iconTemplate = document.createElement('template')
+        iconTemplate.innerHTML = svgMarkup.trim()
+        const icon = iconTemplate.content.firstElementChild
+        if (!(icon instanceof SVGElement)) {
+            return null
+        }
+        if (iconClasses.length > 0) {
+            icon.classList.add(...iconClasses)
+        }
+        return icon
+    }
+
     private createInlineActionButton(
-        iconClass: string,
-        title: string,
+        iconSvg: string,
+        label: string,
         onClick: (event: MouseEvent) => void,
         buttonClass?: string
     ) {
         const button = document.createElement('button')
         button.type = 'button'
-        button.title = title
-        button.ariaLabel = title
+        button.ariaLabel = label
         button.classList.add(this.inlineActionButtonClass)
         if (buttonClass) {
             button.classList.add(buttonClass)
         }
 
-        const icon = document.createElement('i')
-        icon.className = `${iconClass} ${this.inlineActionIconClass}`.trim()
-        button.appendChild(icon)
+        const icon = this.createButtonIcon(iconSvg, this.inlineActionIconClass)
+        if (icon) {
+            button.appendChild(icon)
+        }
 
         button.addEventListener('click', onClick)
 
         return button
     }
 
+    private getHostToolbarMountPoint() {
+        const host = document.querySelector<HTMLElement>(this.hostToolbarContainerSelector)
+        if (!host) return null
+
+        const appButton = host.querySelector<HTMLButtonElement>(`.${APP_HOST_BUTTON_CLASS}`)
+        const appButtonItem =
+            appButton?.closest<HTMLElement>(`.${APP_HOST_TOOLBAR_ITEM_CLASS}`) ?? appButton ?? null
+        return {
+            host,
+            appButton,
+            appButtonItem
+        }
+    }
+
+    private syncHostToolbarColor() {
+        if (this.composerToolbarItems.length === 0) return
+        const appButton = document.querySelector<HTMLButtonElement>(`.${APP_HOST_BUTTON_CLASS}`)
+        if (!appButton) return
+
+        const colorToken = appButton.style.getPropertyValue('--hazelspam-host-button-color').trim()
+        const resolvedColor = colorToken || window.getComputedStyle(appButton).color || '#C9CCD0'
+        this.composerToolbarItems.forEach(({ root }) => {
+            if (root.style.getPropertyValue('--hazelspam-host-button-color').trim() === resolvedColor) {
+                return
+            }
+            root.style.setProperty('--hazelspam-host-button-color', resolvedColor)
+        })
+    }
+
+    private stripHostToolbarButtonInlineStyles(button: HTMLButtonElement) {
+        ;[
+            'position',
+            'display',
+            'align-items',
+            'justify-content',
+            'width',
+            'height',
+            'padding',
+            'border',
+            'background',
+            'color',
+            'cursor',
+            'margin-left'
+        ].forEach((property) => button.style.removeProperty(property))
+    }
+
+    private normalizeComposerToolbarItemElement(toolbarItem: HTMLDivElement, title: string) {
+        toolbarItem.classList.add(APP_HOST_TOOLBAR_ITEM_CLASS, this.composerToolbarItemClass)
+        toolbarItem.removeAttribute('title')
+        ;['display', 'align-items', 'margin-left', 'column-gap'].forEach((property) =>
+            toolbarItem.style.removeProperty(property)
+        )
+
+        toolbarItem
+            .querySelectorAll<HTMLButtonElement>(`.${this.composerToolbarButtonClass}`)
+            .forEach((button) => {
+                button.classList.add(APP_HOST_TOOLBAR_BUTTON_CLASS)
+                button.ariaLabel = title
+                this.stripHostToolbarButtonInlineStyles(button)
+            })
+    }
+
+    private createHostToolbarItem(
+        svgMarkup: string,
+        label: string,
+        onClick: (event: MouseEvent) => void
+    ): HostToolbarItemRef {
+        const root = document.createElement('div')
+        const button = document.createElement('button')
+        button.type = 'button'
+        button.ariaLabel = label
+        button.classList.add(this.composerToolbarButtonClass, APP_HOST_TOOLBAR_BUTTON_CLASS)
+
+        const iconWrapper = document.createElement('div')
+        iconWrapper.classList.add(APP_HOST_TOOLBAR_ICON_WRAPPER_CLASS)
+        const icon = this.createButtonIcon(
+            svgMarkup,
+            APP_HOST_TOOLBAR_ICON_CLASS,
+            this.composerToolbarIconClass
+        )
+        if (icon) {
+            iconWrapper.append(icon)
+        }
+        button.append(iconWrapper)
+
+        button.addEventListener('click', onClick)
+        root.append(button)
+        this.normalizeComposerToolbarItemElement(root, label)
+        return {
+            root,
+            button
+        }
+    }
+
+    private mountHostToolbarItems(
+        host: HTMLElement,
+        insertAfter: Element,
+        items: HTMLDivElement[]
+    ) {
+        let previousElement: Element = insertAfter
+        for (const item of items) {
+            const isMountedInHost = item.parentElement === host
+            const hasExpectedOrder = previousElement.nextElementSibling === item
+            if (!isMountedInHost || !hasExpectedOrder) {
+                const referenceNode = previousElement.nextElementSibling
+                host.insertBefore(item, referenceNode)
+            }
+            previousElement = item
+        }
+    }
+
     private mountComposerToolbar() {
         if (!this.config.enable) return
 
-        const context = this.getNativeComposerContext()
-        if (!context) return
-        if (this.composerToolbarElement && document.contains(this.composerToolbarElement)) {
+        const mountPoint = this.getHostToolbarMountPoint()
+        if (!mountPoint) return
+        const insertAfter = mountPoint.appButtonItem
+        if (!insertAfter) return
+
+        if (this.composerToolbarItems.length > 0) {
+            this.composerToolbarItems.forEach(({ root, button }) => {
+                this.normalizeComposerToolbarItemElement(root, button.ariaLabel || '')
+            })
+            this.mountHostToolbarItems(
+                mountPoint.host,
+                insertAfter,
+                this.composerToolbarItems.map(({ root }) => root)
+            )
+            this.syncHostToolbarColor()
             return
         }
 
-        const toolbar = document.createElement('div')
-        toolbar.className = this.composerToolbarClass
-        toolbar.style.cssText =
-            'display:flex;align-items:center;gap:6px;margin-bottom:6px;justify-content:flex-end;'
+        document.querySelectorAll(`.${this.composerToolbarItemClass}`).forEach((element) => element.remove())
 
-        const copyButton = this.createInlineActionButton(
-            'pi pi-copy',
-            '复制当前输入并追加到输入框',
-            (event) => {
-                event.stopPropagation()
-                void this.copyFromComposerToolbar()
-            },
-            this.composerToolbarButtonClass
-        )
-
-        const clearButton = this.createInlineActionButton(
-            'pi pi-trash',
-            '清空输入框',
-            (event) => {
-                event.stopPropagation()
-                this.clearComposerInput()
-            },
-            this.composerToolbarButtonClass
-        )
-
-        const crybabyButton = this.createInlineActionButton(
-            'pi pi-megaphone',
+        const crybabyItem = this.createHostToolbarItem(
+            CRYBABY_INACTIVE_SVG,
             '切换 Crybaby 模式',
             (event) => {
                 event.stopPropagation()
                 this.config.crybabyEnabled = !this.config.crybabyEnabled
+                this.resetCrybabyDraftCycle()
                 this.updateCrybabyToggleState()
                 const { message } = useDiscreteAPI(['message'])
                 message.info(this.config.crybabyEnabled ? 'Crybaby 已开启' : 'Crybaby 已关闭')
-            },
-            this.composerToolbarButtonClass
+            }
+        )
+        crybabyItem.button.dataset.hazelspamToolbarAction = 'crybaby'
+
+        const repeatItem = this.createHostToolbarItem(
+            TOOLBAR_REPEAT_SVG,
+            '复读当前输入框弹幕（+1）',
+            (event) => {
+                event.stopPropagation()
+                void this.repeatFromComposerToolbar()
+            }
         )
 
-        toolbar.append(copyButton, clearButton, crybabyButton)
-        const textareaParent = context.textarea.parentElement
-        if (textareaParent) {
-            textareaParent.insertBefore(toolbar, context.textarea)
-        } else {
-            context.container.prepend(toolbar)
-        }
+        const clearItem = this.createHostToolbarItem(
+            TOOLBAR_CLEAR_SVG,
+            '清空输入框',
+            (event) => {
+                event.stopPropagation()
+                this.clearComposerInput()
+            }
+        )
 
-        this.composerToolbarElement = toolbar
-        this.crybabyToggleButton = crybabyButton
+        this.composerToolbarItems = [crybabyItem, repeatItem, clearItem]
+        this.mountHostToolbarItems(
+            mountPoint.host,
+            insertAfter,
+            this.composerToolbarItems.map(({ root }) => root)
+        )
+
+        this.crybabyToggleButton = crybabyItem.button
         this.updateCrybabyToggleState()
+        this.syncHostToolbarColor()
     }
 
     private updateCrybabyToggleState() {
         if (!this.crybabyToggleButton) return
         const active = Boolean(this.config.crybabyEnabled)
         this.crybabyToggleButton.setAttribute('aria-pressed', String(active))
-        this.crybabyToggleButton.style.opacity = active ? '1' : '0.72'
-        this.crybabyToggleButton.style.filter = active ? 'none' : 'saturate(0.4)'
+        if (
+            this.crybabyToggleActiveState === active &&
+            this.crybabyToggleButton.querySelector(`.${this.composerToolbarIconClass}`)
+        ) {
+            return
+        }
+        const nextIcon = this.createButtonIcon(
+            active ? CRYBABY_ACTIVE_SVG : CRYBABY_INACTIVE_SVG,
+            APP_HOST_TOOLBAR_ICON_CLASS,
+            this.composerToolbarIconClass
+        )
+        this.crybabyToggleButton.replaceChildren()
+        const iconWrapper = document.createElement('div')
+        iconWrapper.classList.add(APP_HOST_TOOLBAR_ICON_WRAPPER_CLASS)
+        if (nextIcon) {
+            iconWrapper.append(nextIcon)
+        }
+        this.crybabyToggleButton.append(iconWrapper)
+        this.crybabyToggleActiveState = active
     }
 
     private ensureComposerEnhancements() {
@@ -1104,6 +1440,7 @@ class DanmakuActionsModule extends BaseModule {
             if (!this.config.enable) return
             this.mountComposerToolbar()
             this.updateCrybabyToggleState()
+            this.syncHostToolbarColor()
         }, 500)
     }
 
@@ -1111,6 +1448,7 @@ class DanmakuActionsModule extends BaseModule {
         const context = this.getNativeComposerContext()
         if (!context) return
 
+        this.resetComposerToolbarRepeatState()
         context.panel.clearAtInfo?.()
         context.panel.atUserName = ''
         context.panel.tempAtUserName = ''
@@ -1120,23 +1458,31 @@ class DanmakuActionsModule extends BaseModule {
         this.setNativeChatInputValue(context.textarea, '')
     }
 
-    private async copyFromComposerToolbar() {
+    private async repeatFromComposerToolbar() {
         const context = this.getNativeComposerContext()
         if (!context) return
 
-        const displayText = context.textarea.value.replace(/\u00a0/g, ' ')
-        if (displayText.trim().length === 0) {
+        const currentDraft = this.readComposerDraft(context.panel, context.textarea)
+        if (!this.canDraftBeSent(currentDraft)) {
+            this.resetComposerToolbarRepeatState()
+            const { message } = useDiscreteAPI(['message'])
+            message.warning('输入框内容为空，无法复读')
             return
         }
 
-        await this.dmCopy(displayText)
-        const draft = this.readComposerDraft(context.panel, context.textarea)
-        this.appendDraftToComposer(draft)
+        const repeatBaseDraft = this.resolveComposerToolbarRepeatBaseDraft(currentDraft)
+        const mergedDraft = this.mergeDraftForAppend(currentDraft, repeatBaseDraft)
+        if (!this.applyComposerDraft(context, mergedDraft)) {
+            return
+        }
+
+        this.composerToolbarRepeatLastAppliedDraft = this.cloneComposerDraft(mergedDraft)
     }
 
     private async copyPayloadToClipboardAndComposer(payload: DanmakuActionPayload) {
         if (payload.displayContent.trim().length === 0) return
         await this.dmCopy(payload.displayContent)
+        this.resetComposerToolbarRepeatState()
         this.appendDraftToComposer(this.toComposerDraft(payload))
     }
 
@@ -1154,12 +1500,12 @@ class DanmakuActionsModule extends BaseModule {
             'display:inline-flex;align-items:center;gap:var(--hazelspam-space-2xs, 2px);' +
             'margin-left:var(--hazelspam-space-2xs, 2px);padding-top:var(--hazelspam-space-xs, 4px);vertical-align:middle;'
 
-        const copyButton = this.createInlineActionButton('pi pi-clipboard', '复制弹幕', (e) => {
+        const copyButton = this.createInlineActionButton(INLINE_COPY_SVG, '复制弹幕', (e) => {
             e.stopPropagation()
             void this.copyPayloadToClipboardAndComposer(payload)
         })
 
-        const repeatButton = this.createInlineActionButton('pi pi-comments', '弹幕 +1', (e) => {
+        const repeatButton = this.createInlineActionButton(INLINE_REPEAT_SVG, '弹幕 +1', (e) => {
             e.stopPropagation()
             void this.dmRepeat(node, payload)
         })

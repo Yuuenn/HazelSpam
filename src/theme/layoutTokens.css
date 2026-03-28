@@ -13,7 +13,9 @@
 .hazelspam-toast,
 .hazelspam-tooltip,
 .hazelspam-tooltip-up,
-.hazelspam_app_btn {
+.hazelspam_app_btn,
+.hazelspam-host-toolbar-item,
+.hazelspam-host-toolbar-btn {
     --hazelspam-space-2xs: 2px;
     --hazelspam-space-0: 0;
     --hazelspam-space-xs: 4px;
