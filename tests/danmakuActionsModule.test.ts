@@ -78,6 +78,22 @@ interface DanmakuActionPayload {
 
 interface DanmakuActionsModuleTestAccess {
     createDanmakuActionPayload(node: DanmakuNodeMock): DanmakuActionPayload | null
+    createCrybabyDraft(
+        draft: {
+            bodyText: string
+            replyMid: number
+            replyAttr: number
+            replyUname: string
+            replayDmid: string
+        },
+        textarea: { maxLength: number }
+    ): {
+        bodyText: string
+        replyMid: number
+        replyAttr: number
+        replyUname: string
+        replayDmid: string
+    } | null
     copyPayloadToClipboardAndComposer(payload: DanmakuActionPayload): Promise<void>
     dmCopy(msg: string): Promise<void>
     dmRepeat(sourceNode: HTMLElement | null, payload: DanmakuActionPayload): Promise<void>
@@ -497,6 +513,43 @@ describe('DanmakuActionsModule', () => {
 
         expect(harness.textarea.value).toBe('12345')
         expect(messageWarningMock).toHaveBeenCalledWith(expect.stringContaining('已超过输入上限'))
+    })
+
+    it('lets crybaby fall back to comma-width replacement when suffix cannot fit', () => {
+        const module = new DanmakuActionsModule('DanmakuActionsTest')
+        const access = module as unknown as DanmakuActionsModuleTestAccess
+
+        const next = access.createCrybabyDraft(
+            {
+                bodyText: '你好，世界',
+                replyMid: 0,
+                replyAttr: 0,
+                replyUname: '',
+                replayDmid: ''
+            },
+            { maxLength: 5 }
+        )
+
+        expect(next).not.toBeNull()
+        expect(next?.bodyText).toBe('你好,世界')
+    })
+
+    it('keeps bracket emoji syntax untouched for crybaby replacement fallback', () => {
+        const module = new DanmakuActionsModule('DanmakuActionsTest')
+        const access = module as unknown as DanmakuActionsModuleTestAccess
+
+        const next = access.createCrybabyDraft(
+            {
+                bodyText: '[doge]',
+                replyMid: 0,
+                replyAttr: 0,
+                replyUname: '',
+                replayDmid: ''
+            },
+            { maxLength: 6 }
+        )
+
+        expect(next).toBeNull()
     })
 
     it('uses the native composer flow for structured @ when the host input is available', async () => {
