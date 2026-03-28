@@ -639,7 +639,106 @@ class DanmakuActionsModule extends BaseModule {
     }
 
     private normalizeForDiff(text: string): string {
-        return text.replace(/\s+/g, ' ').trim()
+        return text.trim()
+    }
+
+    private isWordLikeChar(char: string): boolean {
+        if (char.length === 0) return false
+        return /[0-9A-Za-z\u4E00-\u9FFF]/.test(char)
+    }
+
+    private isSafePunctuationMutationIndex(text: string, index: number): boolean {
+        const leftChar = index > 0 ? text.charAt(index - 1) : ''
+        const rightChar = index < text.length - 1 ? text.charAt(index + 1) : ''
+
+        if (this.isWordLikeChar(leftChar) || this.isWordLikeChar(rightChar)) {
+            return true
+        }
+
+        if (leftChar === ' ' || leftChar === '　' || rightChar === ' ' || rightChar === '　') {
+            return true
+        }
+
+        return false
+    }
+
+    private replaceFirstOutsideSquareBracket(
+        text: string,
+        matcher: (char: string, index: number, source: string) => boolean,
+        replacement: string
+    ): string | null {
+        let bracketDepth = 0
+        for (let index = 0; index < text.length; index += 1) {
+            const char = text.charAt(index)
+            if (char === '[') {
+                bracketDepth += 1
+                continue
+            }
+            if (char === ']') {
+                if (bracketDepth > 0) {
+                    bracketDepth -= 1
+                }
+                continue
+            }
+            if (bracketDepth > 0) {
+                continue
+            }
+
+            if (!matcher(char, index, text)) {
+                continue
+            }
+
+            return `${text.slice(0, index)}${replacement}${text.slice(index + 1)}`
+        }
+
+        return null
+    }
+
+    private buildCrybabyReplacementCandidates(baseBody: string): string[] {
+        const candidates: string[] = []
+        const pushCandidate = (next: string | null) => {
+            if (!next || next === baseBody) {
+                return
+            }
+            candidates.push(next)
+        }
+
+        pushCandidate(this.replaceFirstOutsideSquareBracket(baseBody, (char) => char === ' ', '　'))
+        pushCandidate(this.replaceFirstOutsideSquareBracket(baseBody, (char) => char === '　', ' '))
+        pushCandidate(
+            this.replaceFirstOutsideSquareBracket(
+                baseBody,
+                (char, index, source) =>
+                    char === '，' && this.isSafePunctuationMutationIndex(source, index),
+                ','
+            )
+        )
+        pushCandidate(
+            this.replaceFirstOutsideSquareBracket(
+                baseBody,
+                (char, index, source) =>
+                    char === ',' && this.isSafePunctuationMutationIndex(source, index),
+                '，'
+            )
+        )
+        pushCandidate(
+            this.replaceFirstOutsideSquareBracket(
+                baseBody,
+                (char, index, source) =>
+                    char === '。' && this.isSafePunctuationMutationIndex(source, index),
+                '.'
+            )
+        )
+        pushCandidate(
+            this.replaceFirstOutsideSquareBracket(
+                baseBody,
+                (char, index, source) =>
+                    char === '.' && this.isSafePunctuationMutationIndex(source, index),
+                '。'
+            )
+        )
+
+        return Array.from(new Set(candidates))
     }
 
     private createCrybabyDraft(lastDraft: ComposerDraft, textarea: HTMLTextAreaElement): ComposerDraft | null {
@@ -649,18 +748,13 @@ class DanmakuActionsModule extends BaseModule {
             return null
         }
 
-        const suffixCandidates = ['!', '!!', '~', '？', '。', '…', '！']
+        const suffixCandidates = ['.', ',', ';', ':', '-']
         const candidates: string[] = []
         suffixCandidates.forEach((suffix) => {
             candidates.push(this.smartJoinText(baseBody, suffix))
         })
 
-        if (baseBody.length > 0) {
-            const head = baseBody.slice(0, -1)
-            suffixCandidates.forEach((suffix) => {
-                candidates.push(`${head}${suffix}`)
-            })
-        }
+        candidates.push(...this.buildCrybabyReplacementCandidates(baseBody))
 
         const maxLength = this.resolveComposerLengthLimit(textarea)
         for (const bodyText of candidates) {
