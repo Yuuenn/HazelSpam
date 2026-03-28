@@ -428,6 +428,9 @@ useGlobalScrollbarStyle()
 }
 
 :global(.hazelspam-toast.p-toast) {
+    background: transparent;
+    box-shadow: none;
+    border: 0;
     --p-toast-summary-font-size: var(--hazelspam-type-size-h5, 15px);
     --p-toast-summary-font-weight: var(--hazelspam-type-weight-semibold, 600);
     --p-toast-detail-font-size: var(--hazelspam-type-size-caption, 12px);
@@ -442,6 +445,25 @@ useGlobalScrollbarStyle()
 
 :global(.hazelspam-toast.p-toast .p-toast-message-text) {
     gap: calc(var(--hazelspam-space-2xs, 2px) / 2);
+}
+
+:global(.hazelspam-toast.p-toast .p-toast-close-button) {
+    margin: 0;
+    inset-inline-end: auto;
+    right: auto;
+    top: auto;
+    align-self: center;
+    width: var(--hazelspam-icon-btn-size, var(--hazelspam-size-tool-button, 24px));
+    height: var(--hazelspam-icon-btn-size, var(--hazelspam-size-tool-button, 24px));
+    min-width: var(--hazelspam-icon-btn-size, var(--hazelspam-size-tool-button, 24px));
+    flex: 0 0 var(--hazelspam-icon-btn-size, var(--hazelspam-size-tool-button, 24px));
+    padding: 0;
+    border-radius: var(--hazelspam-icon-btn-radius, var(--hazelspam-tool-radius));
+}
+
+:global(.hazelspam-toast.p-toast .p-toast-close-button .p-toast-close-icon) {
+    font-size: var(--hazelspam-icon-btn-icon-size, 12px);
+    line-height: 1;
 }
 
 :global(.hazelspam-toast.p-toast .p-icon.p-toast-message-icon),
