@@ -675,8 +675,14 @@ class DanmakuActionsModule extends BaseModule {
     private applyComposerDraft(context: NativeComposerContext, draft: ComposerDraft): boolean {
         const nextText = this.renderComposerDraft(draft)
         if (!this.isWithinComposerLengthLimit(context.textarea, nextText)) {
-            const { message } = useDiscreteAPI(['message'])
-            message.warn(`已超过输入上限（${this.resolveComposerLengthLimit(context.textarea)}），未填入输入框`)
+            const limit = this.resolveComposerLengthLimit(context.textarea)
+            const { notification } = useDiscreteAPI(['notification'])
+            notification.error({
+                title: '复制失败',
+                content: `复制后超出字符数上限 (${limit})`,
+                closable: false,
+                duration: 3000
+            })
             return false
         }
 
@@ -703,7 +709,7 @@ class DanmakuActionsModule extends BaseModule {
         const context = this.getNativeComposerContext()
         if (!context) {
             const { message } = useDiscreteAPI(['message'])
-            message.warn('未找到直播间输入框，未追加到输入框')
+            message.error('未找到直播间输入框')
             return false
         }
 
@@ -960,12 +966,17 @@ class DanmakuActionsModule extends BaseModule {
         return this.cloneComposerDraft(this.crybabyDraftCycle[nextIndex])
     }
 
-    private disableCrybabyWithNotice(content: string) {
+    private disableCrybabyWithNotice() {
         this.config.crybabyEnabled = false
         this.resetCrybabyDraftCycle()
         this.updateCrybabyToggleState()
-        const { message } = useDiscreteAPI(['message'])
-        message.warn(content)
+        const { notification } = useDiscreteAPI(['notification'])
+        notification.info({
+            title: 'Crybaby 自动装填已关闭',
+            content: '无法生成不同弹幕',
+            closable: false,
+            duration: 3000
+        })
     }
 
     private lockNativeSend(durationMs: number) {
@@ -989,8 +1000,13 @@ class DanmakuActionsModule extends BaseModule {
         }
 
         this.sendLockToastAt = now
-        const { message } = useDiscreteAPI(['message'])
-        message.info('Crybaby 冷却中，请稍后发送')
+        const { notification } = useDiscreteAPI(['notification'])
+        notification.info({
+            title: 'Crybaby 自动装填正在冷却',
+            content: '请稍后尝试发送',
+            closable: false,
+            duration: 3000
+        })
     }
 
     private captureUserSendIntent(context: NativeComposerContext, isTrusted: boolean) {
@@ -1043,12 +1059,12 @@ class DanmakuActionsModule extends BaseModule {
 
         const nextDraft = this.createCrybabyDraft(pending.draft, context.textarea)
         if (!nextDraft) {
-            this.disableCrybabyWithNotice('Crybaby 无法生成差异化弹幕，已自动关闭')
+            this.disableCrybabyWithNotice()
             return
         }
 
         if (!this.applyComposerDraft(context, nextDraft)) {
-            this.disableCrybabyWithNotice('Crybaby 未能填入输入框（超出上限），已自动关闭')
+            this.disableCrybabyWithNotice()
             return
         }
 
@@ -1369,7 +1385,11 @@ class DanmakuActionsModule extends BaseModule {
                 this.resetCrybabyDraftCycle()
                 this.updateCrybabyToggleState()
                 const { message } = useDiscreteAPI(['message'])
-                message.info(this.config.crybabyEnabled ? 'Crybaby 已开启' : 'Crybaby 已关闭')
+                message.info(
+                    this.config.crybabyEnabled
+                        ? 'Crybaby 自动装填已开启'
+                        : 'Crybaby 自动装填已关闭'
+                )
             }
         )
         crybabyItem.button.dataset.hazelspamToolbarAction = 'crybaby'
@@ -1465,8 +1485,13 @@ class DanmakuActionsModule extends BaseModule {
         const currentDraft = this.readComposerDraft(context.panel, context.textarea)
         if (!this.canDraftBeSent(currentDraft)) {
             this.resetComposerToolbarRepeatState()
-            const { message } = useDiscreteAPI(['message'])
-            message.warn('输入框内容为空，无法复读')
+            const { notification } = useDiscreteAPI(['notification'])
+            notification.error({
+                title: '弹幕复读失败',
+                content: '未获取到有效内容',
+                closable: false,
+                duration: 3000
+            })
             return
         }
 
@@ -1530,7 +1555,7 @@ class DanmakuActionsModule extends BaseModule {
         if (!roomid) {
             notification.error({
                 title: '发送失败',
-                content: '原因：未获取到直播间信息，请刷新页面重试。',
+                content: '未获取到直播间信息，请刷新页面重试。',
                 closable: false,
                 duration: 3000
             })
@@ -1589,8 +1614,13 @@ class DanmakuActionsModule extends BaseModule {
             await navigator.clipboard.writeText(content)
         } catch (error) {
             this.logger.log('复制到剪切板失败', error)
-            const { message } = useDiscreteAPI(['message'])
-            message.error('复制失败，请检查剪切板权限')
+            const { notification } = useDiscreteAPI(['notification'])
+            notification.error({
+                title: '复制失败',
+                content: '没有写入剪贴板的权限',
+                closable: false,
+                duration: 3000
+            })
         }
     }
 

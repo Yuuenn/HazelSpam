@@ -6,6 +6,7 @@ const {
     sendMsgMock,
     notificationSuccessMock,
     notificationErrorMock,
+    notificationInfoMock,
     messageErrorMock,
     messageWarningMock,
     messageInfoMock,
@@ -16,6 +17,7 @@ const {
     sendMsgMock: vi.fn(),
     notificationSuccessMock: vi.fn(),
     notificationErrorMock: vi.fn(),
+    notificationInfoMock: vi.fn(),
     messageErrorMock: vi.fn(),
     messageWarningMock: vi.fn(),
     messageInfoMock: vi.fn(),
@@ -55,7 +57,8 @@ vi.mock('@/utils/ui', () => ({
     useDiscreteAPI: () => ({
         notification: {
             success: notificationSuccessMock,
-            error: notificationErrorMock
+            error: notificationErrorMock,
+            info: notificationInfoMock
         },
         message: {
             error: messageErrorMock,
@@ -356,6 +359,7 @@ describe('DanmakuActionsModule', () => {
         sendMsgMock.mockResolvedValue({ code: 0 })
         notificationSuccessMock.mockReset()
         notificationErrorMock.mockReset()
+        notificationInfoMock.mockReset()
         messageErrorMock.mockReset()
         messageWarningMock.mockReset()
         messageInfoMock.mockReset()
@@ -513,7 +517,12 @@ describe('DanmakuActionsModule', () => {
         await flushMicrotasks()
 
         expect(harness.textarea.value).toBe('12345')
-        expect(messageWarningMock).toHaveBeenCalledWith(expect.stringContaining('已超过输入上限'))
+        expect(notificationErrorMock).toHaveBeenCalledWith({
+            title: '复制失败',
+            content: '复制后超出字符数上限 (6)',
+            closable: false,
+            duration: 3000
+        })
     })
 
     it('repeats the current composer text into the composer instead of sending it', async () => {
