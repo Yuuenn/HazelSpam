@@ -43,7 +43,7 @@ const moduleStore = useModuleStore()
 const uiStore = useUIStore()
 const biliStore = useBiliStore()
 const { isAnySpamRunning, stopAllTasks } = useSpamTaskRunner()
-const { dialog, notification } = useDiscreteAPI(['dialog', 'notification'])
+const { dialog, message, notification } = useDiscreteAPI(['dialog', 'message', 'notification'])
 const { syncThemeFromHost } = useHostThemeSync(uiStore.uiConfig)
 
 const APP_VERSION = GM_info.script.version
@@ -118,12 +118,7 @@ const handleManualCheckUpdate = async () => {
         const result = await checkUpdate()
 
         if (result.status === 'latest') {
-            notification.info({
-                title: '最新版本',
-                content: '当前已是最新版本。',
-                closable: false,
-                duration: 3000
-            })
+            message.info('当前已是最新版本')
             return
         }
 
@@ -135,7 +130,7 @@ const handleManualCheckUpdate = async () => {
     } catch (error) {
         notification.error({
             title: '检查更新失败',
-            content: `原因：${error instanceof Error ? error.message : '请稍后重试'}`,
+            content: error instanceof Error ? error.message : '请稍后重试',
             closable: false,
             duration: 4000
         })
