@@ -38,7 +38,7 @@ class SaveSpamStatusModule extends BaseModule {
                 const { notification } = useDiscreteAPI(['notification'])
                 notification.info({
                     title: '已自动发车',
-                    content: '功能开关位于 全局设置 - 打开直播间后自动发车',
+                    content: '设置入口：全局设置 > 打开直播间后自动发车。',
                     closable: false,
                     duration: 6e3
                 })

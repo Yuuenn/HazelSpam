@@ -120,7 +120,7 @@ const handleManualCheckUpdate = async () => {
         if (result.status === 'latest') {
             notification.info({
                 title: '最新版本',
-                content: '您正在使用最新版本',
+                content: '当前已是最新版本。',
                 closable: false,
                 duration: 3000
             })
@@ -135,7 +135,7 @@ const handleManualCheckUpdate = async () => {
     } catch (error) {
         notification.error({
             title: '检查更新失败',
-            content: error instanceof Error ? error.message : '请稍后重试',
+            content: `原因：${error instanceof Error ? error.message : '请稍后重试'}`,
             closable: false,
             duration: 4000
         })
@@ -282,7 +282,7 @@ const handleConfigUpload = async (event: FileUploadUploaderEvent) => {
         configImportUploadRef.value?.clear()
         notification.success({
             title: '导入成功',
-            content: `已追加 ${importedPayload.textTabs.tabPanels.length} 个文本标签页`,
+            content: `已追加 ${importedPayload.textTabs.tabPanels.length} 个文本标签页。`,
             closable: false,
             duration: 2500
         })

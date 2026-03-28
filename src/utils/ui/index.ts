@@ -21,8 +21,9 @@ import {
 import { DEBUG_NOTIFY_GLOBAL_KEYS } from '@/constants/debug'
 
 type DiscreteApiName = 'message' | 'dialog' | 'notification' | 'loadingBar'
-type MessageKind = 'success' | 'error' | 'warning' | 'info'
-type NotificationKind = 'success' | 'error' | 'warning' | 'info'
+type AppToastSeverity = 'success' | 'error' | 'warn' | 'info'
+type MessageKind = AppToastSeverity
+type NotificationKind = AppToastSeverity
 type PrimeToastSeverity = 'success' | 'error' | 'warn' | 'info'
 
 const DEFAULT_TOAST_DURATION = 2500
@@ -40,8 +41,8 @@ export type NotificationAction = {
 }
 
 export type NotificationOptions = {
-    title?: string
-    content?: string
+    title: string
+    content: string
     duration?: number
     closable?: boolean
     actions?: NotificationAction[]
@@ -50,7 +51,7 @@ export type NotificationOptions = {
 type MessageApi = {
     success: (content: string, options?: MessageOptions) => void
     error: (content: string, options?: MessageOptions) => void
-    warning: (content: string, options?: MessageOptions) => void
+    warn: (content: string, options?: MessageOptions) => void
     info: (content: string, options?: MessageOptions) => void
 }
 
@@ -58,7 +59,7 @@ type NotificationApi = {
     create: (options: NotificationOptions) => void
     success: (options: NotificationOptions) => void
     error: (options: NotificationOptions) => void
-    warning: (options: NotificationOptions) => void
+    warn: (options: NotificationOptions) => void
     info: (options: NotificationOptions) => void
     destroyAll: () => void
 }
@@ -142,7 +143,7 @@ type DebugSystemDialogResult = {
     ok: boolean
     kind: 'dialog'
     shown: boolean
-    severity: NotificationKind
+    severity: SystemDialogOptions['severity']
     title: string
 }
 
@@ -197,7 +198,7 @@ const EMPTY_API: EmptyApi = new Proxy(
 const EMPTY_MESSAGE_API: MessageApi = {
     success: noop,
     error: noop,
-    warning: noop,
+    warn: noop,
     info: noop
 }
 
@@ -205,7 +206,7 @@ const EMPTY_NOTIFICATION_API: NotificationApi = {
     create: noop,
     success: noop,
     error: noop,
-    warning: noop,
+    warn: noop,
     info: noop,
     destroyAll: noop
 }
@@ -219,9 +220,13 @@ const EMPTY_DIALOG_API: DialogApi = {
     destroyAll: noop
 }
 
-const normalizeSeverity = (severity: MessageKind | NotificationKind): PrimeToastSeverity => {
-    if (severity === 'warning') return 'warn'
-    return severity
+const normalizeSeverity = (severity: AppToastSeverity): PrimeToastSeverity => severity
+
+const normalizeToastLine = (value: string | undefined, fallback: string): string => {
+    const normalized = String(value ?? '')
+        .replace(/\s*\r?\n+\s*/g, ' ')
+        .trim()
+    return normalized.length > 0 ? normalized : fallback
 }
 
 const enqueueToast = (message: PrimeToastMessage): EnqueueResult => {
@@ -254,7 +259,7 @@ const pushMessage = (
     return enqueueToast({
         group: APP_MESSAGE_GROUP,
         severity: normalizeSeverity(severity),
-        summary: content,
+        summary: normalizeToastLine(content, '提示'),
         closable: false,
         life
     })
@@ -268,8 +273,8 @@ const pushNotification = (
     return enqueueToast({
         group: APP_NOTIFICATION_GROUP,
         severity: normalizeSeverity(severity),
-        summary: options.title,
-        detail: options.content,
+        summary: normalizeToastLine(options.title, '提示'),
+        detail: normalizeToastLine(options.content, '请查看详情'),
         closable: options.closable ?? true,
         life,
         data: {
@@ -285,8 +290,8 @@ const messageAPI: MessageApi = {
     error: (content, options) => {
         pushMessage('error', content, options)
     },
-    warning: (content, options) => {
-        pushMessage('warning', content, options)
+    warn: (content, options) => {
+        pushMessage('warn', content, options)
     },
     info: (content, options) => {
         pushMessage('info', content, options)
@@ -303,8 +308,8 @@ const notificationAPI: NotificationApi = {
     error: (options) => {
         pushNotification('error', options)
     },
-    warning: (options) => {
-        pushNotification('warning', options)
+    warn: (options) => {
+        pushNotification('warn', options)
     },
     info: (options) => {
         pushNotification('info', options)
@@ -428,7 +433,7 @@ const installDebugApi = () => {
         dialog: (
             content = '这是一条调试弹窗',
             title = `${PRODUCT_NAME} 调试弹窗`,
-            severity: NotificationKind = 'info'
+            severity: SystemDialogOptions['severity'] = 'info'
         ): DebugSystemDialogResult => {
             showSystemDialog({
                 severity,
