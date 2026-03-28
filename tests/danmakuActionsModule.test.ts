@@ -95,6 +95,7 @@ interface DanmakuActionsModuleTestAccess {
         replayDmid: string
     } | null
     copyPayloadToClipboardAndComposer(payload: DanmakuActionPayload): Promise<void>
+    repeatFromComposerToolbar(): Promise<void>
     dmCopy(msg: string): Promise<void>
     dmRepeat(sourceNode: HTMLElement | null, payload: DanmakuActionPayload): Promise<void>
 }
@@ -515,6 +516,45 @@ describe('DanmakuActionsModule', () => {
         expect(messageWarningMock).toHaveBeenCalledWith(expect.stringContaining('已超过输入上限'))
     })
 
+    it('repeats the current composer text into the composer instead of sending it', async () => {
+        const harness = setupNativeComposerHarness()
+        harness.textarea.value = '晚安'
+        harness.panelVm.chatInput = '晚安'
+
+        const module = new DanmakuActionsModule('DanmakuActionsTest')
+        const access = module as unknown as DanmakuActionsModuleTestAccess
+
+        await access.repeatFromComposerToolbar()
+        await access.repeatFromComposerToolbar()
+        await flushMicrotasks()
+
+        expect(harness.textarea.value).toBe('晚安 晚安 晚安')
+        expect(harness.sendButton.click).not.toHaveBeenCalled()
+        expect(sendMsgMock).not.toHaveBeenCalled()
+    })
+
+    it('repeats structured @ content inside the composer without duplicating the mention prefix', async () => {
+        const harness = setupNativeComposerHarness()
+        harness.textarea.value = '@大有人在 测试'
+        harness.panelVm.chatInput = '@大有人在 测试'
+        harness.panelVm.atUserName = '@大有人在'
+        harness.panelVm.tempAtUserName = '@大有人在'
+        harness.panelVm.atUid = 12806130
+        harness.panelVm.atReplyDmId = '10b70e1bebfa62af5d49eb500a69c6232288'
+
+        const module = new DanmakuActionsModule('DanmakuActionsTest')
+        const access = module as unknown as DanmakuActionsModuleTestAccess
+
+        await access.repeatFromComposerToolbar()
+        await access.repeatFromComposerToolbar()
+        await flushMicrotasks()
+
+        expect(harness.textarea.value).toBe('@大有人在 测试 测试 测试')
+        expect(harness.panelVm.atUid).toBe(12806130)
+        expect(harness.sendButton.click).not.toHaveBeenCalled()
+        expect(sendMsgMock).not.toHaveBeenCalled()
+    })
+
     it('lets crybaby fall back to comma-width replacement when suffix cannot fit', () => {
         const module = new DanmakuActionsModule('DanmakuActionsTest')
         const access = module as unknown as DanmakuActionsModuleTestAccess
@@ -532,6 +572,75 @@ describe('DanmakuActionsModule', () => {
 
         expect(next).not.toBeNull()
         expect(next?.bodyText).toBe('你好,世界')
+    })
+
+    it('normalizes full-width punctuation once and keeps rotating inside half-width punctuation', () => {
+        const module = new DanmakuActionsModule('DanmakuActionsTest')
+        const access = module as unknown as DanmakuActionsModuleTestAccess
+
+        let current = {
+            bodyText: '你好，世界',
+            replyMid: 0,
+            replyAttr: 0,
+            replyUname: '',
+            replayDmid: ''
+        }
+
+        const seenBodies: string[] = []
+        for (let index = 0; index < 6; index += 1) {
+            const next = access.createCrybabyDraft(current, { maxLength: 5 })
+            expect(next).not.toBeNull()
+            current = next!
+            seenBodies.push(current.bodyText)
+        }
+
+        expect(seenBodies).toEqual(['你好,世界', '你好;世界', '你好:世界', '你好-世界', '你好.世界', '你好，世界'])
+    })
+
+    it('treats half-width space as the first half-width rotation candidate when the text is already at limit', () => {
+        const module = new DanmakuActionsModule('DanmakuActionsTest')
+        const access = module as unknown as DanmakuActionsModuleTestAccess
+
+        let current = {
+            bodyText: '晚安 晚安',
+            replyMid: 0,
+            replyAttr: 0,
+            replyUname: '',
+            replayDmid: ''
+        }
+
+        const seenBodies: string[] = []
+        for (let index = 0; index < 6; index += 1) {
+            const next = access.createCrybabyDraft(current, { maxLength: 5 })
+            expect(next).not.toBeNull()
+            current = next!
+            seenBodies.push(current.bodyText)
+        }
+
+        expect(seenBodies).toEqual(['晚安,晚安', '晚安;晚安', '晚安:晚安', '晚安-晚安', '晚安.晚安', '晚安 晚安'])
+    })
+
+    it('cycles crybaby suffix variants without accumulating punctuation and returns to the base draft', () => {
+        const module = new DanmakuActionsModule('DanmakuActionsTest')
+        const access = module as unknown as DanmakuActionsModuleTestAccess
+
+        let current = {
+            bodyText: '你好世界',
+            replyMid: 0,
+            replyAttr: 0,
+            replyUname: '',
+            replayDmid: ''
+        }
+
+        const seenBodies: string[] = []
+        for (let index = 0; index < 6; index += 1) {
+            const next = access.createCrybabyDraft(current, { maxLength: 40 })
+            expect(next).not.toBeNull()
+            current = next!
+            seenBodies.push(current.bodyText)
+        }
+
+        expect(seenBodies).toEqual(['你好世界.', '你好世界,', '你好世界;', '你好世界:', '你好世界-', '你好世界'])
     })
 
     it('keeps bracket emoji syntax untouched for crybaby replacement fallback', () => {
