@@ -7,6 +7,8 @@ const {
     notificationSuccessMock,
     notificationErrorMock,
     messageErrorMock,
+    messageWarningMock,
+    messageInfoMock,
     clipboardWriteTextMock,
     moduleStoreState,
     biliStoreState
@@ -15,6 +17,8 @@ const {
     notificationSuccessMock: vi.fn(),
     notificationErrorMock: vi.fn(),
     messageErrorMock: vi.fn(),
+    messageWarningMock: vi.fn(),
+    messageInfoMock: vi.fn(),
     clipboardWriteTextMock: vi.fn(),
     moduleStoreState: {
         current: null as {
@@ -54,7 +58,9 @@ vi.mock('@/utils/ui', () => ({
             error: notificationErrorMock
         },
         message: {
-            error: messageErrorMock
+            error: messageErrorMock,
+            warning: messageWarningMock,
+            info: messageInfoMock
         }
     })
 }))
@@ -72,6 +78,7 @@ interface DanmakuActionPayload {
 
 interface DanmakuActionsModuleTestAccess {
     createDanmakuActionPayload(node: DanmakuNodeMock): DanmakuActionPayload | null
+    copyPayloadToClipboardAndComposer(payload: DanmakuActionPayload): Promise<void>
     dmCopy(msg: string): Promise<void>
     dmRepeat(sourceNode: HTMLElement | null, payload: DanmakuActionPayload): Promise<void>
 }
@@ -206,12 +213,135 @@ const createAtOnlyDanmakuItem = (): DanmakuNodeMock => {
     }
 }
 
+type ComposerHarness = {
+    textarea: MockTextarea
+    panelVm: {
+        atUserName: string
+        tempAtUserName: string
+        atUid: number
+        atReplyDmId: string
+        atIsMystery: boolean
+        chatInput: string
+        clearAtInfo: () => void
+    }
+    sendButton: {
+        disabled: boolean
+        textContent: string
+        click: ReturnType<typeof vi.fn>
+    }
+    submittedValue: { current: string }
+}
+
+class MockTextarea {
+    private internalValue = ''
+    maxLength = -1
+    dispatchEvent = vi.fn((event: { type?: string }) => {
+        if (event.type === 'input' || event.type === 'change') {
+            /* noop, updated in harness */
+        }
+        return true
+    })
+
+    get value() {
+        return this.internalValue
+    }
+
+    set value(next: string) {
+        this.internalValue = next
+    }
+}
+
+const setupNativeComposerHarness = (): ComposerHarness => {
+    const textarea = new MockTextarea()
+    const submittedValue = { current: '' }
+    const panelVm = {
+        atUserName: '',
+        tempAtUserName: '',
+        atUid: 0,
+        atReplyDmId: '',
+        atIsMystery: false,
+        chatInput: '',
+        clearAtInfo: () => {
+            panelVm.atUserName = ''
+            panelVm.tempAtUserName = ''
+            panelVm.atUid = 0
+            panelVm.atReplyDmId = ''
+            panelVm.atIsMystery = false
+        }
+    }
+    textarea.dispatchEvent = vi.fn((event: { type?: string }) => {
+        if (event.type === 'input' || event.type === 'change') {
+            panelVm.chatInput = textarea.value
+        }
+        return true
+    })
+
+    const sendButton = {
+        disabled: false,
+        textContent: '发送',
+        click: vi.fn(() => {
+            submittedValue.current = textarea.value
+            textarea.value = ''
+        })
+    }
+
+    vi.stubGlobal(
+        'Event',
+        class EventMock {
+            type: string
+
+            constructor(type: string) {
+                this.type = type
+            }
+        }
+    )
+    vi.stubGlobal('HTMLTextAreaElement', MockTextarea)
+    vi.stubGlobal('document', {
+        querySelector: vi.fn((selector: string) => {
+            if (selector === '.chat-input-ctnr textarea.chat-input') {
+                return textarea
+            }
+            if (selector === '.chat-control-panel') {
+                return { __vue__: panelVm }
+            }
+            if (selector === '.chat-input-ctnr') {
+                return {
+                    querySelectorAll: vi.fn((target: string) => (target === 'button' ? [sendButton] : [])),
+                    querySelector: vi.fn((target: string) =>
+                        target === 'textarea.chat-input' ? textarea : null
+                    ),
+                    prepend: vi.fn()
+                }
+            }
+            return null
+        }),
+        querySelectorAll: vi.fn((selector: string) => {
+            if (selector === '.control-panel-ctnr button') {
+                return [sendButton]
+            }
+            return []
+        }),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn()
+    })
+    vi.stubGlobal('window', globalThis)
+
+    return {
+        textarea,
+        panelVm,
+        sendButton,
+        submittedValue
+    }
+}
+
 describe('DanmakuActionsModule', () => {
     beforeEach(() => {
         sendMsgMock.mockResolvedValue({ code: 0 })
         notificationSuccessMock.mockReset()
         notificationErrorMock.mockReset()
         messageErrorMock.mockReset()
+        messageWarningMock.mockReset()
+        messageInfoMock.mockReset()
         clipboardWriteTextMock.mockReset()
         clipboardWriteTextMock.mockResolvedValue(undefined)
 
@@ -323,84 +453,56 @@ describe('DanmakuActionsModule', () => {
         })
     })
 
+    it('appends copied structured @ content into composer and keeps mention only once', async () => {
+        const harness = setupNativeComposerHarness()
+        const module = new DanmakuActionsModule('DanmakuActionsTest')
+        const access = module as unknown as DanmakuActionsModuleTestAccess
+
+        const payload: DanmakuActionPayload = {
+            displayContent: '@大有人在 测试',
+            sendContent: '测试',
+            replyMid: 12806130,
+            replyAttr: 0,
+            replyUname: '大有人在',
+            replayDmid: '10b70e1bebfa62af5d49eb500a69c6232288'
+        }
+
+        await access.copyPayloadToClipboardAndComposer(payload)
+        await access.copyPayloadToClipboardAndComposer(payload)
+        await flushMicrotasks()
+
+        expect(clipboardWriteTextMock).toHaveBeenCalledTimes(2)
+        expect(harness.textarea.value).toBe('@大有人在 测试 测试')
+        expect(harness.panelVm.atUid).toBe(12806130)
+    })
+
+    it('does not append copied content when composer text would exceed length limit', async () => {
+        const harness = setupNativeComposerHarness()
+        harness.textarea.maxLength = 6
+        harness.textarea.value = '12345'
+        harness.panelVm.chatInput = '12345'
+
+        const module = new DanmakuActionsModule('DanmakuActionsTest')
+        const access = module as unknown as DanmakuActionsModuleTestAccess
+
+        await access.copyPayloadToClipboardAndComposer({
+            displayContent: '678',
+            sendContent: '678',
+            replyMid: 0,
+            replyAttr: 0,
+            replyUname: '',
+            replayDmid: ''
+        })
+        await flushMicrotasks()
+
+        expect(harness.textarea.value).toBe('12345')
+        expect(messageWarningMock).toHaveBeenCalledWith(expect.stringContaining('已超过输入上限'))
+    })
+
     it('uses the native composer flow for structured @ when the host input is available', async () => {
-        class MockTextarea {
-            private internalValue = ''
-            dispatchEvent = vi.fn((event: { type?: string }) => {
-                if (event.type === 'input' || event.type === 'change') {
-                    panelVm.chatInput = this.internalValue
-                }
-                return true
-            })
-
-            get value() {
-                return this.internalValue
-            }
-
-            set value(next: string) {
-                this.internalValue = next
-            }
-        }
-
-        const textarea = new MockTextarea()
-        const panelVm = {
-            atUserName: '',
-            tempAtUserName: '',
-            atUid: 0,
-            atReplyDmId: '',
-            atIsMystery: false,
-            chatInput: '',
-            clearAtInfo: vi.fn(() => {
-                panelVm.atUserName = ''
-                panelVm.tempAtUserName = ''
-                panelVm.atUid = 0
-                panelVm.atReplyDmId = ''
-                panelVm.atIsMystery = false
-            })
-        }
-        const sendButton = {
-            disabled: false,
-            textContent: '发送',
-            click: vi.fn()
-        }
-        let submittedValue = ''
-        sendButton.click.mockImplementation(() => {
-            submittedValue = textarea.value
-            textarea.value = ''
-        })
-
-        vi.stubGlobal(
-            'Event',
-            class EventMock {
-                type: string
-
-                constructor(type: string) {
-                    this.type = type
-                }
-            }
-        )
-        vi.stubGlobal('HTMLTextAreaElement', MockTextarea)
-        vi.stubGlobal('document', {
-            querySelector: vi.fn((selector: string) => {
-                if (selector === '.chat-input-ctnr textarea.chat-input') {
-                    return textarea
-                }
-                if (selector === '.chat-control-panel') {
-                    return { __vue__: panelVm }
-                }
-                return null
-            }),
-            querySelectorAll: vi.fn((selector: string) => {
-                if (selector === '.control-panel-ctnr button') {
-                    return [sendButton]
-                }
-                return []
-            })
-        })
-        vi.stubGlobal('window', globalThis)
-
-        textarea.value = '原草稿'
-        panelVm.chatInput = '原草稿'
+        const harness = setupNativeComposerHarness()
+        harness.textarea.value = '原草稿'
+        harness.panelVm.chatInput = '原草稿'
 
         const module = new DanmakuActionsModule('DanmakuActionsTest')
         const access = module as unknown as DanmakuActionsModuleTestAccess
@@ -417,10 +519,37 @@ describe('DanmakuActionsModule', () => {
         await new Promise((resolve) => setTimeout(resolve, 200))
         await flushMicrotasks()
 
-        expect(submittedValue).toBe('@大有人在 测试')
-        expect(textarea.value).toBe('原草稿')
-        expect(panelVm.atUid).toBe(0)
-        expect(panelVm.atReplyDmId).toBe('')
+        expect(harness.submittedValue.current).toBe('@大有人在 测试')
+        expect(harness.textarea.value).toBe('原草稿')
+        expect(harness.panelVm.atUid).toBe(0)
+        expect(harness.panelVm.atReplyDmId).toBe('')
+        expect(sendMsgMock).not.toHaveBeenCalled()
+    })
+
+    it('does not overwrite new user input while waiting to restore previous composer draft', async () => {
+        const harness = setupNativeComposerHarness()
+        harness.textarea.value = '原草稿'
+        harness.panelVm.chatInput = '原草稿'
+
+        const module = new DanmakuActionsModule('DanmakuActionsTest')
+        const access = module as unknown as DanmakuActionsModuleTestAccess
+
+        await access.dmRepeat(null, {
+            displayContent: '@大有人在 测试',
+            sendContent: '测试',
+            replyMid: 12806130,
+            replyAttr: 0,
+            replyUname: '大有人在',
+            replayDmid: '10b70e1bebfa62af5d49eb500a69c6232288'
+        })
+
+        harness.textarea.value = '新输入'
+        harness.panelVm.chatInput = '新输入'
+
+        await new Promise((resolve) => setTimeout(resolve, 200))
+        await flushMicrotasks()
+
+        expect(harness.textarea.value).toBe('新输入')
         expect(sendMsgMock).not.toHaveBeenCalled()
     })
 })

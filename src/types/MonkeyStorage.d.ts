@@ -46,6 +46,7 @@ interface AutoCheckUpdateConfig {
 
 interface DanmakuActionsConfig {
     enable: boolean
+    crybabyEnabled: boolean
 }
 
 interface SettingsConfig {
