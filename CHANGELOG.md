@@ -10,9 +10,28 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Changed
 
-- 更新 `README.md` 与 `CONTRIBUTING.md`，同步当前发行源、开发命令和文档入口。
+### Fixed
+
+## [1.2.0] - 2026-03-29
+
+### Added
+
+- 新增 `CrybabyView` 增强页面入口与 `Crybaby 弹幕发送框`，支持激活 Crybaby 自动装填、增加重复弹幕、清空内容、插入表情与快速发送。
+- 新增工具栏图标常量收口文件 `src/constants/danmakuActionIcons.ts`，统一 crybaby / repeat / clear 图标来源。
+- 新增 Crybaby 模式界面预览图并补充 README 功能说明。
+
+### Changed
+
+- 调整 Crybaby 页面文案、按钮语义与交互映射，区分 inline 场景的“弹幕 +1”和输入框场景的“增加重复弹幕”。
+- 调整 crybaby 图标为线条心形方案并统一按钮视觉规范，适配明暗主题与激活态表现。
+- 更新 `README.md` 与 `CONTRIBUTING.md`，补充 Crybaby 模式说明与发布后同步 `dev` 约定。
 
 ### Fixed
+
+- 修复 Crybaby 页面在受限宽度下的布局与自适应异常。
+- 修复 Crybaby 页面与直播间工具栏在开启状态、注入状态和 toast 反馈上的不一致。
+- 修复输入框字数上限在结构化艾特场景下未对齐直播间原生限制的问题。
+- 修复发送锁定态与禁用态操作缺少预期提示的问题。
 
 ## [1.1.1] - 2026-03-28
 
