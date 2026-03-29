@@ -921,6 +921,7 @@ onBeforeUnmount(() => {
     align-items: center;
     gap: var(--hazelspam-space-xl);
     min-height: 0;
+    overflow: visible;
 }
 
 .about-main {
@@ -929,6 +930,7 @@ onBeforeUnmount(() => {
     --hazelspam-responsive-split-columns: 120px minmax(0, 1fr);
     align-items: start;
     justify-content: stretch;
+    overflow: visible;
 }
 
 .about-logo-shell {
@@ -939,6 +941,7 @@ onBeforeUnmount(() => {
     align-items: center;
     justify-content: center;
     border-radius: var(--hazelspam-radius-xl);
+    overflow: visible;
     transition:
         background var(--hazelspam-motion-duration-normal, 0.16s)
             var(--hazelspam-motion-ease-standard, ease),
@@ -968,27 +971,21 @@ onBeforeUnmount(() => {
 }
 
 :global(.hazelspam-dark .setting-module--about .about-logo-shell) {
-    background: color-mix(
-        in srgb,
-        var(--hazelspam-color-shell-card-bg, #101215) 72%,
-        var(--hazelspam-color-shadow-outer, #000000) 28%
-    );
-    box-shadow:
-        0 8px 18px color-mix(in srgb, var(--hazelspam-color-shadow-outer, #000000) 54%, transparent),
-        inset 0 0 0 1px color-mix(in srgb, var(--hazelspam-color-shadow-inner, #ffffff) 12%, transparent);
+    background: transparent;
+    box-shadow: none;
 }
 
 :global(.hazelspam-dark .setting-module--about .about-logo-image) {
     filter:
-        brightness(0.88)
-        saturate(0.92)
+        brightness(0.96)
+        saturate(0.98)
         drop-shadow(
-            0 6px 14px
-                color-mix(in srgb, var(--hazelspam-color-shadow-outer, #000000) 62%, transparent)
+            0 3px 8px
+                color-mix(in srgb, var(--hazelspam-color-shadow-outer, #000000) 30%, transparent)
         )
         drop-shadow(
             0 1px 0
-                color-mix(in srgb, var(--hazelspam-color-shadow-inner, #ffffff) 24%, transparent)
+                color-mix(in srgb, var(--hazelspam-color-shadow-inner, #ffffff) 16%, transparent)
         );
 }
 
