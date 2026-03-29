@@ -2,6 +2,7 @@
 import { defineComponent } from 'vue'
 import TextView from './TextView.vue'
 import EmotionView from './EmotionView.vue'
+import CrybabyView from './CrybabyView.vue'
 import SettingView from './SettingView.vue'
 import { useUIStore } from '@/stores/useUIStore'
 
@@ -9,6 +10,7 @@ export default defineComponent({
     components: {
         TextView,
         EmotionView,
+        CrybabyView,
         SettingView
     },
     setup() {

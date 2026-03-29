@@ -10,7 +10,7 @@ describe('storage schema', () => {
         expect(config.textSpam.textInterval).toBe(20)
         expect(config.textSpam.splitMode).toBe('byLine')
         expect(config.textSpam.tabSplitMode).toBe('byLine')
-        expect(config.settings.danmakuActions.enable).toBe(true)
+        expect(config.settings.danmakuActions.enable).toBe(false)
         expect(config.settings.danmakuActions.crybabyEnabled).toBe(false)
         expect(ui.activeMenuIndex).toBe('TextView')
         expect(ui.isShowPanel).toBe(false)
@@ -96,5 +96,13 @@ describe('storage schema', () => {
             syncHostThemeWithBrowser: true,
             hideDanmakuHistoryScrollbar: true
         })
+    })
+
+    it('accepts CrybabyView as a supported ui menu value', () => {
+        const ui = sanitizeUiConfig({
+            activeMenuIndex: 'CrybabyView'
+        })
+
+        expect(ui.activeMenuIndex).toBe('CrybabyView')
     })
 })

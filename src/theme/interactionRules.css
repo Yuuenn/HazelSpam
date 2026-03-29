@@ -241,7 +241,7 @@
         #ec4899,
         #f43f5e
     );
-    --hazelspam-crybaby-active-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='1%201%2022%2022'%3E%3Cg%20fill='black'%3E%3Cpath%20d='M14.499%203.996a2.2%202.2%200%200%201%201.556.645l3.302%203.301a2.2%202.2%200%200%201%200%203.113l-.567.567l.043.192a8.5%208.5%200%200%201-3.732%208.83l-.23.144a8.5%208.5%200%201%201-2.687-15.623l.192.042l.567-.566a2.2%202.2%200%200%201%201.362-.636zM10%209a4%204%200%200%200-4%204a1%201%200%200%200%202%200a2%202%200%200%201%202-2a1%201%200%200%200%200-2'/%3E%3Cpath%20d='M21%202a1%201%200%200%201%20.117%201.993L21%204h-1c0%20.83-.302%201.629-.846%202.25L19%206.413l-1.293%201.293a1%201%200%200%201-1.497-1.32l.083-.094L17.586%205c.232-.232.375-.537.407-.86L18%204a2%202%200%200%201%201.85-1.995L20%202z'/%3E%3C/g%3E%3C/svg%3E");
+    --hazelspam-crybaby-active-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='1%201%2022%2022'%3E%3Cg%20fill='none'%20stroke='black'%20stroke-linecap='round'%20stroke-linejoin='round'%20stroke-width='1.5'%3E%3Cpath%20d='M19.5%2012.572L12%2020l-7.5-7.428A5%205%200%201%201%2012%206.006a5%205%200%201%201%207.5%206.572'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 .icon-left-part > .hazelspam-host-toolbar-item > .hazelspam-host-toolbar-btn,
@@ -284,12 +284,6 @@
 .hazelspam-host-toolbar-icon [stroke] {
     stroke-width: 1.5;
     vector-effect: non-scaling-stroke;
-}
-
-.hazelspam-dm-composer-toolbar-btn[data-hazelspam-toolbar-action='crybaby']
-    .hazelspam-dm-composer-toolbar-icon
-    [stroke] {
-    stroke-width: 1.25;
 }
 
 .hazelspam_app_btn_icon {

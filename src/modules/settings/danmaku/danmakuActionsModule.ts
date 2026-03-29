@@ -39,23 +39,16 @@ const TOOLBAR_CLEAR_SVG = `
 </svg>
 `
 
-const CRYBABY_INACTIVE_SVG = `
+const CRYBABY_TOOLBAR_SVG = `
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="1 1 22 22" fill="none" aria-hidden="true" focusable="false">
     <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-        <path d="M15.349 5.349L18.65 8.65a1.2 1.2 0 0 1 0 1.698l-.972.972a7.5 7.5 0 1 1-5-5l.972-.972a1.2 1.2 0 0 1 1.698 0z"/>
-        <path d="m17 7l1.293-1.293A2.4 2.4 0 0 0 19 4a1 1 0 0 1 1-1h1M7 13a3 3 0 0 1 3-3"/>
+        <path d="M19.5 12.572L12 20l-7.5-7.428A5 5 0 1 1 12 6.006a5 5 0 1 1 7.5 6.572"/>
     </g>
 </svg>
 `
 
-const CRYBABY_ACTIVE_SVG = `
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="1 1 22 22" aria-hidden="true" focusable="false">
-    <g fill="currentColor">
-        <path d="M14.499 3.996a2.2 2.2 0 0 1 1.556.645l3.302 3.301a2.2 2.2 0 0 1 0 3.113l-.567.567l.043.192a8.5 8.5 0 0 1-3.732 8.83l-.23.144a8.5 8.5 0 1 1-2.687-15.623l.192.042l.567-.566a2.2 2.2 0 0 1 1.362-.636zM10 9a4 4 0 0 0-4 4a1 1 0 0 0 2 0a2 2 0 0 1 2-2a1 1 0 0 0 0-2"/>
-        <path d="M21 2a1 1 0 0 1 .117 1.993L21 4h-1c0 .83-.302 1.629-.846 2.25L19 6.413l-1.293 1.293a1 1 0 0 1-1.497-1.32l.083-.094L17.586 5c.232-.232.375-.537.407-.86L18 4a2 2 0 0 1 1.85-1.995L20 2z"/>
-    </g>
-</svg>
-`
+const CRYBABY_INACTIVE_SVG = CRYBABY_TOOLBAR_SVG
+const CRYBABY_ACTIVE_SVG = CRYBABY_TOOLBAR_SVG
 
 interface DanmakuActionPayload {
     displayContent: string

@@ -9,7 +9,7 @@ type TextTabPanel = {
     msg: string
 }
 
-type MenuIndex = 'TextView' | 'EmotionView' | 'SettingView'
+type MenuIndex = 'TextView' | 'EmotionView' | 'CrybabyView' | 'SettingView'
 
 interface TextSpamConfig {
     enable: boolean

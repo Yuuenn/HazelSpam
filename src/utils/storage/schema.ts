@@ -20,7 +20,7 @@ type StorageDefaultValues = {
     modules: ModuleConfig
 }
 
-const MENU_INDEXES: readonly MenuIndex[] = ['TextView', 'EmotionView', 'SettingView']
+const MENU_INDEXES: readonly MenuIndex[] = ['TextView', 'EmotionView', 'CrybabyView', 'SettingView']
 const UI_THEMES: readonly UiConfig['theme'][] = ['dark', 'light']
 const TEXT_SPLIT_MODES: readonly TextSplitMode[] = ['byLine', 'continuous']
 const defaultTextMessage = pickRandomTextFallback()
@@ -75,7 +75,7 @@ export const storageDefaultValues: StorageDefaultValues = {
                 enable: true
             },
             danmakuActions: {
-                enable: true,
+                enable: false,
                 crybabyEnabled: false
             }
         }

@@ -63,7 +63,6 @@ const RESET_CONFIRM_WINDOW_MS = 1500
 const settingTooltips = {
     saveSpamStatus: '进入任何直播间后立即执行上次任务，请谨慎开启',
     autoCheckUpdate: '启动脚本后自动检查更新信息',
-    danmakuActions: '在原生弹幕列表中加入复制按钮和复读按钮。该功能只支持文字弹幕',
     hideDanmakuHistoryScrollbar:
         '隐藏直播间弹幕栏原生滚动条，仅保留滚轮和触控板滚动行为，不影响 HazelSpam 面板滚动条',
     syncHostThemeWithBrowser:
@@ -352,21 +351,6 @@ onBeforeUnmount(() => {
                             >
                                 <ToggleSwitch
                                     v-model="uiStore.uiConfig.hideDanmakuHistoryScrollbar"
-                                />
-                            </span>
-                        </div>
-
-                        <div class="setting-control-item setting-control-item--switch">
-                            <label class="setting-control-label">弹幕复制和弹幕复读按钮</label>
-                            <span
-                                class="setting-control-trigger setting-control-trigger--hint"
-                                v-tooltip.bottom="{
-                                    value: settingTooltips.danmakuActions,
-                                    class: APP_TOOLTIP_UP_CLASS
-                                }"
-                            >
-                                <ToggleSwitch
-                                    v-model="moduleStore.moduleConfig.settings.danmakuActions.enable"
                                 />
                             </span>
                         </div>
