@@ -18,6 +18,11 @@ const mainMenuItems: SidebarItem[] = [
         label: '表情独轮车',
         key: 'EmotionView',
         iconClass: 'pi pi-face-smile'
+    },
+    {
+        label: 'Crybaby 增强',
+        key: 'CrybabyView',
+        iconClass: 'pi pi-heart'
     }
 ]
 
