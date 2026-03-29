@@ -10,6 +10,11 @@ import {
     APP_HOST_TOOLBAR_ICON_WRAPPER_CLASS,
     APP_HOST_TOOLBAR_ITEM_CLASS
 } from '@/constants/brand'
+import {
+    CRYBABY_TOOLBAR_SVG,
+    TOOLBAR_CLEAR_SVG,
+    TOOLBAR_REPEAT_SVG
+} from '@/constants/danmakuActionIcons'
 import BaseModule from '@/modules/BaseModule'
 
 const INLINE_COPY_SVG = `
@@ -24,26 +29,6 @@ const INLINE_COPY_SVG = `
 const INLINE_REPEAT_SVG = `
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12h6M6 9v6m12 4V5l-4 4"/>
-</svg>
-`
-
-const TOOLBAR_REPEAT_SVG = `
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="1 1 22 22" fill="none" aria-hidden="true" focusable="false">
-    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12V9a3 3 0 0 1 3-3h13m-3-3l3 3l-3 3m3 3v3a3 3 0 0 1-3 3H4m3 3l-3-3l3-3m4-4l1-1v4"/>
-</svg>
-`
-
-const TOOLBAR_CLEAR_SVG = `
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="1 1 22 22" fill="none" aria-hidden="true" focusable="false">
-    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16m-10 4v6m4-6v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/>
-</svg>
-`
-
-const CRYBABY_TOOLBAR_SVG = `
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="1 1 22 22" fill="none" aria-hidden="true" focusable="false">
-    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-        <path d="M19.5 12.572L12 20l-7.5-7.428A5 5 0 1 1 12 6.006a5 5 0 1 1 7.5 6.572"/>
-    </g>
 </svg>
 `
 
@@ -114,6 +99,7 @@ class DanmakuActionsModule extends BaseModule {
     private readonly composerToolbarIconClass = 'hazelspam-dm-composer-toolbar-icon'
     private readonly hostToolbarContainerSelector = '.icon-left-part'
     private readonly boundaryPunctuationRegex = /[\s,.;:!?，。！？；：、~～\-—()（）[\]【】{}<>《》"“”'‘’`]/
+    private readonly composerLimitCounterRegex = /^\s*\d+\s*\/\s*(\d+)\s*$/
     private readonly sendLockDurationMs = 1000
     private readonly sendLockToastCooldownMs = 900
     private dmObserver: MutationObserver | null = null
@@ -328,6 +314,17 @@ class DanmakuActionsModule extends BaseModule {
             },
             { immediate: true }
         )
+
+        watch(
+            () => this.config.crybabyEnabled,
+            (enabled) => {
+                if (!enabled) {
+                    this.resetCrybabyDraftCycle()
+                }
+                this.updateCrybabyToggleState()
+            },
+            { immediate: true }
+        )
     }
 
     private getDanmakuMessageElement(node: HTMLElement) {
@@ -366,7 +363,45 @@ class DanmakuActionsModule extends BaseModule {
         return Array.from(value).length
     }
 
+    private resolveCounterTextLimit(value: string | null | undefined): number {
+        if (!value) return 0
+        const matched = value.trim().match(this.composerLimitCounterRegex)
+        if (!matched) return 0
+        return this.parsePositiveInteger(matched[1])
+    }
+
+    private resolveComposerLengthLimitFromContainer(container: ParentNode | null): number {
+        if (!container || typeof container.querySelectorAll !== 'function') {
+            return 0
+        }
+
+        const directCounter = container.querySelector<HTMLElement>('.input-limit-hint')
+        const directCounterLimit = this.resolveCounterTextLimit(directCounter?.textContent)
+        if (directCounterLimit > 0) {
+            return directCounterLimit
+        }
+
+        const candidates = Array.from(container.querySelectorAll<HTMLElement>('span, div'))
+        for (const candidate of candidates) {
+            const candidateLimit = this.resolveCounterTextLimit(candidate.textContent)
+            if (candidateLimit > 0) {
+                return candidateLimit
+            }
+        }
+
+        return 0
+    }
+
     private resolveComposerLengthLimit(textarea: HTMLTextAreaElement): number {
+        const counterLimit = this.resolveComposerLengthLimitFromContainer(
+            typeof textarea.closest === 'function'
+                ? textarea.closest<HTMLElement>('.chat-input-ctnr')
+                : null
+        )
+        if (counterLimit > 0) {
+            return counterLimit
+        }
+
         const textareaLimit = Number(textarea.maxLength)
         if (Number.isFinite(textareaLimit) && textareaLimit > 0) {
             return Math.floor(textareaLimit)
@@ -1383,7 +1418,7 @@ class DanmakuActionsModule extends BaseModule {
 
         const repeatItem = this.createHostToolbarItem(
             TOOLBAR_REPEAT_SVG,
-            '复读当前输入框弹幕（+1）',
+            '增加重复弹幕',
             (event) => {
                 event.stopPropagation()
                 void this.repeatFromComposerToolbar()
@@ -1473,7 +1508,7 @@ class DanmakuActionsModule extends BaseModule {
             this.resetComposerToolbarRepeatState()
             const { notification } = useDiscreteAPI(['notification'])
             notification.error({
-                title: '弹幕复读失败',
+                title: '增加重复弹幕失败',
                 content: '未获取到有效内容',
                 closable: false,
                 duration: 3000

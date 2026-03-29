@@ -97,3 +97,68 @@ git push origin v1.1.2
 - CI 会校验 Git tag 与 `package.json.version` 完全一致；如果 tag 是 `v1.1.2`，而 `package.json` 仍是 `1.1.1`，工作流会直接失败
 - tag 推送会触发 [`.github/workflows/edgeone-release.yml`](./.github/workflows/edgeone-release.yml)
 - 工作流会构建 `HazelSpam.user.js`、`HazelSpam.min.user.js` 和 `latest.json`，部署到 `https://hazel.idols.ltd`，并同步上传同版本 GitHub Release 资产
+
+# 发布后同步 `dev`
+
+正式发布完成后，建议尽快把 `dev` 拉回到当前 `main` 的发布提交，避免出现“代码内容一样，但 `dev` 和 `main` 不是同一个 commit”的情况。
+
+## 目标
+
+- 发布完成后，让 `dev` 与 `main` 指向同一个 release commit
+- 保持后续开发仍从最新正式发布点继续推进
+- 避免单纯为了“同步”再制造一条额外的 merge commit
+
+## 推荐做法
+
+发布 PR 从 `dev` 合并到 `main` 时，优先使用普通 merge commit 或 fast-forward；不要用 squash merge 作为默认做法。这样发布完成后，`dev` 可以直接 fast-forward 到 `main`。
+
+推荐同步步骤：
+
+1. 确认 `main` 上的 release 已完成，且 `dev` 上没有尚未准备发布的新提交
+2. 拉取远端最新分支状态
+
+```sh
+git fetch origin
+```
+
+3. 切回 `dev`
+
+```sh
+git switch dev
+```
+
+4. 仅允许 fast-forward 方式把 `dev` 对齐到 `main`
+
+```sh
+git merge --ff-only origin/main
+```
+
+5. 推送同步后的 `dev`
+
+```sh
+git push origin dev
+```
+
+## 不推荐的做法
+
+- 不要在“只是想把 `dev` 拉回到 `main`”时直接执行普通的 `git merge main`
+- 不要为了同步分支而额外制造一条 `Merge branch 'main' into dev` 的提交
+
+如果 `dev` 只是需要追上 `main`，正确结果应该是 fast-forward，而不是多一条新的 merge commit。
+
+## 何时需要人工修复
+
+如果过去已经用过 squash merge、rebase merge，或者 `dev` 上已经混入了不该存在的同步提交，`git merge --ff-only origin/main` 可能会失败。  
+这时不要继续硬 merge；应先确认 `dev` 上是否存在还需要保留的未发布提交。
+
+若确认目标就是“让 `dev` 完全等于 `main`”，可以在本地做一次人工对齐：
+
+```sh
+git fetch origin
+git switch dev
+git branch backup/dev-before-sync
+git reset --hard origin/main
+git push --force-with-lease origin dev
+```
+
+这属于修复性操作，不应当成为日常同步 `dev` 的默认流程。默认流程仍应以前面的 `merge --ff-only` 为准。

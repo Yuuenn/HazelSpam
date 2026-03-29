@@ -19,7 +19,7 @@
 ### 使用环境
 
 - 浏览器需安装 [Tampermonkey](https://tampermonkey.net/) 扩展应用程序最新稳定版
-- 若 Tampermonkey 版本 >= `5.3.2`，需在浏览器扩展管理页面开启“开发者模式”，参考 [官方说明](https://www.tampermonkey.net/faq.php#Q209)
+- 若 Tampermonkey 版本 >= `5.3.2`，需在浏览器扩展管理页面`edge://extensions/`或`chrome://extensions/`开启`开发者模式`（右上角） / `开发人员模式`（左栏），同时需要在扩展详细页面开启`允许用户脚本`，参考 [官方说明](https://www.tampermonkey.net/faq.php#Q209)
 
 ### 安装步骤
 
@@ -59,6 +59,7 @@
 </div>
 2. 按 Tampermonkey 提示完成脚本安装或升级
 3. 打开任意 B 站直播间页面，确认聊天区附近出现 HazelSpam 入口按钮（方向盘图标）
+4. 升级版本后，请使用 `Ctrl + Shift + R` 强制刷新页面
 
 ### 发行说明
 
@@ -76,22 +77,28 @@
 
 ### 弹幕快捷操作：弹幕列表内联按钮
 
-在直播间弹幕列表内可直接使用“复制弹幕 / 弹幕 +1”按钮，减少来回切换输入框的操作成本。
+在直播间弹幕列表内可直接使用“复制弹幕 / 弹幕 +1”按钮。可实现快速填写弹幕框 / 快速复读弹幕。
 
 <div align="center">
 <img width="520" src="images/Inline.svg" alt="HazelSpam Inline Actions">
 </div>
 
-### 主界面（浅色模式）
+### 独轮车界面（浅色）
 
 <div align="center">
 <img width="720" src="images/Light.svg" alt="HazelSpam Light">
 </div>
 
-### 主界面（深色模式）
+### 表情独轮车界面（深色）
 
 <div align="center">
 <img width="720" src="images/Dark.svg" alt="HazelSpam Dark">
+</div>
+
+### Crybaby 增强模式界面（深色）
+
+<div align="center">
+<img width="720" src="images/Crybaby.svg" alt="HazelSpam Crybaby">
 </div>
 
 
@@ -99,8 +106,9 @@
 
 - 文字独轮车：支持单文本/标签页来源、逐行/连续切分、顺序/随机发送、运行时长限制
 - 表情独轮车：支持表情包选择、顺序/随机发送、运行时长限制，通用 emoji 自动降级为文本发送，并对表情资源做预热与状态保留
-- 弹幕快捷操作：在直播间弹幕列表内直接注入“复制弹幕 / 弹幕 +1”按钮，并提供 crybaby 复读当前输入框弹幕能力
-- 设置中心：支持主题跟随（ B 站 / 浏览器 ）、自动检查更新、自动发车、弹幕区滚动条开关
+- 弹幕快捷操作：在直播间弹幕列表内直接注入“复制弹幕 / 弹幕 +1”按钮
+- Crybaby 模式：包含自动调整弹幕、增加重复弹幕、清空弹幕框内容等快捷功能，一切为了您快速连点发送按钮的顺畅体验。 提供 Crybaby 弹幕发送面板，输入上限自动跟随当前直播间。您还可将 Crybaby 按钮注入直播间原生弹幕工具栏
+- 设置中心：增强B站主题跟随行为（ 插件面板 <=> B 站 <=> 浏览器 ）、自动检查更新、自动发车、弹幕区滚动条开关等
 - 文本标签页导入导出：支持将全部文本标签页导出为 `.toml`，并按追加模式导入当前标签页列表
 - 工具栏方向盘状态提示：顺时针旋转不可用（未登录、接口异常等）；左右摇晃为独轮车运行中；回正状态代表待机
 
