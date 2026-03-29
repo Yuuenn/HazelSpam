@@ -1,37 +1,53 @@
 <script setup lang="ts">
-import Tab from 'primevue/tab'
-import TabList from 'primevue/tablist'
-import TabPanel from 'primevue/tabpanel'
-import TabPanels from 'primevue/tabpanels'
-import Tabs from 'primevue/tabs'
+import { ref } from 'vue'
+import Avatar from 'primevue/avatar'
+import Ripple from 'primevue/ripple'
+import Textarea from 'primevue/textarea'
 import ToggleSwitch from 'primevue/toggleswitch'
 import AppButton from './AppButton.vue'
+import AppDialog from './AppDialog.vue'
 import { APP_TOOLTIP_UP_CLASS, PRODUCT_NAME } from '@/constants/brand'
 import { useCrybabyView } from '@/composables/useCrybabyView'
+import { useBiliStore } from '@/stores/useBiliStore'
+
+const biliStore = useBiliStore()
+const vRipple = Ripple
+const emojiDialogVisible = ref(false)
 
 const {
-    activeGuideTab,
+    isNativeComposerReady,
+    composerLengthLimit,
+    composerCharacterCount,
+    composerText,
+    editorActions,
+    isSendDisabled,
     isCrybabyModeEnabled,
-    crybabyToolbarStateTitle,
-    crybabyModeStatus,
-    toolbarFeatureCards,
-    guideTabs,
+    insertEmojiToComposer,
+    handleSendCurrentDanmaku,
     closePanel
 } = useCrybabyView()
+
+const handleEditorActionClick = (action: (typeof editorActions.value)[number]) => {
+    if (action.disabled) {
+        action.onDisabledClick?.()
+        return
+    }
+    action.onClick()
+}
 </script>
 
 <template>
     <div class="crybaby-view hazelspam-responsive-scope">
         <header class="crybaby-view__header">
             <h2>{{ PRODUCT_NAME }} Crybaby 增强模式</h2>
-            <p>弹幕工具栏的超快速发送、自动装填差异化弹幕功能</p>
+            <p>准备弹幕、激活 Crybaby——然后您可以连点发送按钮</p>
         </header>
 
         <section class="hazelspam-panel-card control-panel">
             <h3>控制面板</h3>
             <div class="control-grid hazelspam-responsive-grid" data-hazelspam-grid="2">
                 <div class="control-item control-item--switch">
-                    <label class="control-label">开启 {{ PRODUCT_NAME }} Crybaby 增强模式</label>
+                    <label class="control-label">将 Crybaby 按钮注入弹幕工具栏</label>
                     <span
                         class="control-trigger control-trigger--hint"
                         v-tooltip.bottom="{
@@ -45,64 +61,108 @@ const {
             </div>
         </section>
 
-        <div class="content-split hazelspam-responsive-split" data-hazelspam-stack="fill">
-            <section class="hazelspam-panel-card send-panel hazelspam-responsive-panel">
-                <header class="module-head">
-                    <h3>发送弹幕</h3>
-                    <p>发送路径仍在直播间原生输入区，本页只负责控制入口显示与状态说明。</p>
-                </header>
+        <section class="hazelspam-panel-card send-panel hazelspam-responsive-panel">
+            <header class="module-head">
+                <h3>Crybaby 弹幕发送框</h3>
+            </header>
 
-                <div class="send-panel__body">
-                    <article class="status-card" :data-active="isCrybabyModeEnabled ? 'true' : 'false'">
-                        <strong>{{ crybabyToolbarStateTitle }}</strong>
-                        <p>{{ crybabyModeStatus }}</p>
-                    </article>
-
-                    <article
-                        v-for="card in toolbarFeatureCards"
-                        :key="card.title"
-                        class="feature-card"
-                        :data-active="isCrybabyModeEnabled ? 'true' : 'false'"
+            <div class="send-panel__body">
+                <div class="text-tools composer-actions">
+                    <span
+                        v-for="action in editorActions"
+                        :key="action.id"
+                        class="composer-action-trigger"
+                        v-tooltip.bottom="{
+                            value: action.label,
+                            class: APP_TOOLTIP_UP_CLASS
+                        }"
                     >
-                        <div class="feature-card__icon" aria-hidden="true">
-                            <i :class="card.iconClass"></i>
-                        </div>
-                        <div class="feature-card__content">
-                            <h4>{{ card.title }}</h4>
-                            <p>{{ card.description }}</p>
-                        </div>
-                    </article>
+                        <AppButton
+                            :tone="action.tone"
+                            class="tool-btn p-button-icon-only crybaby-editor-btn"
+                            :class="{
+                                'crybaby-editor-btn--soft-disabled':
+                                    action.disabled && action.allowClickWhenDisabled
+                            }"
+                            :data-crybaby-action="action.id"
+                            :disabled="action.disabled && !action.allowClickWhenDisabled"
+                            :aria-label="action.label"
+                            :aria-disabled="action.disabled ? 'true' : undefined"
+                            :aria-pressed="
+                                action.active === undefined ? undefined : String(action.active)
+                            "
+                            @click="handleEditorActionClick(action)"
+                        >
+                            <span class="crybaby-editor-btn__icon" v-html="action.iconSvg"></span>
+                        </AppButton>
+                    </span>
+                    <span class="composer-action-divider" aria-hidden="true"></span>
+                    <span
+                        class="composer-action-trigger"
+                        v-tooltip.bottom="{
+                            value: '插入表情',
+                            class: APP_TOOLTIP_UP_CLASS
+                        }"
+                    >
+                        <AppButton
+                            tone="surface"
+                            class="tool-btn p-button-icon-only crybaby-editor-btn"
+                            icon="pi pi-face-smile"
+                            :disabled="!isNativeComposerReady"
+                            aria-label="插入表情"
+                            @click="emojiDialogVisible = true"
+                        />
+                    </span>
                 </div>
-            </section>
 
-            <section class="hazelspam-panel-card guide-panel hazelspam-responsive-panel">
-                <header class="module-head">
-                    <h3>说明</h3>
-                    <p>按照现有页面规范集中管理 Crybaby 增强入口，不改动原有工具栏按钮功能。</p>
-                </header>
+                <div class="composer-editor">
+                    <div class="composer-textarea-shell">
+                        <Textarea
+                            v-model="composerText"
+                            class="composer-textarea"
+                            :maxlength="composerLengthLimit"
+                            :disabled="!isNativeComposerReady"
+                            :rows="3"
+                            :placeholder="
+                                isNativeComposerReady
+                                    ? '输入需要发送的弹幕内容'
+                                    : '当前未发现直播间原生输入框'
+                            "
+                        />
+                    </div>
+                </div>
+            </div>
 
-                <Tabs v-model:value="activeGuideTab" class="guide-tabs" :lazy="true">
-                    <TabList class="guide-tabs__list">
-                        <Tab v-for="item in guideTabs" :key="item.id" :value="item.id">
-                            {{ item.label }}
-                        </Tab>
-                    </TabList>
-
-                    <TabPanels class="guide-tabs__panels">
-                        <TabPanel v-for="item in guideTabs" :key="item.id" :value="item.id">
-                            <article class="guide-card guide-card--panel">
-                                <h4>{{ item.title }}</h4>
-                                <p>{{ item.description }}</p>
-                            </article>
-                        </TabPanel>
-                    </TabPanels>
-                </Tabs>
-            </section>
-        </div>
+            <footer class="send-panel__footer">
+                <p class="composer-counter">{{ composerCharacterCount }} / {{ composerLengthLimit }} 字</p>
+                <AppButton tone="primary" :disabled="isSendDisabled" @click="handleSendCurrentDanmaku"
+                    >发送</AppButton
+                >
+            </footer>
+        </section>
 
         <div class="hazelspam-panel-actions crybaby-actions">
             <AppButton tone="surface" @click="closePanel">关闭此窗口</AppButton>
         </div>
+
+        <AppDialog v-model:visible="emojiDialogVisible" header="插入表情">
+            <div class="emoji-grid">
+                <button
+                    v-for="data in biliStore.emotionData.find((item) => item.pkg_id === 100)?.emoticons"
+                    :key="data.emoticon_id"
+                    type="button"
+                    v-ripple
+                    class="emoji-cell"
+                    :disabled="data.perm === 0"
+                    @click="insertEmojiToComposer(data.emoji)"
+                >
+                    <Avatar :image="data.url" shape="circle" />
+                </button>
+            </div>
+            <template #footer>
+                <AppButton tone="surface" @click="emojiDialogVisible = false">关闭</AppButton>
+            </template>
+        </AppDialog>
     </div>
 </template>
 
@@ -116,6 +176,17 @@ const {
     overflow-y: auto;
     overflow-x: hidden;
     padding-right: var(--hazelspam-space-2xs);
+    --editor-font-size: var(--hazelspam-size-editor-font, 17px);
+    --editor-line-height: 1.55;
+    --editor-padding-y: var(--hazelspam-space-lg);
+    --editor-padding-x: var(--hazelspam-space-xl);
+    --thin-scrollbar-size: var(--hazelspam-size-scrollbar-thin, 3px);
+    --hazelspam-pill-height: var(--hazelspam-size-collection-row-height, 30px);
+}
+
+.crybaby-view > :is(.crybaby-view__header, .control-panel, .send-panel, .crybaby-actions) {
+    flex: 0 0 auto;
+    min-width: 0;
 }
 
 .crybaby-view__header h2 {
@@ -174,177 +245,251 @@ const {
     cursor: help;
 }
 
-.status-card,
-.feature-card,
-.guide-card {
-    border: 1px solid var(--hazelspam-color-surface-border, var(--p-content-border-color));
-    border-radius: var(--hazelspam-collection-radius);
-    background: color-mix(
-        in srgb,
-        var(--hazelspam-color-shell-card-bg, var(--p-content-background)) 92%,
-        transparent
-    );
-}
-
-.status-card[data-active='true'],
-.feature-card[data-active='true'] {
-    border-color: color-mix(in srgb, var(--hazelspam-color-accent) 32%, transparent);
-    background: color-mix(in srgb, var(--hazelspam-color-accent) 7%, transparent);
-}
-
-.status-card strong {
-    font-size: var(--hazelspam-type-size-body-sm);
-    font-weight: var(--hazelspam-type-weight-semibold);
-    color: var(--hazelspam-color-text-primary, var(--p-text-color));
-}
-
-.status-card p,
-.feature-card p,
-.guide-card p {
-    margin: 0;
-    font-size: var(--hazelspam-type-size-body-sm);
-    line-height: 1.5;
-    color: var(--hazelspam-color-text-primary, var(--p-text-color));
-}
-
-.content-split {
-    flex: 1;
-    min-height: 0;
-    align-items: stretch;
-}
-
-.send-panel,
-.guide-panel {
+.send-panel {
     display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
     gap: var(--hazelspam-space-lg);
-    overflow: hidden;
-    --hazelspam-responsive-panel-min-height: clamp(260px, 42vh, 420px);
+    min-width: 0;
+    --hazelspam-responsive-panel-min-height: clamp(220px, 32vh, 300px);
 }
 
 .module-head {
     display: flex;
-    flex-direction: column;
-    gap: var(--hazelspam-space-xs);
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--hazelspam-space-md);
+    min-width: 0;
 }
 
-.module-head p {
+.composer-counter {
     margin: 0;
     font-size: var(--hazelspam-type-size-body-sm);
-    color: var(--hazelspam-color-text-muted, var(--p-text-muted-color));
     line-height: 1.45;
+    color: var(--hazelspam-color-text-muted, var(--p-text-muted-color));
+    flex: 0 0 auto;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }
 
 .send-panel__body {
     display: flex;
     flex-direction: column;
     gap: var(--hazelspam-space-md);
-    min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-right: var(--hazelspam-space-2xs);
-    overscroll-behavior: contain;
+    min-width: 0;
 }
 
-.status-card,
-.guide-card {
+.composer-editor {
+    min-width: 0;
+}
+
+.composer-actions {
     display: flex;
-    flex-direction: column;
-    gap: var(--hazelspam-space-xs);
-    padding: var(--hazelspam-space-lg);
-}
-
-.feature-card {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
     gap: var(--hazelspam-space-md);
-    align-items: start;
-    padding: var(--hazelspam-space-lg);
+    min-width: 0;
 }
 
-.feature-card__icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
+.composer-action-trigger {
+    display: inline-flex;
+}
+
+.composer-action-divider {
+    width: 1px;
+    height: 16px;
+    flex: 0 0 auto;
+    align-self: center;
+    margin-inline: var(--hazelspam-space-2xs);
+    background: color-mix(
+        in srgb,
+        var(--hazelspam-color-surface-border, var(--p-content-border-color)) 92%,
+        transparent
+    );
+}
+
+.crybaby-editor-btn {
+    position: relative;
+}
+
+.crybaby-editor-btn--soft-disabled {
+    opacity: var(--hazelspam-icon-btn-disabled-opacity, 0.45);
+}
+
+.crybaby-editor-btn.hazelspam-app-button[aria-pressed='true'] {
+    background: var(--hazelspam-color-accent);
+    border-color: var(--hazelspam-color-accent);
+    color: var(--hazelspam-color-accent-contrast, #ffffff);
+}
+
+.crybaby-editor-btn.hazelspam-app-button[aria-pressed='true']:hover {
+    background: var(--hazelspam-color-accent-hover, var(--hazelspam-color-accent));
+    border-color: var(--hazelspam-color-accent-hover, var(--hazelspam-color-accent));
+    color: var(--hazelspam-color-accent-contrast, #ffffff);
+}
+
+.crybaby-editor-btn__icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: color-mix(in srgb, var(--hazelspam-color-accent) 12%, transparent);
-    color: var(--hazelspam-color-accent);
-    flex: 0 0 32px;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
 }
 
-.feature-card__icon i {
-    font-size: 14px;
-    line-height: 1;
+.crybaby-editor-btn__icon :deep(.hazelspam-host-toolbar-icon) {
+    width: 13px;
+    height: 13px;
+    display: block;
+    color: currentColor;
 }
 
-.feature-card__content {
-    display: flex;
-    flex-direction: column;
-    gap: var(--hazelspam-space-xs);
+.crybaby-editor-btn__icon :deep(.hazelspam-host-toolbar-icon [stroke]) {
+    stroke: currentColor;
+}
+
+.crybaby-editor-btn[data-crybaby-action='repeat']
+    .crybaby-editor-btn__icon
+    :deep(.hazelspam-host-toolbar-icon [stroke]) {
+    stroke-width: 1.2;
+}
+
+.crybaby-editor-btn[data-crybaby-action='clear']
+    .crybaby-editor-btn__icon
+    :deep(.hazelspam-host-toolbar-icon [stroke]) {
+    stroke-width: 1.05;
+}
+
+.crybaby-editor-btn__icon :deep(.hazelspam-host-toolbar-icon [fill='none']) {
+    fill: none;
+}
+
+.composer-textarea-shell {
     min-width: 0;
 }
 
-.feature-card__content h4,
-.guide-card h4 {
-    margin: 0;
-    font-size: var(--hazelspam-type-size-body-sm);
-    font-weight: var(--hazelspam-type-weight-semibold);
-    color: var(--hazelspam-color-text-primary, var(--p-text-color));
-}
-
-.guide-tabs {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
-    gap: var(--hazelspam-space-md);
-    min-height: 0;
-}
-
-.guide-tabs__list,
-.guide-tabs__panels {
-    min-height: 0;
-    min-width: 0;
-}
-
-.guide-tabs :deep(.p-tablist) {
-    background: transparent;
-}
-
-.guide-tabs :deep(.p-tablist-content) {
-    overflow: auto;
+.composer-textarea {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 98px;
+    max-height: 132px;
+    resize: none;
+    font-size: var(--editor-font-size);
+    line-height: var(--editor-line-height);
+    padding: var(--editor-padding-y) var(--editor-padding-x);
+    overflow-x: hidden;
+    overflow-y: auto;
     overscroll-behavior: contain;
+    background: var(--hazelspam-color-field-bg, var(--p-form-field-background));
+    border-color: var(--hazelspam-color-field-border, var(--p-form-field-border-color));
+    color: var(--hazelspam-color-field-text, var(--p-form-field-color));
 }
 
-.guide-tabs :deep([role='tablist']) {
-    min-width: max-content;
+.composer-textarea {
+    scrollbar-width: none;
+    scrollbar-color: transparent transparent;
 }
 
-.guide-tabs :deep(.p-tabpanels) {
-    min-height: 0;
+.composer-textarea::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+.composer-textarea::-webkit-scrollbar-track {
     background: transparent;
-    padding: 0;
 }
 
-.guide-tabs :deep([role='tabpanel']) {
-    min-height: 0;
-    padding: 0;
+.composer-textarea::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: var(--hazelspam-radius-pill);
 }
 
-.guide-card--panel {
-    border-color: var(--hazelspam-color-surface-border, var(--p-content-border-color));
-    background: var(--hazelspam-color-shell-card-bg, var(--p-content-background));
-    justify-content: flex-start;
+.composer-textarea:hover,
+.composer-textarea:focus {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(
+            in srgb,
+            var(--hazelspam-color-text-primary, var(--p-text-color)) 42%,
+            transparent
+        )
+        transparent;
+}
+
+.composer-textarea:hover::-webkit-scrollbar,
+.composer-textarea:focus::-webkit-scrollbar {
+    width: var(--thin-scrollbar-size);
+    height: var(--thin-scrollbar-size);
+}
+
+.composer-textarea:hover::-webkit-scrollbar-thumb,
+.composer-textarea:focus::-webkit-scrollbar-thumb {
+    background: color-mix(
+        in srgb,
+        var(--hazelspam-color-text-primary, var(--p-text-color)) 42%,
+        transparent
+    );
+}
+
+.send-panel__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--hazelspam-space-md);
 }
 
 .crybaby-actions {
     flex: 0 0 auto;
 }
 
+.emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--hazelspam-size-emoji-cell, 42px), 1fr));
+    gap: var(--hazelspam-space-md);
+}
+
+.emoji-cell {
+    border: 1px solid var(--hazelspam-color-surface-border, var(--p-content-border-color));
+    border-radius: var(--hazelspam-emoji-radius);
+    background: transparent;
+    width: var(--hazelspam-size-emoji-cell, 42px);
+    height: var(--hazelspam-size-emoji-cell, 42px);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
 @container hazelspam-panel (max-width: 760px) {
-    .send-panel__body,
-    .guide-tabs :deep(.p-tablist-content) {
+    .module-head {
+        align-items: flex-start;
+    }
+
+    .send-panel__footer {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .composer-counter {
+        width: 100%;
+    }
+
+    .composer-textarea {
         overscroll-behavior: auto;
+    }
+}
+
+@container hazelspam-panel (max-width: 560px) {
+    .composer-actions {
+        flex-wrap: wrap;
+        gap: var(--hazelspam-space-sm);
+    }
+
+    .composer-action-divider {
+        display: none;
+    }
+
+    .send-panel__footer
+        :deep(:is(.hazelspam-app-button, [data-hazelspam-button-style]).p-button:not(.p-button-icon-only)) {
+        flex: 1 1 100%;
     }
 }
 </style>
