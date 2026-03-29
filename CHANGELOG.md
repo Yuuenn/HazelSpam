@@ -10,6 +10,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Changed
 
+- 更新 `README.md` 与 `CONTRIBUTING.md`，同步当前发行源、开发命令和文档入口。
+
 ### Fixed
 
 ## [1.1.1] - 2026-03-28

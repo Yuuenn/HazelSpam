@@ -8,9 +8,10 @@
 - 安装 [Node.js](https://nodejs.org/zh-cn) (LTS版本就可以)
 - 安装 [Visual Studio Code](https://code.visualstudio.com/download)
 - 安装 [git](https://git-scm.com/) 或者任意GIT GUI客户端，例如 [Github Desktop](https://desktop.github.com/download/)
-- 运行以下命令安装pnpm
+- 建议使用 `corepack` 启用仓库锁定的 `pnpm@10.30.3`
 ```sh
-npm install -g pnpm
+corepack enable
+corepack prepare pnpm@10.30.3 --activate
 ```
 - Fork 本项目 (不用勾选 Copy the `main` branch only)，并 clone 至本地
 - 在项目根目录中运行以下命令安装依赖
@@ -23,7 +24,7 @@ git checkout dev
 ```
 至此，完成本项目的环境搭建，运行以下命令或在`Visual Studio Code`的`NPM脚本`栏中的`dev`点击运行按钮即可进行开发
 ```sh
-pnpm run dev
+pnpm dev
 ```
 
 # 注意事项
@@ -31,6 +32,7 @@ pnpm run dev
 - 提交`commit`时，请使用[约定式提交](https://www.conventionalcommits.org/zh-hans/v1.0.0)的格式
 - 发起`PR`前请进行测试
 - 发起`PR`时请合并到主仓库的`dev`分支
+- 如果改动涉及用户可见行为、发布流程、存储 schema 或主题同步，请同步更新对应 Markdown 文档
 
 # 分支策略
 
@@ -60,14 +62,12 @@ pnpm run dev
 发版前请按以下顺序执行：
 
 1. 确认待发布内容已经在 `dev` 完成验证，并准备将其推进到 `main`
-2. 将 [package.json](./package.json) 中的 `version` 更新到目标版本，例如 `1.0.1`
+2. 将 [package.json](./package.json) 中的 `version` 更新到目标版本，例如 `1.1.2`
 3. 更新 [CHANGELOG.md](./CHANGELOG.md)，将 `Unreleased` 改为目标版本并写入发布日期，然后补回新的空 `Unreleased`
 4. 运行以下命令确认本地通过校验
 
 ```sh
-pnpm lint
-pnpm test
-pnpm typecheck
+pnpm check
 pnpm build
 ```
 
@@ -76,8 +76,8 @@ pnpm build
 7. 在 `main` 上打 tag 并推送，例如
 
 ```sh
-git tag v1.0.1
-git push origin v1.0.1
+git tag v1.1.2
+git push origin v1.1.2
 ```
 
 更完整的推荐顺序如下：
@@ -94,6 +94,6 @@ git push origin v1.0.1
 
 补充说明：
 
-- CI 会校验 Git tag 与 `package.json.version` 完全一致；如果 tag 是 `v1.0.1`，而 `package.json` 仍是 `1.0.0`，工作流会直接失败
+- CI 会校验 Git tag 与 `package.json.version` 完全一致；如果 tag 是 `v1.1.2`，而 `package.json` 仍是 `1.1.1`，工作流会直接失败
 - tag 推送会触发 [`.github/workflows/edgeone-release.yml`](./.github/workflows/edgeone-release.yml)
 - 工作流会构建 `HazelSpam.user.js`、`HazelSpam.min.user.js` 和 `latest.json`，部署到 `https://hazel.idols.ltd`，并同步上传同版本 GitHub Release 资产
