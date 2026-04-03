@@ -1,0 +1,34 @@
+name: Sync Main To Dev
+
+on:
+    push:
+        branches:
+            - main
+    workflow_dispatch:
+
+env:
+    FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+    sync-main-to-dev:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v5
+              with:
+                  fetch-depth: 0
+
+            - name: Fetch Branches
+              run: git fetch origin main dev
+
+            - name: Sync dev Fast-Forward To main
+              run: |
+                  if ! git merge-base --is-ancestor origin/dev origin/main; then
+                    echo "Skip sync: dev contains commits not in main (non fast-forward)." >&2
+                    exit 0
+                  fi
+
+                  git push origin refs/remotes/origin/main:refs/heads/dev
