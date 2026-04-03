@@ -42,9 +42,11 @@ export const storageDefaultValues: StorageDefaultValues = {
             enable: false,
             sourceMode: 'single',
             timeInterval: 5,
+            // Historical key name. Domain meaning: max chars per single message.
             textInterval: 20,
             timeLimit: 0,
             splitMode: 'byLine',
+            // Historical key name. true = sequential, false = random.
             sequentialMode: true,
             tabTimeInterval: 5,
             tabSplitMode: 'byLine',
@@ -61,6 +63,7 @@ export const storageDefaultValues: StorageDefaultValues = {
         emotionSpam: {
             enable: false,
             timeInterval: 5,
+            // Historical key name. true = sequential, false = random.
             sequentialMode: true,
             selectedPackageId: 1,
             msg: [],

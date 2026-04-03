@@ -7,8 +7,8 @@ const GENERAL_EMOJI_PACKAGE_ID = 100
 
 class EmotionSpamModule extends BaseModule {
     config = this.moduleStore.moduleConfig.emotionSpam
-    private intervalId: NodeJS.Timeout | null = null
-    private timeLimitId: NodeJS.Timeout | null = null
+    private intervalId: ReturnType<typeof setInterval> | null = null
+    private timeLimitId: ReturnType<typeof setTimeout> | null = null
     private generalEmojiTextMap: Map<string, string> = new Map()
     private isSending = false
 
@@ -177,7 +177,7 @@ class EmotionSpamModule extends BaseModule {
             return
         }
 
-        const roomid = useBiliStore().BilibiliLive?.ROOMID
+        const roomid = useBiliStore().bilibiliLive?.ROOMID
         if (!roomid) {
             this.config.enable = false
             return

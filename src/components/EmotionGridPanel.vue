@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import { computed, ref, toRef, watch } from 'vue'
+import { computed, toRef } from 'vue'
 import AppButton from './AppButton.vue'
-import type { EmotionGridItem, EmotionPackagePanel } from '@/composables/useEmotionPackages'
+import type {
+    EmotionGridItem,
+    EmotionPackageImagePanel,
+    EmotionPackagePanel
+} from '@/composables/useEmotionPackages'
 import {
     useEmotionImageWarmup,
     type EmotionImageWarmupPanel
@@ -9,7 +13,8 @@ import {
 
 const props = defineProps<{
     packageId: number | null
-    packagePanels: EmotionPackagePanel[]
+    packageImagePanels: EmotionPackageImagePanel[]
+    selectedPackagePanel: EmotionPackagePanel | null
     hasSelectedInCurrentPackage: boolean
     disabled: boolean
 }>()
@@ -19,12 +24,12 @@ const emit = defineEmits<{
     (event: 'clear-package'): void
 }>()
 
-const hasPackage = computed(() => props.packageId !== null)
-const visitedPackageIds = ref<number[]>([])
+const selectedPackagePanel = computed(() => props.selectedPackagePanel)
+const hasPackage = computed(() => selectedPackagePanel.value !== null)
 const packageImagePanels = computed<EmotionImageWarmupPanel[]>(() =>
-    props.packagePanels.map((panel) => ({
+    props.packageImagePanels.map((panel) => ({
         packageId: panel.packageId,
-        imageUrls: panel.emotionItems.map((item) => item.imageUrl)
+        imageUrls: panel.imageUrls
     }))
 )
 
@@ -33,27 +38,12 @@ useEmotionImageWarmup({
     currentPackageId: toRef(props, 'packageId')
 })
 
-watch(
-    () => props.packageId,
-    (packageId) => {
-        if (packageId === null || visitedPackageIds.value.includes(packageId)) {
-            return
-        }
-
-        visitedPackageIds.value.push(packageId)
-    },
-    { immediate: true }
-)
-
-const visiblePackagePanels = computed(() => {
-    const visitedSet = new Set(visitedPackageIds.value)
-    return props.packagePanels.filter((panel) => visitedSet.has(panel.packageId))
-})
-
 const getEmotionGridButtonClass = (item: EmotionGridItem) => ({
     'emotion-grid-item--selected': item.isSelected,
     'emotion-grid-item--disabled': item.isDisabled
 })
+
+const memoizeEmotionGridItem = (item: EmotionGridItem) => [item.isSelected, item.isDisabled]
 </script>
 
 <template>
@@ -63,18 +53,21 @@ const getEmotionGridButtonClass = (item: EmotionGridItem) => ({
                 <div class="hazelspam-scroll-hint-shell hazelspam-scroll-hint-shell--fill">
                     <div class="emotion-list__content hazelspam-faux-scroll">
                         <div
-                            v-for="panel in visiblePackagePanels"
-                            :key="panel.packageId"
-                            v-show="panel.packageId === packageId"
+                            v-if="selectedPackagePanel"
+                            :key="selectedPackagePanel.packageId"
                             class="emotion-grid-panel"
                         >
                             <div
                                 class="emotion-grid"
-                                :class="{ 'emotion-grid--general': panel.imageVariant === 'general' }"
+                                :class="{
+                                    'emotion-grid--general':
+                                        selectedPackagePanel.imageVariant === 'general'
+                                }"
                             >
                                 <AppButton
-                                    v-for="item in panel.emotionItems"
+                                    v-for="item in selectedPackagePanel.emotionItems"
                                     :key="item.id"
+                                    v-memo="memoizeEmotionGridItem(item)"
                                     class="emotion-grid-item hazelspam-grid-card"
                                     :class="getEmotionGridButtonClass(item)"
                                     :tone="item.isSelected ? 'primary' : 'surface'"
@@ -87,13 +80,13 @@ const getEmotionGridButtonClass = (item: EmotionGridItem) => ({
                                         class="emotion-grid-item__image hazelspam-grid-card__image"
                                         :class="{
                                             'emotion-grid-item__image--general':
-                                                panel.imageVariant === 'general',
+                                                selectedPackagePanel.imageVariant === 'general',
                                             'hazelspam-grid-card__image--general':
-                                                panel.imageVariant === 'general',
+                                                selectedPackagePanel.imageVariant === 'general',
                                             'emotion-grid-item__image--emoji':
-                                                panel.imageVariant === 'emoji',
+                                                selectedPackagePanel.imageVariant === 'emoji',
                                             'hazelspam-grid-card__image--emoji':
-                                                panel.imageVariant === 'emoji'
+                                                selectedPackagePanel.imageVariant === 'emoji'
                                         }"
                                         :src="item.imageUrl"
                                         :alt="item.title"

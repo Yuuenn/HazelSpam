@@ -20,10 +20,10 @@ const {
             cookies: { bili_jct: string } | null
             loginInfo: { isLogin: boolean } | null
             emotionData: Array<unknown>
-            BilibiliLive: { ROOMID: number } | null
-            infoByuser: { property: { danmu: { length: number } } } | null
+            bilibiliLive: { ROOMID: number } | null
+            infoByUser: { property: { danmu: { length: number } } } | null
             roomAnchorName: string
-            danmuLengthLimit: number | null
+            danmakuLengthLimit: number | null
         } | null
     },
     moduleStoreState: {
@@ -86,10 +86,10 @@ describe('UserInfoModule', () => {
             cookies: null,
             loginInfo: null,
             emotionData: [],
-            BilibiliLive: null,
-            infoByuser: null,
+            bilibiliLive: null,
+            infoByUser: null,
             roomAnchorName: '',
-            danmuLengthLimit: null
+            danmakuLengthLimit: null
         }
     })
 
@@ -137,13 +137,13 @@ describe('UserInfoModule', () => {
         await vi.advanceTimersByTimeAsync(400)
         await expect(runPromise).resolves.toBeUndefined()
 
-        expect(biliStoreState.current?.BilibiliLive).toEqual({ ROOMID: 25274497 })
+        expect(biliStoreState.current?.bilibiliLive).toEqual({ ROOMID: 25274497 })
         expect(getEmoticonsMock).toHaveBeenCalledWith('pc', 25274497)
         expect(getInfoByRoomMock).toHaveBeenCalledWith(25274497)
         expect(getInfoByUserMock).toHaveBeenCalledWith(25274497)
         expect(biliStoreState.current?.emotionData).toEqual([{ pkg_id: 100, emoticons: [] }])
         expect(biliStoreState.current?.roomAnchorName).toBe('测试主播')
-        expect(biliStoreState.current?.danmuLengthLimit).toBe(40)
+        expect(biliStoreState.current?.danmakuLengthLimit).toBe(40)
     })
 
     it('degrades gracefully when host room context does not appear in time', async () => {
@@ -153,12 +153,12 @@ describe('UserInfoModule', () => {
         await vi.advanceTimersByTimeAsync(5000)
         await expect(runPromise).resolves.toBeUndefined()
 
-        expect(biliStoreState.current?.BilibiliLive).toBeNull()
+        expect(biliStoreState.current?.bilibiliLive).toBeNull()
         expect(biliStoreState.current?.loginInfo).toEqual({ isLogin: true })
         expect(biliStoreState.current?.emotionData).toEqual([])
-        expect(biliStoreState.current?.infoByuser).toBeNull()
+        expect(biliStoreState.current?.infoByUser).toBeNull()
         expect(biliStoreState.current?.roomAnchorName).toBe('')
-        expect(biliStoreState.current?.danmuLengthLimit).toBeNull()
+        expect(biliStoreState.current?.danmakuLengthLimit).toBeNull()
         expect(getEmoticonsMock).not.toHaveBeenCalled()
         expect(getInfoByUserMock).not.toHaveBeenCalled()
         expect(getInfoByRoomMock).not.toHaveBeenCalled()

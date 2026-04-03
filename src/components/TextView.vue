@@ -43,13 +43,13 @@ const {
     moveSortDraft
 } = useTextTabs()
 const {
-    textLengthLimitMax,
+    messageCharLimitMax,
     combineTabs,
     lineBreakMode,
-    randomSendMode,
+    isRandomOrderEnabled,
     autoStopEnabled,
     activeIntervalSeconds,
-    textLengthLimit,
+    messageCharLimit,
     isAnySpamRunning,
     currentText,
     clearCurrentText,
@@ -74,12 +74,19 @@ const {
 } = textPreviewOverlay
 
 const textPreviewLines = computed(() => {
-    const limit = Math.max(1, Number(moduleStore.moduleConfig.textSpam.textInterval || 1))
+    const previewCharLimit = Math.max(
+        1,
+        Number(moduleStore.moduleConfig.textSpam.textInterval || 1)
+    )
     return currentText.value.split(/\r?\n/).map((line) => ({
-        keep: line.slice(0, limit),
-        overflow: line.slice(limit)
+        keep: line.slice(0, previewCharLimit),
+        overflow: line.slice(previewCharLimit)
     }))
 })
+
+const generalEmojiEmoticons = computed(
+    () => biliStore.emotionData.find((item) => item.pkg_id === 100)?.emoticons ?? []
+)
 
 const insertEmojiToText = (emoji: string) => insertTextAtCursor(emoji)
 
@@ -122,13 +129,13 @@ watch(
                 <div class="control-item">
                     <label>每条弹幕字数上限</label>
                     <Slider
-                        v-model="textLengthLimit"
+                        v-model="messageCharLimit"
                         :min="1"
-                        :max="textLengthLimitMax"
+                        :max="messageCharLimitMax"
                         :step="1"
                         :disabled="moduleStore.moduleConfig.textSpam.enable"
                     />
-                    <small>{{ textLengthLimit }} 字</small>
+                    <small>{{ messageCharLimit }} 字</small>
                 </div>
 
                 <div class="control-item">
@@ -157,7 +164,7 @@ watch(
                 <div class="control-item control-item--switch">
                     <label>打乱顺序发送</label>
                     <ToggleSwitch
-                        v-model="randomSendMode"
+                        v-model="isRandomOrderEnabled"
                         :disabled="moduleStore.moduleConfig.textSpam.enable"
                     />
                 </div>
@@ -262,7 +269,9 @@ watch(
                     <h3>标签页</h3>
                 </div>
 
-                <div class="hazelspam-scroll-hint-shell hazelspam-scroll-hint-shell--fill tabs-list-shell">
+                <div
+                    class="hazelspam-scroll-hint-shell hazelspam-scroll-hint-shell--fill tabs-list-shell"
+                >
                     <div class="tabs-strip hazelspam-faux-scroll">
                         <div
                             v-for="panel in tabPanels"
@@ -363,8 +372,7 @@ watch(
                 <button
                     type="button"
                     v-ripple
-                    v-for="data in biliStore.emotionData.find((item) => item.pkg_id === 100)
-                        ?.emoticons"
+                    v-for="data in generalEmojiEmoticons"
                     :key="data.emoticon_id"
                     class="emoji-cell"
                     :disabled="data.perm === 0"

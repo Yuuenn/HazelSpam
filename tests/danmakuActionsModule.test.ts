@@ -30,7 +30,7 @@ const {
     },
     biliStoreState: {
         current: null as {
-            BilibiliLive: { ROOMID: number } | null
+            bilibiliLive: { ROOMID: number } | null
         } | null
     }
 }))
@@ -326,7 +326,9 @@ const setupNativeComposerHarness = (): ComposerHarness => {
             }
             if (selector === '.chat-input-ctnr') {
                 return {
-                    querySelectorAll: vi.fn((target: string) => (target === 'button' ? [sendButton] : [])),
+                    querySelectorAll: vi.fn((target: string) =>
+                        target === 'button' ? [sendButton] : []
+                    ),
                     querySelector: vi.fn((target: string) =>
                         target === 'textarea.chat-input' ? textarea : null
                     ),
@@ -371,7 +373,7 @@ describe('DanmakuActionsModule', () => {
             emitter: mitt()
         }
         biliStoreState.current = {
-            BilibiliLive: { ROOMID: 1001 }
+            bilibiliLive: { ROOMID: 1001 }
         }
 
         vi.stubGlobal('navigator', {
@@ -603,7 +605,14 @@ describe('DanmakuActionsModule', () => {
             seenBodies.push(current.bodyText)
         }
 
-        expect(seenBodies).toEqual(['你好,世界', '你好;世界', '你好:世界', '你好-世界', '你好.世界', '你好，世界'])
+        expect(seenBodies).toEqual([
+            '你好,世界',
+            '你好;世界',
+            '你好:世界',
+            '你好-世界',
+            '你好.世界',
+            '你好，世界'
+        ])
     })
 
     it('treats half-width space as the first half-width rotation candidate when the text is already at limit', () => {
@@ -626,7 +635,14 @@ describe('DanmakuActionsModule', () => {
             seenBodies.push(current.bodyText)
         }
 
-        expect(seenBodies).toEqual(['晚安,晚安', '晚安;晚安', '晚安:晚安', '晚安-晚安', '晚安.晚安', '晚安 晚安'])
+        expect(seenBodies).toEqual([
+            '晚安,晚安',
+            '晚安;晚安',
+            '晚安:晚安',
+            '晚安-晚安',
+            '晚安.晚安',
+            '晚安 晚安'
+        ])
     })
 
     it('cycles crybaby suffix variants without accumulating punctuation and returns to the base draft', () => {
@@ -649,7 +665,14 @@ describe('DanmakuActionsModule', () => {
             seenBodies.push(current.bodyText)
         }
 
-        expect(seenBodies).toEqual(['你好世界.', '你好世界,', '你好世界;', '你好世界:', '你好世界-', '你好世界'])
+        expect(seenBodies).toEqual([
+            '你好世界.',
+            '你好世界,',
+            '你好世界;',
+            '你好世界:',
+            '你好世界-',
+            '你好世界'
+        ])
     })
 
     it('keeps bracket emoji syntax untouched for crybaby replacement fallback', () => {

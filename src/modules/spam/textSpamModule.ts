@@ -10,19 +10,19 @@ interface SpamConfig {
 }
 
 interface TextRunOptions extends SpamConfig {
-    textInterval: number
+    messageCharLimit: number
     splitMode: 'byLine' | 'continuous'
     sequentialMode: boolean
 }
 
 class TextSpamModule extends BaseModule {
     private textConfig = this.moduleStore.moduleConfig.textSpam
-    private intervalId: NodeJS.Timeout | null = null
-    private timeLimitId: NodeJS.Timeout | null = null
+    private intervalId: ReturnType<typeof setInterval> | null = null
+    private timeLimitId: ReturnType<typeof setTimeout> | null = null
     private isSending = false
 
     private get roomId(): number | undefined {
-        return useBiliStore().BilibiliLive?.ROOMID
+        return useBiliStore().bilibiliLive?.ROOMID
     }
 
     private sliceMsg(msg: string, maxLength: number): string[] {
@@ -30,49 +30,49 @@ class TextSpamModule extends BaseModule {
         return msg.match(new RegExp(`.{1,${maxLength}}`, 'g')) || []
     }
 
-    private clampTextInterval(textInterval: number): number {
-        const raw = Number.isFinite(textInterval) ? Math.floor(textInterval) : 1
+    private clampMessageCharLimit(messageCharLimit: number): number {
+        const raw = Number.isFinite(messageCharLimit) ? Math.floor(messageCharLimit) : 1
         const minLimited = Math.max(raw, 1)
-        const danmuLengthLimit = useBiliStore().danmuLengthLimit
+        const danmakuLengthLimit = useBiliStore().danmakuLengthLimit
 
-        if (!danmuLengthLimit || danmuLengthLimit < 1) {
+        if (!danmakuLengthLimit || danmakuLengthLimit < 1) {
             return minLimited
         }
 
-        return Math.min(minLimited, danmuLengthLimit)
+        return Math.min(minLimited, danmakuLengthLimit)
     }
 
-    private formatMsgsByLine(msg: string, textInterval: number): string[] {
+    private formatMsgsByLine(msg: string, messageCharLimit: number): string[] {
         return msg
             .split(/\r?\n/)
             .map((line) => line.trim())
             .filter((line) => line.length > 0)
-            .map((line) => line.slice(0, textInterval))
+            .map((line) => line.slice(0, messageCharLimit))
             .filter((line) => line.length > 0)
     }
 
-    private formatMsgsContinuously(msg: string, textInterval: number): string[] {
+    private formatMsgsContinuously(msg: string, messageCharLimit: number): string[] {
         const flattened = msg.replace(/\r?\n/g, '')
-        return this.sliceMsg(flattened, textInterval).filter((line) => line.length > 0)
+        return this.sliceMsg(flattened, messageCharLimit).filter((line) => line.length > 0)
     }
 
-    private formatTabsContinuously(textInterval: number): string[] {
+    private formatTabsContinuously(messageCharLimit: number): string[] {
         const merged = this.textConfig.tabPanels
             .map((item) => (item.msg || '').replace(/\r?\n/g, '').trim())
             .filter((msg) => msg.length > 0)
             .join(' ')
 
-        return this.sliceMsg(merged, textInterval).filter((line) => line.length > 0)
+        return this.sliceMsg(merged, messageCharLimit).filter((line) => line.length > 0)
     }
 
-    private formatTabs(textInterval: number, splitMode: 'byLine' | 'continuous'): string[] {
+    private formatTabs(messageCharLimit: number, splitMode: 'byLine' | 'continuous'): string[] {
         if (splitMode === 'continuous') {
-            return this.formatTabsContinuously(textInterval)
+            return this.formatTabsContinuously(messageCharLimit)
         }
 
         return _.flatMap(this.textConfig.tabPanels, (item) => {
             if (!item.msg) return []
-            return this.formatMsgsByLine(item.msg, textInterval)
+            return this.formatMsgsByLine(item.msg, messageCharLimit)
         })
     }
 
@@ -212,13 +212,14 @@ class TextSpamModule extends BaseModule {
         timeInterval: number
         sequentialMode: boolean
     } {
-        const textInterval = this.clampTextInterval(this.textConfig.textInterval)
-        this.textConfig.textInterval = textInterval
+        // `textInterval` is a persisted storage key; its domain meaning is "single-message char limit".
+        const messageCharLimit = this.clampMessageCharLimit(this.textConfig.textInterval)
+        this.textConfig.textInterval = messageCharLimit
 
         const sourceMode = this.resolveSourceMode()
 
         if (sourceMode === 'tabs') {
-            const msgs = this.formatTabs(textInterval, this.textConfig.tabSplitMode)
+            const msgs = this.formatTabs(messageCharLimit, this.textConfig.tabSplitMode)
             return {
                 msgs,
                 timeInterval: this.textConfig.tabTimeInterval,
@@ -229,15 +230,15 @@ class TextSpamModule extends BaseModule {
         const runOptions: TextRunOptions = {
             enable: this.textConfig.enable,
             timeInterval: this.textConfig.timeInterval,
-            textInterval,
+            messageCharLimit,
             splitMode: this.textConfig.splitMode,
             sequentialMode: this.textConfig.sequentialMode
         }
 
         const msgs =
             runOptions.splitMode === 'continuous'
-                ? this.formatMsgsContinuously(this.textConfig.msg, runOptions.textInterval)
-                : this.formatMsgsByLine(this.textConfig.msg, runOptions.textInterval)
+                ? this.formatMsgsContinuously(this.textConfig.msg, runOptions.messageCharLimit)
+                : this.formatMsgsByLine(this.textConfig.msg, runOptions.messageCharLimit)
 
         return {
             msgs,

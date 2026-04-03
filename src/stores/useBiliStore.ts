@@ -6,18 +6,26 @@ export const useBiliStore = defineStore('bili', () => {
     const cookies = ref<BiliCookies | null>(null)
     const loginInfo = ref<BiliAPIResponse.Nav.Data | null>(null)
     const emotionData = ref<BiliAPIResponse.GetEmoticons.EmoticonPackage[]>([])
-    const BilibiliLive = ref<Window['BilibiliLive'] | null>(null)
-    const infoByuser = ref<BiliAPIResponse.GetInfoByUser.Data | null>(null)
+    const bilibiliLive = ref<Window['BilibiliLive'] | null>(null)
+    const infoByUser = ref<BiliAPIResponse.GetInfoByUser.Data | null>(null)
     const roomAnchorName = ref<string>('')
-    const danmuLengthLimit = ref<number | null>(null)
+    const danmakuLengthLimit = ref<number | null>(null)
+
+    // Backward-compat aliases for in-progress refactors.
+    const BilibiliLive = bilibiliLive
+    const infoByuser = infoByUser
+    const danmuLengthLimit = danmakuLengthLimit
 
     return {
         cookies,
         loginInfo,
         emotionData,
+        bilibiliLive,
         BilibiliLive,
+        infoByUser,
         infoByuser,
         roomAnchorName,
+        danmakuLengthLimit,
         danmuLengthLimit
     }
 })

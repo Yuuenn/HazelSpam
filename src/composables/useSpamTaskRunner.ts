@@ -12,10 +12,11 @@ export const useSpamTaskRunner = () => {
     const emotionSpamModule = new EmotionSpamModule('StopEmotionSpam')
 
     const isAnySpamRunning = computed(
-        () => moduleStore.moduleConfig.textSpam.enable || moduleStore.moduleConfig.emotionSpam.enable
+        () =>
+            moduleStore.moduleConfig.textSpam.enable || moduleStore.moduleConfig.emotionSpam.enable
     )
 
-    const startTask = (task: SpamTaskKey): boolean => {
+    const startSpamTask = (task: SpamTaskKey): boolean => {
         if (isAnySpamRunning.value) {
             return false
         }
@@ -29,7 +30,7 @@ export const useSpamTaskRunner = () => {
         return true
     }
 
-    const stopAllTasks = () => {
+    const stopAllSpamTasks = () => {
         if (moduleStore.moduleConfig.textSpam.enable) {
             textSpamModule.stop()
         }
@@ -38,8 +39,14 @@ export const useSpamTaskRunner = () => {
         }
     }
 
+    // Backward-compat aliases for existing call sites.
+    const startTask = startSpamTask
+    const stopAllTasks = stopAllSpamTasks
+
     return {
         isAnySpamRunning,
+        startSpamTask,
+        stopAllSpamTasks,
         startTask,
         stopAllTasks
     }

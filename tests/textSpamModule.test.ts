@@ -13,9 +13,9 @@ const { sendMsgMock, notificationErrorMock, moduleStoreState, biliStoreState } =
     },
     biliStoreState: {
         current: null as {
-            BilibiliLive: { ROOMID: number } | null
+            bilibiliLive: { ROOMID: number } | null
             emotionData: unknown[]
-            danmuLengthLimit: number | null
+            danmakuLengthLimit: number | null
         } | null
     }
 }))
@@ -55,9 +55,9 @@ describe('TextSpamModule', () => {
             emitter: mitt()
         }
         biliStoreState.current = {
-            BilibiliLive: { ROOMID: 1001 },
+            bilibiliLive: { ROOMID: 1001 },
             emotionData: [],
-            danmuLengthLimit: 40
+            danmakuLengthLimit: 40
         }
     })
 

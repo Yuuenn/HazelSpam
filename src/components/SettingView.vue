@@ -42,7 +42,7 @@ import brandLogoUrl from '@/assets/Icon.svg?url'
 const moduleStore = useModuleStore()
 const uiStore = useUIStore()
 const biliStore = useBiliStore()
-const { isAnySpamRunning, stopAllTasks } = useSpamTaskRunner()
+const { isAnySpamRunning, stopAllSpamTasks } = useSpamTaskRunner()
 const { dialog, message, notification } = useDiscreteAPI(['dialog', 'message', 'notification'])
 const { syncThemeFromHost } = useHostThemeSync(uiStore.uiConfig)
 
@@ -221,7 +221,7 @@ const applyDefaultUiSettings = () => {
 const resolveDefaultTextInterval = () =>
     Math.max(
         1,
-        Number(biliStore.danmuLengthLimit || storageDefaultValues.modules.textSpam.textInterval)
+        Number(biliStore.danmakuLengthLimit || storageDefaultValues.modules.textSpam.textInterval)
     )
 
 const persistAndReloadPage = () => {
@@ -239,7 +239,7 @@ const resetUserSettings = () => {
 }
 
 const resetHazelSpam = () => {
-    stopAllTasks()
+    stopAllSpamTasks()
     disarmResetAction()
     Storage.clearAll()
     unsafeWindow.location.reload()
@@ -382,7 +382,9 @@ onBeforeUnmount(() => {
                                 }"
                             >
                                 <ToggleSwitch
-                                    v-model="moduleStore.moduleConfig.settings.saveSpamStatus.enable"
+                                    v-model="
+                                        moduleStore.moduleConfig.settings.saveSpamStatus.enable
+                                    "
                                 />
                             </span>
                         </div>
@@ -567,7 +569,10 @@ onBeforeUnmount(() => {
                                                 : 'dangerSurface'
                                         "
                                         @click="
-                                            toggleResetAction('resetUserSettings', resetUserSettings)
+                                            toggleResetAction(
+                                                'resetUserSettings',
+                                                resetUserSettings
+                                            )
                                         "
                                     />
                                 </span>
@@ -616,7 +621,9 @@ onBeforeUnmount(() => {
             >
                 关闭此窗口
             </AppButton>
-            <AppButton v-if="isAnySpamRunning" tone="danger" @click="stopAllTasks">停车</AppButton>
+            <AppButton v-if="isAnySpamRunning" tone="danger" @click="stopAllSpamTasks"
+                >停车</AppButton
+            >
         </div>
     </div>
 </template>
@@ -938,8 +945,7 @@ onBeforeUnmount(() => {
     height: 100%;
     object-fit: contain;
     display: block;
-    filter:
-        drop-shadow(
+    filter: drop-shadow(
             0 4px 9px
                 color-mix(in srgb, var(--hazelspam-color-shadow-outer, #000000) 14%, transparent)
         )
@@ -960,9 +966,7 @@ onBeforeUnmount(() => {
 }
 
 :global(.hazelspam-dark .setting-module--about .about-logo-image) {
-    filter:
-        brightness(0.96)
-        saturate(0.98)
+    filter: brightness(0.96) saturate(0.98)
         drop-shadow(
             0 3px 8px
                 color-mix(in srgb, var(--hazelspam-color-shadow-outer, #000000) 30%, transparent)

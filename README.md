@@ -7,11 +7,13 @@
 [![GitHub Repo stars](https://img.shields.io/github/stars/Yuuenn/HazelSpam)](https://github.com/Yuuenn/HazelSpam)
 
 # HazelSpam 灰宝独轮车
+
 面向 B 站直播的后现代风格弹幕工具（ Tampermonkey 用户脚本 ）
 
 特别感谢本 fork 来源 [BLSPAM](https://github.com/ADJazzzz/BLSPAM) 提供了足够好用的独轮车工具
 
 **“绿冻车得太快就像龙卷风”**
+
 </div>
 
 ## 安装
@@ -24,39 +26,39 @@
 ### 安装步骤
 
 1. 下载并访问 `HazelSpam.min.user.js` 或 `HazelSpam.user.js` 地址
-<div align="center">
-  <table align="center">
-    <thead>
-      <tr>
-        <th>版本-来源</th>
-        <th>HazelSpam.min.user（推荐）</th>
-        <th>HazelSpam.user</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>EdgeOne Pages（正式发行源）</td>
-        <td><a href="https://hazel.idols.ltd/HazelSpam.min.user.js">下载</a></td>
-        <td><a href="https://hazel.idols.ltd/HazelSpam.user.js">下载</a></td>
-      </tr>
-      <tr>
-        <td>Cloudflare 静态</td>
-        <td>暂不可用</td>
-        <td>暂不可用</td>
-      </tr>
-      <tr>
-        <td>GitHub Release（备份）</td>
-        <td><a href="https://github.com/Yuuenn/HazelSpam/releases/latest/download/HazelSpam.min.user.js">下载</a></td>
-        <td><a href="https://github.com/Yuuenn/HazelSpam/releases/latest/download/HazelSpam.user.js">下载</a></td>
-      </tr>
-      <tr>
-        <td>Greasyfork</td>
-        <td>暂不可用</td>
-        <td>暂不可用</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+ <div align="center">
+   <table align="center">
+     <thead>
+       <tr>
+         <th>版本-来源</th>
+         <th>HazelSpam.min.user（推荐）</th>
+         <th>HazelSpam.user</th>
+       </tr>
+     </thead>
+     <tbody>
+       <tr>
+         <td>EdgeOne Pages（正式发行源）</td>
+         <td><a href="https://hazel.idols.ltd/HazelSpam.min.user.js">下载</a></td>
+         <td><a href="https://hazel.idols.ltd/HazelSpam.user.js">下载</a></td>
+       </tr>
+       <tr>
+         <td>Cloudflare 静态</td>
+         <td>暂不可用</td>
+         <td>暂不可用</td>
+       </tr>
+       <tr>
+         <td>GitHub Release（备份）</td>
+         <td><a href="https://github.com/Yuuenn/HazelSpam/releases/latest/download/HazelSpam.min.user.js">下载</a></td>
+         <td><a href="https://github.com/Yuuenn/HazelSpam/releases/latest/download/HazelSpam.user.js">下载</a></td>
+       </tr>
+       <tr>
+         <td>Greasyfork</td>
+         <td>暂不可用</td>
+         <td>暂不可用</td>
+       </tr>
+     </tbody>
+   </table>
+ </div>
 
 2. 按 Tampermonkey 提示完成脚本安装或升级
 3. 打开任意 B 站直播间页面，确认聊天区附近出现 HazelSpam 入口按钮（方向盘图标）
@@ -101,7 +103,6 @@
 <div align="center">
 <img width="720" src="images/Crybaby.svg" alt="HazelSpam Crybaby">
 </div>
-
 
 ## 核心功能
 
@@ -158,6 +159,7 @@ pnpm format
 
 更多贡献约定请阅读 [CONTRIBUTING.md](./CONTRIBUTING.md)。
 更新记录请阅读 [CHANGELOG.md](./CHANGELOG.md)。
+项目代码速读请阅读 [docs/code-reading-guide.md](./docs/code-reading-guide.md)。
 主题同步排查请阅读 [docs/bilibili-live-theme-model.md](./docs/bilibili-live-theme-model.md)。
 
 ## 兼容性
@@ -180,6 +182,6 @@ pnpm format
 
 - 项目灵感、配色方案设计灵感来源于虚拟主播灰泽满 Hazel。欢迎关注：[@灰泽满 Hazel](https://space.bilibili.com/1298779265)
 - 但本项目与上述人物并无关系。
-<div align="center">
-	<img width="200" src="images/ManShen.svg" alt="灰泽满 Inspiration">
-</div>
+  <div align="center">
+  	<img width="200" src="images/ManShen.svg" alt="灰泽满 Inspiration">
+  </div>
