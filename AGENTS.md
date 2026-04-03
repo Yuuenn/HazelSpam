@@ -319,7 +319,14 @@ pnpm format
 - `CHANGELOG.md` 由 agent 根据提交记录自动归类生成；优先按 commit message 前缀映射：`feat -> Added`、`fix -> Fixed`、`refactor/docs/chore/test -> Changed`，其余按内容判断
 - 发版时由 agent 将 `Unreleased` 改为对应版本号并写入发布日期，然后补回新的空 `Unreleased`
 - 发版前必须先将 `package.json` 的 `version` 更新到目标版本，并提交到仓库；CI 会校验 tag 与 `package.json.version` 完全一致，不再自动修正
-- 一句命令发版：`git tag vX.Y.Z && git push origin vX.Y.Z`，触发 `.github/workflows/edgeone-release.yml`
+- 发版打 tag 前必须先串行确认当前本地 `main` 已 fast-forward 到 `origin/main` 且版本号一致，推荐顺序：
+  - `git fetch origin`
+  - `git switch main`
+  - `git merge --ff-only origin/main`
+  - `git show --no-patch --oneline HEAD`
+  - `node -p "require('./package.json').version"`
+- 只有在 `HEAD` 提交和 `package.json.version` 均确认无误后再执行：`git tag vX.Y.Z && git push origin vX.Y.Z`，触发 `.github/workflows/edgeone-release.yml`
+- tag 推送后建议复核：`git ls-remote --tags origin vX.Y.Z`，确认远端 tag 指向本次发布提交
 
 ---
 

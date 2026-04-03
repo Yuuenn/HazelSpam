@@ -10,6 +10,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Changed
 
+- 更新发布文档与 agent 约束，补充打 tag 前的 `main` 对齐与版本一致性校验步骤，降低 tag 指向旧提交的风险。
+
 ### Fixed
 
 ## [1.3.0] - 2026-04-03

@@ -73,7 +73,17 @@ pnpm build
 
 5. 提交版本与变更记录
 6. 将本次发布内容推进到 `main`
-7. 在 `main` 上打 tag 并推送，例如
+7. 打 tag 前先做“提交与版本一致性”校验
+
+```sh
+git fetch origin
+git switch main
+git merge --ff-only origin/main
+git show --no-patch --oneline HEAD
+node -p "require('./package.json').version"
+```
+
+确认当前 `HEAD` 就是要发布的 `main` 提交，且输出版本号与目标 tag 一致后，再打 tag 并推送，例如
 
 ```sh
 git tag v1.1.2
@@ -91,6 +101,8 @@ git push origin v1.1.2
 7. 等待发布工作流完成后，再检查 `latest.json` 与 userscript 链接是否更新
 
 请注意，`tag` 应始终打在已经准备好正式发布的 `main` 提交上，而不是仍在继续开发的 `dev` 提交上。
+
+额外建议：打 tag 前先运行 `git rev-parse --short HEAD` 记录目标提交，推送后用 `git ls-remote --tags origin vX.Y.Z` 复核 tag 指向，避免“tag 名正确但指向旧提交”。
 
 补充说明：
 
