@@ -12,6 +12,7 @@ const {
     packageCards,
     packageImagePanels,
     selectedPackagePanel,
+    selectedEmotionKeySet,
     selectedPackageId,
     hasSelectedInCurrentPackage,
     selectedEmotionCount,
@@ -106,6 +107,7 @@ const {
                     :package-id="selectedPackageId"
                     :package-image-panels="packageImagePanels"
                     :selected-package-panel="selectedPackagePanel"
+                    :selected-emotion-key-set="selectedEmotionKeySet"
                     :has-selected-in-current-package="hasSelectedInCurrentPackage"
                     :disabled="isEmotionSpamRunning"
                     @toggle-emotion="toggleEmotionSelection"

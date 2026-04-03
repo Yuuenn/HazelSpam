@@ -1,4 +1,4 @@
-import { computed, onMounted, watch, type Ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
 import type { TextTabPanel } from '@/types'
 import { useSpamTaskRunner } from '@/composables/useSpamTaskRunner'
 import { useBiliStore } from '@/stores/useBiliStore'
@@ -15,6 +15,26 @@ export const useTextSpamForm = ({ activeTab }: UseTextSpamFormOptions) => {
     const uiStore = useUIStore()
     const biliStore = useBiliStore()
     const { isAnySpamRunning, startSpamTask, stopAllSpamTasks } = useSpamTaskRunner()
+    const currentTextDraft = ref('')
+
+    const syncDraftFromStore = () => {
+        const sourceText = activeTab.value?.msg ?? moduleStore.moduleConfig.textSpam.msg
+        if (currentTextDraft.value === sourceText) {
+            return
+        }
+
+        currentTextDraft.value = sourceText
+    }
+
+    const persistCurrentTextDraft = (targetTab: TextTabPanel | null = activeTab.value) => {
+        if (targetTab && targetTab.msg !== currentTextDraft.value) {
+            targetTab.msg = currentTextDraft.value
+        }
+
+        if (moduleStore.moduleConfig.textSpam.msg !== currentTextDraft.value) {
+            moduleStore.moduleConfig.textSpam.msg = currentTextDraft.value
+        }
+    }
 
     const messageCharLimitMax = computed(() =>
         Math.max(1, Number(biliStore.danmakuLengthLimit || 40))
@@ -111,14 +131,13 @@ export const useTextSpamForm = ({ activeTab }: UseTextSpamFormOptions) => {
     })
 
     const currentText = computed({
-        get: () => activeTab.value?.msg ?? moduleStore.moduleConfig.textSpam.msg,
+        get: () => currentTextDraft.value,
         set: (value: string) => {
-            if (activeTab.value && activeTab.value.msg !== value) {
-                activeTab.value.msg = value
+            if (currentTextDraft.value === value) {
+                return
             }
-            if (moduleStore.moduleConfig.textSpam.msg !== value) {
-                moduleStore.moduleConfig.textSpam.msg = value
-            }
+
+            currentTextDraft.value = value
         }
     })
 
@@ -126,13 +145,18 @@ export const useTextSpamForm = ({ activeTab }: UseTextSpamFormOptions) => {
         typeof value === 'string' && value.trim().length > 0
 
     const normalizeCurrentTextIfBlank = () => {
-        if (hasUsableText(currentText.value)) return
+        if (hasUsableText(currentText.value)) {
+            persistCurrentTextDraft()
+            return
+        }
+
         const normalized = normalizeSubmittedText(currentText.value)
         currentText.value = normalized
-        moduleStore.moduleConfig.textSpam.msg = normalized
+        persistCurrentTextDraft()
     }
 
     const normalizeBeforeSubmit = () => {
+        persistCurrentTextDraft()
         const textSpam = moduleStore.moduleConfig.textSpam
         if (textSpam.sourceMode === 'tabs') {
             const hasAnyTabText = textSpam.tabPanels.some((panel) => hasUsableText(panel.msg))
@@ -167,9 +191,15 @@ export const useTextSpamForm = ({ activeTab }: UseTextSpamFormOptions) => {
     }
 
     onMounted(() => {
+        syncDraftFromStore()
+
         if (moduleStore.moduleConfig.textSpam.textInterval > messageCharLimitMax.value) {
             moduleStore.moduleConfig.textSpam.textInterval = messageCharLimitMax.value
         }
+    })
+
+    onBeforeUnmount(() => {
+        persistCurrentTextDraft()
     })
 
     watch(messageCharLimitMax, (maxCharLimit) => {
@@ -177,6 +207,32 @@ export const useTextSpamForm = ({ activeTab }: UseTextSpamFormOptions) => {
             moduleStore.moduleConfig.textSpam.textInterval = maxCharLimit
         }
     })
+
+    watch(
+        activeTab,
+        (nextTab, previousTab) => {
+            if (previousTab && previousTab !== nextTab) {
+                persistCurrentTextDraft(previousTab)
+            }
+
+            const nextText = nextTab?.msg ?? moduleStore.moduleConfig.textSpam.msg
+            if (currentTextDraft.value !== nextText) {
+                currentTextDraft.value = nextText
+            }
+        },
+        { immediate: true }
+    )
+
+    watch(
+        () => uiStore.uiConfig.isShowPanel,
+        (isPanelVisible) => {
+            if (isPanelVisible) {
+                return
+            }
+
+            persistCurrentTextDraft()
+        }
+    )
 
     return {
         messageCharLimitMax,

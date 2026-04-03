@@ -62,9 +62,36 @@ export const useModuleStore = defineStore('modules', () => {
         }
     }
 
+    const persistTextSpamConfig = _.debounce(
+        (textSpamConfig: ModuleConfig['textSpam']) =>
+            Storage.setModuleConfigSection('textSpam', textSpamConfig),
+        350
+    )
+    const persistEmotionSpamConfig = _.debounce(
+        (emotionSpamConfig: ModuleConfig['emotionSpam']) =>
+            Storage.setModuleConfigSection('emotionSpam', emotionSpamConfig),
+        350
+    )
+    const persistSettingModulesConfig = _.debounce(
+        (settingModulesConfig: ModuleConfig['settings']) =>
+            Storage.setModuleConfigSection('settings', settingModulesConfig),
+        350
+    )
+
     watch(
-        moduleConfig,
-        _.debounce((newModuleConfig: ModuleConfig) => Storage.setModuleConfig(newModuleConfig), 350)
+        () => moduleConfig.textSpam,
+        (textSpamConfig) => persistTextSpamConfig(textSpamConfig),
+        { deep: true }
+    )
+    watch(
+        () => moduleConfig.emotionSpam,
+        (emotionSpamConfig) => persistEmotionSpamConfig(emotionSpamConfig),
+        { deep: true }
+    )
+    watch(
+        () => moduleConfig.settings,
+        (settingModulesConfig) => persistSettingModulesConfig(settingModulesConfig),
+        { deep: true }
     )
 
     return { moduleConfig, loadModules, emitter }

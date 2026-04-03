@@ -6,15 +6,13 @@ import type {
     EmotionPackageImagePanel,
     EmotionPackagePanel
 } from '@/composables/useEmotionPackages'
-import {
-    useEmotionImageWarmup,
-    type EmotionImageWarmupPanel
-} from '@/composables/useEmotionImageWarmup'
+import { useEmotionImageWarmup } from '@/composables/useEmotionImageWarmup'
 
 const props = defineProps<{
     packageId: number | null
     packageImagePanels: EmotionPackageImagePanel[]
     selectedPackagePanel: EmotionPackagePanel | null
+    selectedEmotionKeySet: Set<string>
     hasSelectedInCurrentPackage: boolean
     disabled: boolean
 }>()
@@ -26,24 +24,24 @@ const emit = defineEmits<{
 
 const selectedPackagePanel = computed(() => props.selectedPackagePanel)
 const hasPackage = computed(() => selectedPackagePanel.value !== null)
-const packageImagePanels = computed<EmotionImageWarmupPanel[]>(() =>
-    props.packageImagePanels.map((panel) => ({
-        packageId: panel.packageId,
-        imageUrls: panel.imageUrls
-    }))
-)
 
 useEmotionImageWarmup({
-    packagePanels: packageImagePanels,
+    packagePanels: toRef(props, 'packageImagePanels'),
     currentPackageId: toRef(props, 'packageId')
 })
 
+const isEmotionSelected = (item: EmotionGridItem) => props.selectedEmotionKeySet.has(item.unique)
+const isEmotionDisabled = (item: EmotionGridItem) => props.disabled || item.isLocked
+
 const getEmotionGridButtonClass = (item: EmotionGridItem) => ({
-    'emotion-grid-item--selected': item.isSelected,
-    'emotion-grid-item--disabled': item.isDisabled
+    'emotion-grid-item--selected': isEmotionSelected(item),
+    'emotion-grid-item--disabled': isEmotionDisabled(item)
 })
 
-const memoizeEmotionGridItem = (item: EmotionGridItem) => [item.isSelected, item.isDisabled]
+const memoizeEmotionGridItem = (item: EmotionGridItem) => [
+    props.selectedEmotionKeySet.has(item.unique),
+    props.disabled || item.isLocked
+]
 </script>
 
 <template>
@@ -70,10 +68,10 @@ const memoizeEmotionGridItem = (item: EmotionGridItem) => [item.isSelected, item
                                     v-memo="memoizeEmotionGridItem(item)"
                                     class="emotion-grid-item hazelspam-grid-card"
                                     :class="getEmotionGridButtonClass(item)"
-                                    :tone="item.isSelected ? 'primary' : 'surface'"
+                                    :tone="isEmotionSelected(item) ? 'primary' : 'surface'"
                                     size="small"
                                     :title="item.title"
-                                    :disabled="item.isDisabled"
+                                    :disabled="isEmotionDisabled(item)"
                                     @click="emit('toggle-emotion', item.unique)"
                                 >
                                     <img

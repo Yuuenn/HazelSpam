@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
 import Avatar from 'primevue/avatar'
 import Checkbox from 'primevue/checkbox'
 import InputNumber from 'primevue/inputnumber'
@@ -73,16 +73,52 @@ const {
     insertTextAtCursor
 } = textPreviewOverlay
 
-const textPreviewLines = computed(() => {
+type TextPreviewLine = {
+    keep: string
+    overflow: string
+}
+
+const textPreviewLines = shallowRef<TextPreviewLine[]>([])
+let previewLinesFrameId: number | null = null
+
+const buildTextPreviewLines = (text: string, previewCharLimit: number): TextPreviewLine[] => {
+    const sourceLines = text.split(/\r?\n/)
+    return sourceLines.map((line) => ({
+        keep: line.slice(0, previewCharLimit),
+        overflow: line.slice(previewCharLimit)
+    }))
+}
+
+const refreshTextPreviewLines = () => {
+    if (!lineBreakMode.value) {
+        if (textPreviewLines.value.length > 0) {
+            textPreviewLines.value = []
+        }
+        return
+    }
+
     const previewCharLimit = Math.max(
         1,
         Number(moduleStore.moduleConfig.textSpam.textInterval || 1)
     )
-    return currentText.value.split(/\r?\n/).map((line) => ({
-        keep: line.slice(0, previewCharLimit),
-        overflow: line.slice(previewCharLimit)
-    }))
-})
+    textPreviewLines.value = buildTextPreviewLines(currentText.value, previewCharLimit)
+}
+
+const scheduleTextPreviewLinesRefresh = () => {
+    if (previewLinesFrameId !== null) {
+        return
+    }
+
+    if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
+        refreshTextPreviewLines()
+        return
+    }
+
+    previewLinesFrameId = window.requestAnimationFrame(() => {
+        previewLinesFrameId = null
+        refreshTextPreviewLines()
+    })
+}
 
 const generalEmojiEmoticons = computed(
     () => biliStore.emotionData.find((item) => item.pkg_id === 100)?.emoticons ?? []
@@ -92,6 +128,13 @@ const insertEmojiToText = (emoji: string) => insertTextAtCursor(emoji)
 
 onMounted(() => {
     scheduleRelayout()
+})
+
+onBeforeUnmount(() => {
+    if (previewLinesFrameId !== null && typeof window !== 'undefined') {
+        window.cancelAnimationFrame(previewLinesFrameId)
+        previewLinesFrameId = null
+    }
 })
 
 watch(
@@ -114,6 +157,14 @@ watch(
     () => {
         scheduleRelayout()
     }
+)
+
+watch(
+    () => [currentText.value, lineBreakMode.value, moduleStore.moduleConfig.textSpam.textInterval],
+    () => {
+        scheduleTextPreviewLinesRefresh()
+    },
+    { immediate: true }
 )
 </script>
 <template>
