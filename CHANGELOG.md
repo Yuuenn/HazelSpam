@@ -8,6 +8,14 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [1.3.0] - 2026-04-03
+
+### Added
+
 - 新增 `src/composables/useSettingView.ts`，收口设置页脚本逻辑与 tooltip 绑定，降低 `SettingView` 组件脚本复杂度。
 - 新增 `src/utils/ui/debugApi.ts`，将通知调试能力从 `src/utils/ui/index.ts` 拆分为独立入口。
 
@@ -23,6 +31,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 ### Fixed
 
 - 修复表情图片预热 URL 缓存集合无上限增长问题，长会话下改为固定上限回收。
+
 ## [1.2.0] - 2026-03-29
 
 ### Added
