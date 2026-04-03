@@ -35,7 +35,7 @@ interface NativeComposerContext {
 
 type EditorActionTone = 'surface' | 'primary' | 'dangerSurface'
 
-type EditorAction = {
+export type CrybabyEditorAction = {
     id: 'crybaby' | 'repeat' | 'clear'
     label: string
     iconSvg: string
@@ -386,6 +386,9 @@ export const useCrybabyView = () => {
 
     const isCrybabyAutoFillEnabled = computed(
         () => moduleStore.moduleConfig.settings.danmakuActions.crybabyEnabled
+    )
+    const generalEmojiEmoticons = computed(
+        () => biliStore.emotionData.find((item) => item.pkg_id === 100)?.emoticons ?? []
     )
 
     const composerCharacterCount = computed(() => getTextLength(composerText.value))
@@ -998,7 +1001,7 @@ export const useCrybabyView = () => {
         () => !isNativeComposerReady.value || composerText.value.trim().length === 0
     )
 
-    const editorActions = computed<EditorAction[]>(() => [
+    const editorActions = computed<CrybabyEditorAction[]>(() => [
         {
             id: 'crybaby',
             label: isCrybabyAutoFillEnabled.value
@@ -1079,6 +1082,7 @@ export const useCrybabyView = () => {
         composerLengthLimit,
         composerCharacterCount,
         composerText,
+        generalEmojiEmoticons,
         editorActions,
         isSendDisabled,
         isCrybabyModeEnabled,

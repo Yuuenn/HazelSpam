@@ -13,7 +13,9 @@
 5. `src/composables/useTextSpamForm.ts` 与 `src/modules/spam/textSpamModule.ts`
 6. `src/composables/useEmotionSpamForm.ts` 与 `src/modules/spam/emotionSpamModule.ts`
 7. `src/modules/default/userInfo.ts`
-8. `src/utils/storage/schema.ts`
+8. `src/utils/storage/index.ts` 与 `src/utils/storage/schema.ts`
+9. `src/composables/useSettingView.ts` 与 `src/components/SettingView.vue`
+10. `src/utils/ui/index.ts` 与 `src/utils/ui/debugApi.ts`
 
 ## 2. 三条主线
 
@@ -22,7 +24,9 @@
 - `App.vue`：壳层、主题接线、Dialog/Toast 容器。
 - `PanelMenu.vue`：左侧导航。
 - `PanelContent.vue`：根据菜单索引切换主视图（文本/表情/Crybaby/设置）。
-- 各视图组件只负责界面，状态和行为尽量下沉到 composable。
+- `TextView.vue`、`EmotionView.vue`、`SettingView.vue`：保持“薄组件”接线，主要状态和行为下沉到 composable。
+- 设置中心脚本逻辑集中在 `useSettingView.ts`。
+- 通知能力入口在 `src/utils/ui/index.ts`，调试入口在 `src/utils/ui/debugApi.ts`。
 
 ### 2.2 运行主线（发车与停车）
 
@@ -36,6 +40,8 @@
 - 唯一真源是 `src/utils/storage/schema.ts`。
 - `sanitizeUiConfig` / `sanitizeModuleConfig` 负责读取和写入前的结构修正。
 - store 里拿到的是“已经清洗后的配置对象”。
+- `useModuleStore.ts` 对 `textSpam` / `emotionSpam` / `settings` 分片 debounce 持久化，减少整对象高频写入。
+- 文本输入在 `useTextSpamForm.ts` 里使用本地草稿态，切换标签页或提交前再同步到 store。
 
 ## 3. 历史命名说明（重要）
 
@@ -72,6 +78,12 @@ store 中也保留了兼容别名：
 - 宿主输入框桥接与发送逻辑：`src/composables/useCrybabyView.ts`
 - 工具栏注入与行为：`src/modules/settings/danmaku/danmakuActionsModule.ts`
 
+### 设置中心
+
+- 视图：`src/components/SettingView.vue`
+- 视图逻辑：`src/composables/useSettingView.ts`
+- 通知与系统弹窗：`src/utils/ui/index.ts`、`src/utils/ui/debugApi.ts`、`src/utils/ui/systemDialog.ts`
+
 ## 5. 主题相关文件
 
 - 主入口：`src/composables/useHostThemeSync.ts`
@@ -84,3 +96,5 @@ store 中也保留了兼容别名：
 - 看字段时，优先看 `schema.ts` 的默认值和 sanitize 规则。
 - 看 UI 行为时，优先从组件跳到对应 composable，不要先钻 modules。
 - 看“为什么发送失败/没发车”，先看 `useSpamTaskRunner.ts` 和对应 module 的 `start*` 分支。
+- 看“为什么输入时会延迟落库”，优先看 `useTextSpamForm.ts` 的草稿同步节点。
+- 看“为什么配置写入次数下降”，优先看 `useModuleStore.ts` 的分片持久化 watch。

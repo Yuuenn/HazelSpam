@@ -7,18 +7,25 @@ import ToggleSwitch from 'primevue/toggleswitch'
 import AppButton from './AppButton.vue'
 import AppDialog from './AppDialog.vue'
 import { APP_TOOLTIP_UP_CLASS, PRODUCT_NAME } from '@/constants/brand'
-import { useCrybabyView } from '@/composables/useCrybabyView'
-import { useBiliStore } from '@/stores/useBiliStore'
+import { useCrybabyView, type CrybabyEditorAction } from '@/composables/useCrybabyView'
 
-const biliStore = useBiliStore()
 const vRipple = Ripple
 const emojiDialogVisible = ref(false)
+const injectToolbarTooltipBinding = {
+    value: '在弹幕工具栏中新增 Crybaby 功能',
+    class: APP_TOOLTIP_UP_CLASS
+}
+const insertEmojiTooltipBinding = {
+    value: '插入表情',
+    class: APP_TOOLTIP_UP_CLASS
+}
 
 const {
     isNativeComposerReady,
     composerLengthLimit,
     composerCharacterCount,
     composerText,
+    generalEmojiEmoticons,
     editorActions,
     isSendDisabled,
     isCrybabyModeEnabled,
@@ -27,7 +34,7 @@ const {
     closePanel
 } = useCrybabyView()
 
-const handleEditorActionClick = (action: (typeof editorActions.value)[number]) => {
+const handleEditorActionClick = (action: CrybabyEditorAction) => {
     if (action.disabled) {
         action.onDisabledClick?.()
         return
@@ -50,10 +57,7 @@ const handleEditorActionClick = (action: (typeof editorActions.value)[number]) =
                     <label class="control-label">将 Crybaby 按钮注入弹幕工具栏</label>
                     <span
                         class="control-trigger control-trigger--hint"
-                        v-tooltip.bottom="{
-                            value: '在弹幕工具栏中新增 Crybaby 功能',
-                            class: APP_TOOLTIP_UP_CLASS
-                        }"
+                        v-tooltip.bottom="injectToolbarTooltipBinding"
                     >
                         <ToggleSwitch v-model="isCrybabyModeEnabled" />
                     </span>
@@ -99,10 +103,7 @@ const handleEditorActionClick = (action: (typeof editorActions.value)[number]) =
                     <span class="composer-action-divider" aria-hidden="true"></span>
                     <span
                         class="composer-action-trigger"
-                        v-tooltip.bottom="{
-                            value: '插入表情',
-                            class: APP_TOOLTIP_UP_CLASS
-                        }"
+                        v-tooltip.bottom="insertEmojiTooltipBinding"
                     >
                         <AppButton
                             tone="surface"
@@ -148,7 +149,7 @@ const handleEditorActionClick = (action: (typeof editorActions.value)[number]) =
         <AppDialog v-model:visible="emojiDialogVisible" header="插入表情">
             <div class="emoji-grid">
                 <button
-                    v-for="data in biliStore.emotionData.find((item) => item.pkg_id === 100)?.emoticons"
+                    v-for="data in generalEmojiEmoticons"
                     :key="data.emoticon_id"
                     type="button"
                     v-ripple
@@ -184,7 +185,7 @@ const handleEditorActionClick = (action: (typeof editorActions.value)[number]) =
     --hazelspam-pill-height: var(--hazelspam-size-collection-row-height, 30px);
 }
 
-.crybaby-view > :is(.crybaby-view__header, .control-panel, .send-panel, .crybaby-actions) {
+.crybaby-view > :is(.crybaby-view__header, .control-panel, .crybaby-actions) {
     flex: 0 0 auto;
     min-width: 0;
 }
@@ -246,10 +247,14 @@ const handleEditorActionClick = (action: (typeof editorActions.value)[number]) =
 }
 
 .send-panel {
+    flex: 1;
+    min-height: 0;
     display: grid;
     grid-template-rows: auto auto auto;
+    align-content: start;
     gap: var(--hazelspam-space-lg);
     min-width: 0;
+    overflow: hidden;
     --hazelspam-responsive-panel-min-height: clamp(220px, 32vh, 300px);
 }
 
@@ -276,6 +281,7 @@ const handleEditorActionClick = (action: (typeof editorActions.value)[number]) =
     flex-direction: column;
     gap: var(--hazelspam-space-md);
     min-width: 0;
+    min-height: 0;
 }
 
 .composer-editor {

@@ -8,10 +8,20 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- 新增 `src/composables/useSettingView.ts`，收口设置页脚本逻辑与 tooltip 绑定，降低 `SettingView` 组件脚本复杂度。
+- 新增 `src/utils/ui/debugApi.ts`，将通知调试能力从 `src/utils/ui/index.ts` 拆分为独立入口。
+
 ### Changed
+
+- 调整 `TextView`、`EmotionView`、`SettingView` 的接线方式，进一步保持“薄组件 + composable 下沉”结构。
+- 模块配置持久化改为分片 debounce 写入：`textSpam`、`emotionSpam`、`settings` 各自独立持久化；`Storage` 新增 `setModuleConfigSection`。
+- 文本输入改为本地草稿态驱动，标签切换、面板关闭、组件卸载和提交前再同步到 store，减少高频输入造成的写入放大。
+- 收口通知核心与调试 API 的边界，降低 UI 通知模块耦合度并提升可读性。
+- 整理 `README.md` 说明结构与开发脚本文案，移除过时的 `dev-install` 描述。
 
 ### Fixed
 
+- 修复表情图片预热 URL 缓存集合无上限增长问题，长会话下改为固定上限回收。
 ## [1.2.0] - 2026-03-29
 
 ### Added

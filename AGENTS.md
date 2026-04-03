@@ -115,10 +115,20 @@
 - `App.vue` 应尽量只保留壳层接线、主题接线和挂载点
 - `TextView.vue` 应尽量只保留文本视图接线，tab 管理和发送表单逻辑放入 composable
 - `EmotionView.vue` 应尽量只保留表情视图接线，包列表、选择状态、发送表单逻辑放入 composable 或子组件
+- `SettingView.vue` 应尽量只保留设置视图接线，导入导出、开关联动、提示接线优先收口到 `useSettingView.ts`
 - 业务按钮优先通过 `src/components/AppButton.vue` 接入，不要在业务组件里继续把 PrimeVue `Button` 当成主要入口
 - 业务弹窗优先通过 `src/components/AppDialog.vue` 接入，避免在多个组件里重复维护 `Dialog` 的主题 class、关闭按钮和尺寸规则
 - PrimeVue 内部自动生成的按钮入口，例如 `Dialog`、`Toast`、`FileUpload` 的内置按钮，优先通过 `closeButtonProps`、`chooseButtonProps`、`pt` 等方式接入现有 HazelSpam 按钮语义，而不是另起一套样式分支
 - 当同一 PrimeVue 组件在多个业务组件里重复维护 `pt`、主题 class、按钮 props、尺寸或关闭按钮逻辑时，优先抽一层薄包装组件；包装组件只负责语义、主题接线和默认 props，不承载业务状态或业务流程
+- UI 通知能力分层保持清晰：`src/utils/ui/index.ts` 负责业务可用的通知/弹窗入口，`src/utils/ui/debugApi.ts` 仅承载调试挂载与调试探针，不要把业务流程耦合到调试入口
+
+新增面板统一约定：
+
+- 新页面优先采用 `XxxView.vue + useXxxView.ts` 组合；`View` 只做接线，状态计算、派生数据、事件处理优先下沉到 composable。
+- 模板层避免内联复杂表达式（例如 `find/map/filter/sort` 链、长对象字面量、复杂三元链）；先在 `<script setup>` 或 composable 中命名后再绑定。
+- 与展示无关的派生集合（如 `generalEmojiEmoticons`）、tooltip 绑定对象、动作列表类型优先由 composable 导出，避免在模板或组件里临时拼接。
+- 新面板的按钮和弹窗入口继续复用 `AppButton` / `AppDialog`；若出现重复 `pt/props/class` 接线，先抽薄包装再扩展业务。
+- 面板壳层与动作区语义保持一致：优先复用 `hazelspam-responsive-*`、`hazelspam-panel-card`、`hazelspam-panel-actions` 体系，不新建平行命名体系。
 
 如果一个改动同时涉及 UI、运行模块、存储结构，优先保持这三层分离，而不是把逻辑重新塞回单个 `.vue` 文件。
 
@@ -187,7 +197,9 @@
 
 - 默认值、clone、normalize、sanitize 放在 `src/utils/storage/schema.ts`
 - 导入 payload 识别放在 `src/utils/storage/importPayload.ts`
+- 模块配置写入优先通过 `Storage.setModuleConfigSection(...)` 分片持久化，避免对 `moduleConfig` 做全量高频深监听写回
 - 组件层不要再自行维护 merge、normalize 或旧字段兼容逻辑
+- 文本输入等高频编辑场景优先使用本地草稿态，按“提交前/切页前/卸载前/关闭面板前”再同步到 store，避免每次按键触发持久化链路
 
 当前兼容策略：
 
