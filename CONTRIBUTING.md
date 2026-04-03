@@ -100,7 +100,7 @@ git push origin v1.1.2
 
 # 发布后同步 `dev`
 
-正式发布完成后，建议尽快把 `dev` 拉回到当前 `main` 的发布提交，避免出现“代码内容一样，但 `dev` 和 `main` 不是同一个 commit”的情况。
+正式发布完成后，仓库会通过 [`.github/workflows/sync-main-to-dev.yml`](./.github/workflows/sync-main-to-dev.yml) 自动尝试把 `dev` fast-forward 到当前 `main` 的发布提交，避免出现“代码内容一样，但 `dev` 和 `main` 不是同一个 commit”的情况。
 
 ## 目标
 
@@ -112,7 +112,13 @@ git push origin v1.1.2
 
 发布 PR 从 `dev` 合并到 `main` 时，优先使用普通 merge commit 或 fast-forward；不要用 squash merge 作为默认做法。这样发布完成后，`dev` 可以直接 fast-forward 到 `main`。
 
-推荐同步步骤：
+默认同步步骤（自动）：
+
+1. 发布 PR 从 `dev` 合并到 `main`（优先使用 merge commit 或 fast-forward）
+2. `main` 更新后触发 `sync-main-to-dev.yml`
+3. 工作流仅在 `origin/dev` 是 `origin/main` 祖先时执行 fast-forward 推送到 `dev`
+
+手动同步（兜底）步骤：
 
 1. 确认 `main` 上的 release 已完成，且 `dev` 上没有尚未准备发布的新提交
 2. 拉取远端最新分支状态

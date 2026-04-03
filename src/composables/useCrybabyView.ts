@@ -1,12 +1,4 @@
-import {
-    computed,
-    onActivated,
-    onBeforeUnmount,
-    onDeactivated,
-    onMounted,
-    ref,
-    watch
-} from 'vue'
+import { computed, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, watch } from 'vue'
 import {
     CRYBABY_TOOLBAR_SVG,
     TOOLBAR_CLEAR_SVG,
@@ -43,7 +35,7 @@ interface NativeComposerContext {
 
 type EditorActionTone = 'surface' | 'primary' | 'dangerSurface'
 
-type EditorAction = {
+export type CrybabyEditorAction = {
     id: 'crybaby' | 'repeat' | 'clear'
     label: string
     iconSvg: string
@@ -374,7 +366,7 @@ export const useCrybabyView = () => {
 
     const isNativeComposerReady = ref(false)
     const composerText = ref('')
-    const composerLengthLimit = ref(resolveDefaultComposerLimit(biliStore.danmuLengthLimit))
+    const composerLengthLimit = ref(resolveDefaultComposerLimit(biliStore.danmakuLengthLimit))
 
     let syncTimer: number | null = null
     let boundTextarea: HTMLTextAreaElement | null = null
@@ -394,6 +386,9 @@ export const useCrybabyView = () => {
 
     const isCrybabyAutoFillEnabled = computed(
         () => moduleStore.moduleConfig.settings.danmakuActions.crybabyEnabled
+    )
+    const generalEmojiEmoticons = computed(
+        () => biliStore.emotionData.find((item) => item.pkg_id === 100)?.emoticons ?? []
     )
 
     const composerCharacterCount = computed(() => getTextLength(composerText.value))
@@ -422,7 +417,7 @@ export const useCrybabyView = () => {
 
         composerLengthLimit.value = resolveComposerLengthLimit(
             target,
-            biliStore.danmuLengthLimit,
+            biliStore.danmakuLengthLimit,
             target.closest<HTMLElement>('.chat-input-ctnr')
         )
         isNativeComposerReady.value = true
@@ -433,7 +428,7 @@ export const useCrybabyView = () => {
         const context = getNativeComposerContext()
         if (!context) {
             isNativeComposerReady.value = false
-            composerLengthLimit.value = resolveDefaultComposerLimit(biliStore.danmuLengthLimit)
+            composerLengthLimit.value = resolveDefaultComposerLimit(biliStore.danmakuLengthLimit)
             detachNativeTextareaListener()
             return
         }
@@ -441,7 +436,7 @@ export const useCrybabyView = () => {
         isNativeComposerReady.value = true
         composerLengthLimit.value = resolveComposerLengthLimit(
             context.textarea,
-            biliStore.danmuLengthLimit,
+            biliStore.danmakuLengthLimit,
             context.container
         )
 
@@ -643,7 +638,7 @@ export const useCrybabyView = () => {
             return []
         }
 
-        const maxLength = resolveComposerLengthLimit(textarea, biliStore.danmuLengthLimit)
+        const maxLength = resolveComposerLengthLimit(textarea, biliStore.danmakuLengthLimit)
         const bodyCandidates = crybabySuffixCandidates
             .map((suffix) => smartJoinText(baseBody, suffix))
             .filter(
@@ -674,7 +669,9 @@ export const useCrybabyView = () => {
     }
 
     const createCrybabyDraft = (lastDraft: ComposerDraft, textarea: HTMLTextAreaElement) => {
-        let cycleIndex = crybabyDraftCycle.findIndex((draft) => isSameComposerDraft(draft, lastDraft))
+        let cycleIndex = crybabyDraftCycle.findIndex((draft) =>
+            isSameComposerDraft(draft, lastDraft)
+        )
 
         if (cycleIndex < 0) {
             crybabyDraftCycle = buildCrybabyDraftCycle(lastDraft, textarea)
@@ -709,7 +706,7 @@ export const useCrybabyView = () => {
         overflowTitle: string
     ) => {
         const nextText = renderComposerDraft(draft)
-        const limit = resolveComposerLengthLimit(context.textarea, biliStore.danmuLengthLimit)
+        const limit = resolveComposerLengthLimit(context.textarea, biliStore.danmakuLengthLimit)
 
         if (getTextLength(nextText) > limit) {
             notification.error({
@@ -747,7 +744,7 @@ export const useCrybabyView = () => {
 
         composerLengthLimit.value = resolveComposerLengthLimit(
             context.textarea,
-            biliStore.danmuLengthLimit,
+            biliStore.danmakuLengthLimit,
             context.container
         )
 
@@ -841,11 +838,10 @@ export const useCrybabyView = () => {
                 : selectionStart
         const insertFrom = Math.max(0, selectionStart)
         const insertTo = Math.max(insertFrom, selectionEnd)
-        const nextValue =
-            currentValue.slice(0, insertFrom) + emoji + currentValue.slice(insertTo)
+        const nextValue = currentValue.slice(0, insertFrom) + emoji + currentValue.slice(insertTo)
         const limit = resolveComposerLengthLimit(
             context.textarea,
-            biliStore.danmuLengthLimit,
+            biliStore.danmakuLengthLimit,
             context.container
         )
         if (getTextLength(nextValue) > limit) {
@@ -1005,7 +1001,7 @@ export const useCrybabyView = () => {
         () => !isNativeComposerReady.value || composerText.value.trim().length === 0
     )
 
-    const editorActions = computed<EditorAction[]>(() => [
+    const editorActions = computed<CrybabyEditorAction[]>(() => [
         {
             id: 'crybaby',
             label: isCrybabyAutoFillEnabled.value
@@ -1057,7 +1053,7 @@ export const useCrybabyView = () => {
     )
 
     watch(
-        () => biliStore.danmuLengthLimit,
+        () => biliStore.danmakuLengthLimit,
         (limit) => {
             if (!isNativeComposerReady.value) {
                 composerLengthLimit.value = resolveDefaultComposerLimit(limit)
@@ -1086,6 +1082,7 @@ export const useCrybabyView = () => {
         composerLengthLimit,
         composerCharacterCount,
         composerText,
+        generalEmojiEmoticons,
         editorActions,
         isSendDisabled,
         isCrybabyModeEnabled,

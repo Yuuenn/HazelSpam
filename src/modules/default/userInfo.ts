@@ -11,7 +11,9 @@ const WINDOW_BILIBILI_LIVE_TIMEOUT_MS = 5000
 
 class UserInfoModule extends BaseModule {
     private hasValidRoomId(windowBiliLive: Window['BilibiliLive'] | null | undefined): boolean {
-        return Boolean(windowBiliLive && typeof windowBiliLive.ROOMID === 'number' && windowBiliLive.ROOMID > 0)
+        return Boolean(
+            windowBiliLive && typeof windowBiliLive.ROOMID === 'number' && windowBiliLive.ROOMID > 0
+        )
     }
 
     private async getLoginInfo(): Promise<BiliAPIResponse.Nav.Data | null> {
@@ -54,7 +56,7 @@ class UserInfoModule extends BaseModule {
     }
 
     private async getEmotionData(): Promise<BiliAPIResponse.GetEmoticons.EmoticonPackage[]> {
-        const roomID = useBiliStore().BilibiliLive?.ROOMID
+        const roomID = useBiliStore().bilibiliLive?.ROOMID
         if (!roomID) {
             this.logger.warn('获取表情包失败', 'roomID 不存在')
             return []
@@ -76,7 +78,7 @@ class UserInfoModule extends BaseModule {
     }
 
     private async getInfoByUser(): Promise<BiliAPIResponse.GetInfoByUser.Data | null> {
-        const roomID = useBiliStore().BilibiliLive?.ROOMID
+        const roomID = useBiliStore().bilibiliLive?.ROOMID
         if (!roomID) {
             this.logger.warn('获取用户信息失败', 'roomID 不存在')
             return null
@@ -85,7 +87,7 @@ class UserInfoModule extends BaseModule {
         try {
             const response = await BILIAPI.getInfoByUser(roomID)
             if (response.code === 0) {
-                this.logger.log('infoByuser', response)
+                this.logger.log('infoByUser', response)
                 return response.data
             } else {
                 this.logger.warn('获取用户信息失败', response.message)
@@ -98,7 +100,7 @@ class UserInfoModule extends BaseModule {
     }
 
     private async getRoomAnchorName(): Promise<string> {
-        const roomID = useBiliStore().BilibiliLive?.ROOMID
+        const roomID = useBiliStore().bilibiliLive?.ROOMID
         if (!roomID) {
             this.logger.warn('获取主播昵称失败', 'roomID 不存在')
             return ''
@@ -129,7 +131,7 @@ class UserInfoModule extends BaseModule {
         }
     }
 
-    private syncTextIntervalWithDanmuLimit(limit: number | null): void {
+    private syncTextIntervalWithDanmakuLimit(limit: number | null): void {
         if (!limit || limit < 1) {
             return
         }
@@ -146,17 +148,17 @@ class UserInfoModule extends BaseModule {
     public async run(): Promise<void> {
         const biliStore = useBiliStore()
 
-        biliStore.BilibiliLive = await this.getWindowBiliLive()
-        if (biliStore.BilibiliLive) {
+        biliStore.bilibiliLive = await this.getWindowBiliLive()
+        if (biliStore.bilibiliLive) {
             biliStore.emotionData = await this.getEmotionData()
         }
         biliStore.loginInfo = await this.getLoginInfo()
         biliStore.roomAnchorName = await this.getRoomAnchorName()
-        biliStore.infoByuser = await this.getInfoByUser()
+        biliStore.infoByUser = await this.getInfoByUser()
 
-        const danmuLengthLimit = biliStore.infoByuser?.property.danmu.length ?? null
-        biliStore.danmuLengthLimit = danmuLengthLimit
-        this.syncTextIntervalWithDanmuLimit(danmuLengthLimit)
+        const danmakuLengthLimit = biliStore.infoByUser?.property.danmu.length ?? null
+        biliStore.danmakuLengthLimit = danmakuLengthLimit
+        this.syncTextIntervalWithDanmakuLimit(danmakuLengthLimit)
     }
 }
 

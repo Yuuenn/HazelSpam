@@ -20,11 +20,15 @@ export const useTextTabs = () => {
         get: () => moduleStore.moduleConfig.textSpam.activeTabId,
         set: (value: number) => {
             disarmTabDelete()
+
+            if (moduleStore.moduleConfig.textSpam.activeTabId === value) {
+                return
+            }
             moduleStore.moduleConfig.textSpam.activeTabId = value
             const panel = moduleStore.moduleConfig.textSpam.tabPanels.find(
                 (item) => item.id === value
             )
-            if (panel) {
+            if (panel && moduleStore.moduleConfig.textSpam.msg !== panel.msg) {
                 moduleStore.moduleConfig.textSpam.msg = panel.msg
             }
         }
@@ -42,6 +46,7 @@ export const useTextTabs = () => {
         get: () => activeTab.value?.tab ?? '',
         set: (value: string) => {
             if (!activeTab.value) return
+            if (activeTab.value.tab === value) return
             activeTab.value.tab = value
         }
     })
@@ -145,7 +150,6 @@ export const useTextTabs = () => {
         const fallback = panels[Math.max(0, index - 1)] ?? panels[0]
         if (!fallback) return
         activeTabId.value = fallback.id
-        moduleStore.moduleConfig.textSpam.msg = fallback.msg
     }
 
     const handleTabDangerToggle = (tabId: number) => {

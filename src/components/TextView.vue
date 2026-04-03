@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
 import Avatar from 'primevue/avatar'
 import Checkbox from 'primevue/checkbox'
 import InputNumber from 'primevue/inputnumber'
@@ -43,13 +43,13 @@ const {
     moveSortDraft
 } = useTextTabs()
 const {
-    textLengthLimitMax,
+    messageCharLimitMax,
     combineTabs,
     lineBreakMode,
-    randomSendMode,
+    isRandomOrderEnabled,
     autoStopEnabled,
     activeIntervalSeconds,
-    textLengthLimit,
+    messageCharLimit,
     isAnySpamRunning,
     currentText,
     clearCurrentText,
@@ -73,18 +73,68 @@ const {
     insertTextAtCursor
 } = textPreviewOverlay
 
-const textPreviewLines = computed(() => {
-    const limit = Math.max(1, Number(moduleStore.moduleConfig.textSpam.textInterval || 1))
-    return currentText.value.split(/\r?\n/).map((line) => ({
-        keep: line.slice(0, limit),
-        overflow: line.slice(limit)
+type TextPreviewLine = {
+    keep: string
+    overflow: string
+}
+
+const textPreviewLines = shallowRef<TextPreviewLine[]>([])
+let previewLinesFrameId: number | null = null
+
+const buildTextPreviewLines = (text: string, previewCharLimit: number): TextPreviewLine[] => {
+    const sourceLines = text.split(/\r?\n/)
+    return sourceLines.map((line) => ({
+        keep: line.slice(0, previewCharLimit),
+        overflow: line.slice(previewCharLimit)
     }))
-})
+}
+
+const refreshTextPreviewLines = () => {
+    if (!lineBreakMode.value) {
+        if (textPreviewLines.value.length > 0) {
+            textPreviewLines.value = []
+        }
+        return
+    }
+
+    const previewCharLimit = Math.max(
+        1,
+        Number(moduleStore.moduleConfig.textSpam.textInterval || 1)
+    )
+    textPreviewLines.value = buildTextPreviewLines(currentText.value, previewCharLimit)
+}
+
+const scheduleTextPreviewLinesRefresh = () => {
+    if (previewLinesFrameId !== null) {
+        return
+    }
+
+    if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
+        refreshTextPreviewLines()
+        return
+    }
+
+    previewLinesFrameId = window.requestAnimationFrame(() => {
+        previewLinesFrameId = null
+        refreshTextPreviewLines()
+    })
+}
+
+const generalEmojiEmoticons = computed(
+    () => biliStore.emotionData.find((item) => item.pkg_id === 100)?.emoticons ?? []
+)
 
 const insertEmojiToText = (emoji: string) => insertTextAtCursor(emoji)
 
 onMounted(() => {
     scheduleRelayout()
+})
+
+onBeforeUnmount(() => {
+    if (previewLinesFrameId !== null && typeof window !== 'undefined') {
+        window.cancelAnimationFrame(previewLinesFrameId)
+        previewLinesFrameId = null
+    }
 })
 
 watch(
@@ -108,6 +158,14 @@ watch(
         scheduleRelayout()
     }
 )
+
+watch(
+    () => [currentText.value, lineBreakMode.value, moduleStore.moduleConfig.textSpam.textInterval],
+    () => {
+        scheduleTextPreviewLinesRefresh()
+    },
+    { immediate: true }
+)
 </script>
 <template>
     <div class="hazelspam-panel-view hazelspam-responsive-scope">
@@ -122,13 +180,13 @@ watch(
                 <div class="control-item">
                     <label>每条弹幕字数上限</label>
                     <Slider
-                        v-model="textLengthLimit"
+                        v-model="messageCharLimit"
                         :min="1"
-                        :max="textLengthLimitMax"
+                        :max="messageCharLimitMax"
                         :step="1"
                         :disabled="moduleStore.moduleConfig.textSpam.enable"
                     />
-                    <small>{{ textLengthLimit }} 字</small>
+                    <small>{{ messageCharLimit }} 字</small>
                 </div>
 
                 <div class="control-item">
@@ -157,7 +215,7 @@ watch(
                 <div class="control-item control-item--switch">
                     <label>打乱顺序发送</label>
                     <ToggleSwitch
-                        v-model="randomSendMode"
+                        v-model="isRandomOrderEnabled"
                         :disabled="moduleStore.moduleConfig.textSpam.enable"
                     />
                 </div>
@@ -262,7 +320,9 @@ watch(
                     <h3>标签页</h3>
                 </div>
 
-                <div class="hazelspam-scroll-hint-shell hazelspam-scroll-hint-shell--fill tabs-list-shell">
+                <div
+                    class="hazelspam-scroll-hint-shell hazelspam-scroll-hint-shell--fill tabs-list-shell"
+                >
                     <div class="tabs-strip hazelspam-faux-scroll">
                         <div
                             v-for="panel in tabPanels"
@@ -363,8 +423,7 @@ watch(
                 <button
                     type="button"
                     v-ripple
-                    v-for="data in biliStore.emotionData.find((item) => item.pkg_id === 100)
-                        ?.emoticons"
+                    v-for="data in generalEmojiEmoticons"
                     :key="data.emoticon_id"
                     class="emoji-cell"
                     :disabled="data.perm === 0"

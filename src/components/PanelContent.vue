@@ -1,31 +1,26 @@
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { computed, type Component } from 'vue'
 import TextView from './TextView.vue'
 import EmotionView from './EmotionView.vue'
 import CrybabyView from './CrybabyView.vue'
 import SettingView from './SettingView.vue'
 import { useUIStore } from '@/stores/useUIStore'
+import type { MenuIndex } from '@/types'
 
-export default defineComponent({
-    components: {
-        TextView,
-        EmotionView,
-        CrybabyView,
-        SettingView
-    },
-    setup() {
-        const uiStore = useUIStore()
-        return {
-            uiStore
-        }
-    }
-})
+const uiStore = useUIStore()
+const panelViews: Record<MenuIndex, Component> = {
+    TextView,
+    EmotionView,
+    CrybabyView,
+    SettingView
+}
+const activePanelView = computed(() => panelViews[uiStore.uiConfig.activeMenuIndex])
 </script>
 
 <template>
     <div class="panel-content">
         <KeepAlive>
-            <component :is="uiStore.uiConfig.activeMenuIndex"></component>
+            <component :is="activePanelView"></component>
         </KeepAlive>
     </div>
 </template>

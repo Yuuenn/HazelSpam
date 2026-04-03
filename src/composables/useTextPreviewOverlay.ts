@@ -59,9 +59,16 @@ export const useTextPreviewOverlay = (options: {
     let cursorListener: ((event: Event) => void) | null = null
     let syncLock = false
     let relayoutTimer: ReturnType<typeof setTimeout> | null = null
+    let relayoutFrameId: number | null = null
+    let relayoutQueued = false
 
     const setTextOverlayTransform = (scrollTop: number) => {
-        textOverlayTransform.value = `translateY(${-scrollTop}px)`
+        const nextTransform = `translateY(${-scrollTop}px)`
+        if (textOverlayTransform.value === nextTransform) {
+            return
+        }
+
+        textOverlayTransform.value = nextTransform
     }
 
     const syncPreviewOverlayStyle = () => {
@@ -111,7 +118,9 @@ export const useTextPreviewOverlay = (options: {
         if (!target || !previewTextareaEl.value || syncLock) return
 
         syncLock = true
-        previewTextareaEl.value.scrollTop = target.scrollTop
+        if (previewTextareaEl.value.scrollTop !== target.scrollTop) {
+            previewTextareaEl.value.scrollTop = target.scrollTop
+        }
         setTextOverlayTransform(target.scrollTop)
         requestAnimationFrame(() => {
             syncLock = false
@@ -123,7 +132,9 @@ export const useTextPreviewOverlay = (options: {
         if (!target || !mainTextareaEl.value || syncLock) return
 
         syncLock = true
-        mainTextareaEl.value.scrollTop = target.scrollTop
+        if (mainTextareaEl.value.scrollTop !== target.scrollTop) {
+            mainTextareaEl.value.scrollTop = target.scrollTop
+        }
         setTextOverlayTransform(target.scrollTop)
         requestAnimationFrame(() => {
             syncLock = false
@@ -137,6 +148,11 @@ export const useTextPreviewOverlay = (options: {
         const maxLength = target.value.length
         const start = Math.max(0, Math.min(target.selectionStart ?? maxLength, maxLength))
         const end = Math.max(start, Math.min(target.selectionEnd ?? start, maxLength))
+
+        if (textSelectionRange.value?.start === start && textSelectionRange.value?.end === end) {
+            return
+        }
+
         textSelectionRange.value = { start, end }
     }
 
@@ -226,18 +242,35 @@ export const useTextPreviewOverlay = (options: {
     }
 
     const scheduleRelayout = () => {
+        if (relayoutQueued) {
+            return
+        }
+
+        relayoutQueued = true
+
         if (relayoutTimer) {
             clearTimeout(relayoutTimer)
             relayoutTimer = null
         }
 
         nextTick(() => {
+            relayoutQueued = false
             bindTextareas()
-            requestAnimationFrame(() => bindTextareas())
+
+            if (relayoutFrameId !== null) {
+                cancelAnimationFrame(relayoutFrameId)
+                relayoutFrameId = null
+            }
+
+            relayoutFrameId = requestAnimationFrame(() => {
+                relayoutFrameId = null
+                bindTextareas()
+            })
+
             relayoutTimer = setTimeout(() => {
                 bindTextareas()
                 relayoutTimer = null
-            }, 260)
+            }, 140)
         })
     }
 
@@ -253,6 +286,9 @@ export const useTextPreviewOverlay = (options: {
         }
         if (previewTextareaEl.value && previewScrollListener) {
             previewTextareaEl.value.removeEventListener('scroll', previewScrollListener)
+        }
+        if (relayoutFrameId !== null) {
+            cancelAnimationFrame(relayoutFrameId)
         }
         if (relayoutTimer) {
             clearTimeout(relayoutTimer)

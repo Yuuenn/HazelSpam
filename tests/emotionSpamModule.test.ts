@@ -15,7 +15,7 @@ const { sendEmotionMock, sendMsgMock, notificationErrorMock, moduleStoreState, b
         },
         biliStoreState: {
             current: null as {
-                BilibiliLive: { ROOMID: number } | null
+                bilibiliLive: { ROOMID: number } | null
                 emotionData: Array<{
                     pkg_id: number
                     emoticons: Array<{
@@ -64,7 +64,7 @@ describe('EmotionSpamModule', () => {
             emitter: mitt()
         }
         biliStoreState.current = {
-            BilibiliLive: { ROOMID: 1002 },
+            bilibiliLive: { ROOMID: 1002 },
             emotionData: []
         }
     })

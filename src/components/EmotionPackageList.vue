@@ -16,6 +16,12 @@ const emit = defineEmits<{
 const getPackageButtonClass = (isCurrent: boolean) => ({
     'emotion-pack-item--current': isCurrent
 })
+
+const memoizeEmotionPackageItem = (
+    isCurrent: boolean,
+    selectedCount: number,
+    disabled: boolean
+) => [isCurrent, selectedCount, disabled]
 </script>
 
 <template>
@@ -25,6 +31,7 @@ const getPackageButtonClass = (isCurrent: boolean) => ({
                 <AppButton
                     v-for="item in packages"
                     :key="item.id"
+                    v-memo="memoizeEmotionPackageItem(item.isCurrent, item.selectedCount, disabled)"
                     :id="item.id.toString()"
                     class="emotion-pack-item hazelspam-list-item"
                     :class="getPackageButtonClass(item.isCurrent)"

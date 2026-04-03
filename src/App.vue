@@ -443,6 +443,34 @@ useGlobalScrollbarStyle()
     align-items: center;
 }
 
+:global(.hazelspam-toast.p-toast .p-toast-message) {
+    background: color-mix(
+        in srgb,
+        var(--hazelspam-color-shell-card-bg, var(--p-content-background)) 66%,
+        transparent
+    );
+    border-color: color-mix(
+        in srgb,
+        var(--hazelspam-color-surface-border, var(--p-content-border-color)) 56%,
+        transparent
+    );
+    -webkit-backdrop-filter: blur(14px) saturate(112%);
+    backdrop-filter: blur(14px) saturate(112%);
+}
+
+:global(.hazelspam-toast.hazelspam-dark.p-toast .p-toast-message) {
+    background: color-mix(
+        in srgb,
+        var(--hazelspam-color-shell-card-bg, var(--p-content-background)) 74%,
+        transparent
+    );
+    border-color: color-mix(
+        in srgb,
+        var(--hazelspam-color-surface-border, var(--p-content-border-color)) 64%,
+        transparent
+    );
+}
+
 :global(.hazelspam-toast.p-toast .p-toast-message-text) {
     gap: calc(var(--hazelspam-space-2xs, 2px) / 2);
 }

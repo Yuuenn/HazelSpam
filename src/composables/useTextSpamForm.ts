@@ -1,4 +1,4 @@
-import { computed, onMounted, watch, type Ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
 import type { TextTabPanel } from '@/types'
 import { useSpamTaskRunner } from '@/composables/useSpamTaskRunner'
 import { useBiliStore } from '@/stores/useBiliStore'
@@ -14,13 +14,39 @@ export const useTextSpamForm = ({ activeTab }: UseTextSpamFormOptions) => {
     const moduleStore = useModuleStore()
     const uiStore = useUIStore()
     const biliStore = useBiliStore()
-    const { isAnySpamRunning, startTask, stopAllTasks } = useSpamTaskRunner()
+    const { isAnySpamRunning, startSpamTask, stopAllSpamTasks } = useSpamTaskRunner()
+    const currentTextDraft = ref('')
 
-    const textLengthLimitMax = computed(() => Math.max(1, Number(biliStore.danmuLengthLimit || 40)))
+    const syncDraftFromStore = () => {
+        const sourceText = activeTab.value?.msg ?? moduleStore.moduleConfig.textSpam.msg
+        if (currentTextDraft.value === sourceText) {
+            return
+        }
+
+        currentTextDraft.value = sourceText
+    }
+
+    const persistCurrentTextDraft = (targetTab: TextTabPanel | null = activeTab.value) => {
+        if (targetTab && targetTab.msg !== currentTextDraft.value) {
+            targetTab.msg = currentTextDraft.value
+        }
+
+        if (moduleStore.moduleConfig.textSpam.msg !== currentTextDraft.value) {
+            moduleStore.moduleConfig.textSpam.msg = currentTextDraft.value
+        }
+    }
+
+    const messageCharLimitMax = computed(() =>
+        Math.max(1, Number(biliStore.danmakuLengthLimit || 40))
+    )
 
     const combineTabs = computed({
         get: () => moduleStore.moduleConfig.textSpam.sourceMode === 'tabs',
         set: (value: boolean) => {
+            if ((moduleStore.moduleConfig.textSpam.sourceMode === 'tabs') === value) {
+                return
+            }
+
             if (value) {
                 moduleStore.moduleConfig.textSpam.tabSplitMode =
                     moduleStore.moduleConfig.textSpam.splitMode
@@ -44,16 +70,19 @@ export const useTextSpamForm = ({ activeTab }: UseTextSpamFormOptions) => {
         set: (value: boolean) => {
             const splitMode = value ? 'byLine' : 'continuous'
             if (combineTabs.value) {
+                if (moduleStore.moduleConfig.textSpam.tabSplitMode === splitMode) return
                 moduleStore.moduleConfig.textSpam.tabSplitMode = splitMode
                 return
             }
+            if (moduleStore.moduleConfig.textSpam.splitMode === splitMode) return
             moduleStore.moduleConfig.textSpam.splitMode = splitMode
         }
     })
 
-    const randomSendMode = computed({
+    const isRandomOrderEnabled = computed({
         get: () => !moduleStore.moduleConfig.textSpam.sequentialMode,
         set: (value: boolean) => {
+            if (moduleStore.moduleConfig.textSpam.sequentialMode === !value) return
             moduleStore.moduleConfig.textSpam.sequentialMode = !value
         }
     })
@@ -66,6 +95,7 @@ export const useTextSpamForm = ({ activeTab }: UseTextSpamFormOptions) => {
                     moduleStore.moduleConfig.textSpam.timeLimit = 60
                 }
             } else {
+                if (moduleStore.moduleConfig.textSpam.timeLimit === 0) return
                 moduleStore.moduleConfig.textSpam.timeLimit = 0
             }
         }
@@ -78,27 +108,36 @@ export const useTextSpamForm = ({ activeTab }: UseTextSpamFormOptions) => {
                 : moduleStore.moduleConfig.textSpam.timeInterval,
         set: (value: number | null) => {
             if (value === null) return
-            moduleStore.moduleConfig.textSpam.tabTimeInterval = value
-            moduleStore.moduleConfig.textSpam.timeInterval = value
-            moduleStore.moduleConfig.emotionSpam.timeInterval = value
+            // Keep both spam modules aligned so users can switch views without surprise timing drift.
+            if (moduleStore.moduleConfig.textSpam.tabTimeInterval !== value) {
+                moduleStore.moduleConfig.textSpam.tabTimeInterval = value
+            }
+            if (moduleStore.moduleConfig.textSpam.timeInterval !== value) {
+                moduleStore.moduleConfig.textSpam.timeInterval = value
+            }
+            if (moduleStore.moduleConfig.emotionSpam.timeInterval !== value) {
+                moduleStore.moduleConfig.emotionSpam.timeInterval = value
+            }
         }
     })
 
-    const textLengthLimit = computed({
+    const messageCharLimit = computed({
         get: () => moduleStore.moduleConfig.textSpam.textInterval,
         set: (value: number | null) => {
             if (value === null) return
+            if (moduleStore.moduleConfig.textSpam.textInterval === value) return
             moduleStore.moduleConfig.textSpam.textInterval = value
         }
     })
 
     const currentText = computed({
-        get: () => activeTab.value?.msg ?? moduleStore.moduleConfig.textSpam.msg,
+        get: () => currentTextDraft.value,
         set: (value: string) => {
-            if (activeTab.value) {
-                activeTab.value.msg = value
+            if (currentTextDraft.value === value) {
+                return
             }
-            moduleStore.moduleConfig.textSpam.msg = value
+
+            currentTextDraft.value = value
         }
     })
 
@@ -106,13 +145,18 @@ export const useTextSpamForm = ({ activeTab }: UseTextSpamFormOptions) => {
         typeof value === 'string' && value.trim().length > 0
 
     const normalizeCurrentTextIfBlank = () => {
-        if (hasUsableText(currentText.value)) return
+        if (hasUsableText(currentText.value)) {
+            persistCurrentTextDraft()
+            return
+        }
+
         const normalized = normalizeSubmittedText(currentText.value)
         currentText.value = normalized
-        moduleStore.moduleConfig.textSpam.msg = normalized
+        persistCurrentTextDraft()
     }
 
     const normalizeBeforeSubmit = () => {
+        persistCurrentTextDraft()
         const textSpam = moduleStore.moduleConfig.textSpam
         if (textSpam.sourceMode === 'tabs') {
             const hasAnyTabText = textSpam.tabPanels.some((panel) => hasUsableText(panel.msg))
@@ -137,35 +181,67 @@ export const useTextSpamForm = ({ activeTab }: UseTextSpamFormOptions) => {
 
     const handleStartSpam = () => {
         normalizeBeforeSubmit()
-        const started = startTask('textSpam')
+        const started = startSpamTask('textSpam')
         if (!started) return
         uiStore.uiConfig.isShowPanel = false
     }
 
     const handleStopSpam = () => {
-        stopAllTasks()
+        stopAllSpamTasks()
     }
 
     onMounted(() => {
-        if (moduleStore.moduleConfig.textSpam.textInterval > textLengthLimitMax.value) {
-            moduleStore.moduleConfig.textSpam.textInterval = textLengthLimitMax.value
+        syncDraftFromStore()
+
+        if (moduleStore.moduleConfig.textSpam.textInterval > messageCharLimitMax.value) {
+            moduleStore.moduleConfig.textSpam.textInterval = messageCharLimitMax.value
         }
     })
 
-    watch(textLengthLimitMax, (maxLength) => {
-        if (moduleStore.moduleConfig.textSpam.textInterval > maxLength) {
-            moduleStore.moduleConfig.textSpam.textInterval = maxLength
+    onBeforeUnmount(() => {
+        persistCurrentTextDraft()
+    })
+
+    watch(messageCharLimitMax, (maxCharLimit) => {
+        if (moduleStore.moduleConfig.textSpam.textInterval > maxCharLimit) {
+            moduleStore.moduleConfig.textSpam.textInterval = maxCharLimit
         }
     })
+
+    watch(
+        activeTab,
+        (nextTab, previousTab) => {
+            if (previousTab && previousTab !== nextTab) {
+                persistCurrentTextDraft(previousTab)
+            }
+
+            const nextText = nextTab?.msg ?? moduleStore.moduleConfig.textSpam.msg
+            if (currentTextDraft.value !== nextText) {
+                currentTextDraft.value = nextText
+            }
+        },
+        { immediate: true }
+    )
+
+    watch(
+        () => uiStore.uiConfig.isShowPanel,
+        (isPanelVisible) => {
+            if (isPanelVisible) {
+                return
+            }
+
+            persistCurrentTextDraft()
+        }
+    )
 
     return {
-        textLengthLimitMax,
+        messageCharLimitMax,
         combineTabs,
         lineBreakMode,
-        randomSendMode,
+        isRandomOrderEnabled,
         autoStopEnabled,
         activeIntervalSeconds,
-        textLengthLimit,
+        messageCharLimit,
         isAnySpamRunning,
         currentText,
         clearCurrentText,

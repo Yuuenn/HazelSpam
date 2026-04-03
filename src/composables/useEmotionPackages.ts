@@ -22,14 +22,18 @@ export type EmotionGridItem = {
     unique: string
     title: string
     imageUrl: string
-    isSelected: boolean
-    isDisabled: boolean
+    isLocked: boolean
 }
 
 export type EmotionPackagePanel = {
     packageId: number
     imageVariant: EmotionGridVariant
     emotionItems: EmotionGridItem[]
+}
+
+export type EmotionPackageImagePanel = {
+    packageId: number
+    imageUrls: string[]
 }
 
 type PackageDisplayInfo = {
@@ -68,6 +72,8 @@ const sanitizePackageDisplayName = (name: string) => {
         .trim()
     return sanitized || name
 }
+
+const normalizeEmotionUnique = (value: unknown) => String(value ?? '').trim()
 
 export const useEmotionPackages = () => {
     const biliStore = useBiliStore()
@@ -139,29 +145,46 @@ export const useEmotionPackages = () => {
             ) ?? null
     )
 
-    const isCurrentPackageGeneral = computed(() =>
-        Boolean(selectedPackage.value && isGeneralPackage(selectedPackage.value))
-    )
-
-    const isCurrentPackageEmojiSeries = computed(() =>
-        Boolean(selectedPackage.value && isEmojiPackage(selectedPackage.value))
-    )
-
     const selectedEmotionSet = computed(
-        () => new Set(moduleStore.moduleConfig.emotionSpam.msg.map((item) => String(item)))
+        () =>
+            new Set(
+                moduleStore.moduleConfig.emotionSpam.msg
+                    .map((item) => normalizeEmotionUnique(item))
+                    .filter((item) => item.length > 0)
+            )
     )
+
+    const selectedPackageEmotionMap = computed(() => {
+        const map = new Map<string, EmotionItem>()
+        selectedPackage.value?.emoticons.forEach((item) => {
+            const unique = normalizeEmotionUnique(item.emoticon_unique)
+            if (!unique) return
+            map.set(unique, item)
+        })
+        return map
+    })
+
+    const emotionPackageIdMap = computed(() => {
+        const map = new Map<string, number>()
+        packageList.value.forEach((pkg) => {
+            pkg.emoticons.forEach((item) => {
+                const unique = normalizeEmotionUnique(item.emoticon_unique)
+                if (!unique) return
+                map.set(unique, pkg.pkg_id)
+            })
+        })
+        return map
+    })
 
     const packageSelectedCountMap = computed(() => {
-        const selectedSet = selectedEmotionSet.value
         const map = new Map<number, number>()
-        packageList.value.forEach((pkg) => {
-            let count = 0
-            pkg.emoticons.forEach((item) => {
-                if (selectedSet.has(String(item.emoticon_unique))) {
-                    count += 1
-                }
-            })
-            map.set(pkg.pkg_id, count)
+        const packageIdMap = emotionPackageIdMap.value
+        moduleStore.moduleConfig.emotionSpam.msg.forEach((selectedValue) => {
+            const selectedKey = normalizeEmotionUnique(selectedValue)
+            if (!selectedKey) return
+            const packageId = packageIdMap.get(selectedKey)
+            if (packageId === undefined) return
+            map.set(packageId, (map.get(packageId) ?? 0) + 1)
         })
         return map
     })
@@ -178,9 +201,7 @@ export const useEmotionPackages = () => {
             }
 
             const currentSelectedPackageId = moduleStore.moduleConfig.emotionSpam.selectedPackageId
-            const hasCurrentSelection = list.some(
-                (pkg) => pkg.pkg_id === currentSelectedPackageId
-            )
+            const hasCurrentSelection = list.some((pkg) => pkg.pkg_id === currentSelectedPackageId)
 
             if (!hasCurrentSelection) {
                 moduleStore.moduleConfig.emotionSpam.selectedPackageId = list[0].pkg_id
@@ -198,21 +219,22 @@ export const useEmotionPackages = () => {
 
     const isEmotionDisabled = (item: EmotionItem) => item.perm === 0 || isEmotionSpamRunning.value
 
-    const isEmotionSelected = (item: EmotionItem) =>
-        selectedEmotionSet.value.has(String(item.emoticon_unique))
-
     const toggleEmotionSelection = (emotionUnique: string) => {
-        const emotionKey = String(emotionUnique)
-        const targetEmotion = selectedPackage.value?.emoticons.find(
-            (item) => String(item.emoticon_unique) === emotionKey
-        )
+        const emotionKey = normalizeEmotionUnique(emotionUnique)
+        if (!emotionKey) {
+            return
+        }
+
+        const targetEmotion = selectedPackageEmotionMap.value.get(emotionKey)
 
         if (!targetEmotion || isEmotionDisabled(targetEmotion)) {
             return
         }
 
         const selected = moduleStore.moduleConfig.emotionSpam.msg
-        const existedIndex = selected.findIndex((value) => String(value) === emotionKey)
+        const existedIndex = selected.findIndex(
+            (value) => normalizeEmotionUnique(value) === emotionKey
+        )
 
         if (existedIndex >= 0) {
             selected.splice(existedIndex, 1)
@@ -229,12 +251,10 @@ export const useEmotionPackages = () => {
     const clearCurrentPackageSelections = () => {
         if (isEmotionSpamRunning.value || !selectedPackage.value) return
 
-        const currentPackageSet = new Set(
-            selectedPackage.value.emoticons.map((item) => String(item.emoticon_unique))
-        )
+        const currentPackageSet = new Set(selectedPackageEmotionMap.value.keys())
 
         moduleStore.moduleConfig.emotionSpam.msg = moduleStore.moduleConfig.emotionSpam.msg.filter(
-            (value) => !currentPackageSet.has(String(value))
+            (value) => !currentPackageSet.has(normalizeEmotionUnique(value))
         )
     }
 
@@ -255,50 +275,39 @@ export const useEmotionPackages = () => {
 
     const selectedPackageId = computed(() => selectedPackage.value?.pkg_id ?? null)
 
-    const selectedPackageGridVariant = computed<EmotionGridVariant>(() => {
-        if (isCurrentPackageGeneral.value) {
-            return 'general'
-        }
-
-        if (isCurrentPackageEmojiSeries.value) {
-            return 'emoji'
-        }
-
-        return 'default'
-    })
-
-    const selectedPackageEmotionCards = computed<EmotionGridItem[]>(() => {
-        return (selectedPackage.value?.emoticons ?? []).map((item) => ({
-            id: item.emoticon_id,
-            unique: String(item.emoticon_unique),
-            title: item.emoji || item.descript || `表情 ${item.emoticon_id}`,
-            imageUrl: item.url,
-            isSelected: isEmotionSelected(item),
-            isDisabled: isEmotionDisabled(item)
+    const packageImagePanels = computed<EmotionPackageImagePanel[]>(() => {
+        return packageList.value.map((pkg) => ({
+            packageId: pkg.pkg_id,
+            imageUrls: pkg.emoticons.map((item) => item.url)
         }))
     })
 
-    const packagePanels = computed<EmotionPackagePanel[]>(() => {
-        return packageList.value.map((pkg) => {
-            const imageVariant: EmotionGridVariant = isGeneralPackage(pkg)
-                ? 'general'
-                : isEmojiPackage(pkg)
-                  ? 'emoji'
-                  : 'default'
+    const selectedPackagePanel = computed<EmotionPackagePanel | null>(() => {
+        const pkg = selectedPackage.value
+        if (!pkg) {
+            return null
+        }
 
-            return {
-                packageId: pkg.pkg_id,
-                imageVariant,
-                emotionItems: pkg.emoticons.map((item) => ({
+        const imageVariant: EmotionGridVariant = isGeneralPackage(pkg)
+            ? 'general'
+            : isEmojiPackage(pkg)
+              ? 'emoji'
+              : 'default'
+
+        return {
+            packageId: pkg.pkg_id,
+            imageVariant,
+            emotionItems: pkg.emoticons.map((item) => {
+                const unique = normalizeEmotionUnique(item.emoticon_unique)
+                return {
                     id: item.emoticon_id,
-                    unique: String(item.emoticon_unique),
+                    unique,
                     title: item.emoji || item.descript || `表情 ${item.emoticon_id}`,
                     imageUrl: item.url,
-                    isSelected: isEmotionSelected(item),
-                    isDisabled: isEmotionDisabled(item)
-                }))
-            }
-        })
+                    isLocked: item.perm === 0
+                }
+            })
+        }
     })
 
     const hasSelectedInCurrentPackage = computed(() => {
@@ -311,10 +320,10 @@ export const useEmotionPackages = () => {
 
     return {
         packageCards,
-        packagePanels,
+        packageImagePanels,
+        selectedPackagePanel,
+        selectedEmotionKeySet: selectedEmotionSet,
         selectedPackageId,
-        selectedPackageEmotionCards,
-        selectedPackageGridVariant,
         hasSelectedInCurrentPackage,
         selectedEmotionCount,
         handleSelectPackage,

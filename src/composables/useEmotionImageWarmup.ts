@@ -1,4 +1,4 @@
-import { computed, onBeforeUnmount, watch, type ComputedRef, type Ref } from 'vue'
+import { onBeforeUnmount, watch, type Ref } from 'vue'
 
 export type EmotionImageWarmupPanel = {
     packageId: number
@@ -8,6 +8,7 @@ export type EmotionImageWarmupPanel = {
 const IMAGE_WARMUP_START_DELAY_MS = 180
 const IMAGE_WARMUP_BATCH_SIZE = 8
 const IMAGE_WARMUP_BATCH_DELAY_MS = 120
+const IMAGE_WARMUP_PRIMED_URL_LIMIT = 1200
 
 const primedEmotionImageUrls = new Set<string>()
 
@@ -79,17 +80,27 @@ export const getEmotionWarmupUrls = (
     return warmupUrls
 }
 
-const createWarmupSignature = (panels: EmotionImageWarmupPanel[]) =>
-    panels
-        .map((panel) => `${panel.packageId}:${panel.imageUrls.join(',')}`)
-        .join('|')
+const rememberPrimedEmotionImage = (imageUrl: string) => {
+    primedEmotionImageUrls.add(imageUrl)
+
+    if (primedEmotionImageUrls.size <= IMAGE_WARMUP_PRIMED_URL_LIMIT) {
+        return
+    }
+
+    const oldestImageUrl = primedEmotionImageUrls.values().next().value as string | undefined
+    if (!oldestImageUrl) {
+        return
+    }
+
+    primedEmotionImageUrls.delete(oldestImageUrl)
+}
 
 const warmEmotionImage = (imageUrl: string) => {
     if (!canWarmEmotionImages() || primedEmotionImageUrls.has(imageUrl)) {
         return
     }
 
-    primedEmotionImageUrls.add(imageUrl)
+    rememberPrimedEmotionImage(imageUrl)
 
     const image = new Image()
     let settled = false
@@ -122,7 +133,7 @@ const warmEmotionImage = (imageUrl: string) => {
 }
 
 type UseEmotionImageWarmupOptions = {
-    packagePanels: ComputedRef<EmotionImageWarmupPanel[]>
+    packagePanels: Readonly<Ref<EmotionImageWarmupPanel[]>>
     currentPackageId: Ref<number | null>
 }
 
@@ -130,7 +141,6 @@ export const useEmotionImageWarmup = ({
     packagePanels,
     currentPackageId
 }: UseEmotionImageWarmupOptions) => {
-    const warmupSignature = computed(() => createWarmupSignature(packagePanels.value))
     let warmupTimer: number | null = null
     let warmupRunId = 0
 
@@ -162,8 +172,8 @@ export const useEmotionImageWarmup = ({
     }
 
     watch(
-        [warmupSignature, currentPackageId],
-        () => {
+        [packagePanels, currentPackageId],
+        ([panels, packageId]) => {
             warmupRunId += 1
             clearWarmupTimer()
 
@@ -171,7 +181,7 @@ export const useEmotionImageWarmup = ({
                 return
             }
 
-            const imageUrls = getEmotionWarmupUrls(packagePanels.value, currentPackageId.value).filter(
+            const imageUrls = getEmotionWarmupUrls(panels, packageId).filter(
                 (imageUrl) => !primedEmotionImageUrls.has(imageUrl)
             )
 

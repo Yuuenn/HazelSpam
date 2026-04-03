@@ -98,7 +98,8 @@ class DanmakuActionsModule extends BaseModule {
     private readonly composerToolbarButtonClass = 'hazelspam-dm-composer-toolbar-btn'
     private readonly composerToolbarIconClass = 'hazelspam-dm-composer-toolbar-icon'
     private readonly hostToolbarContainerSelector = '.icon-left-part'
-    private readonly boundaryPunctuationRegex = /[\s,.;:!?，。！？；：、~～\-—()（）[\]【】{}<>《》"“”'‘’`]/
+    private readonly boundaryPunctuationRegex =
+        /[\s,.;:!?，。！？；：、~～\-—()（）[\]【】{}<>《》"“”'‘’`]/
     private readonly composerLimitCounterRegex = /^\s*\d+\s*\/\s*(\d+)\s*$/
     private readonly sendLockDurationMs = 1000
     private readonly sendLockToastCooldownMs = 900
@@ -255,7 +256,9 @@ class DanmakuActionsModule extends BaseModule {
     private clearComposerToolbar() {
         this.composerToolbarItems.forEach(({ root }) => root.remove())
         this.composerToolbarItems = []
-        document.querySelectorAll(`.${this.composerToolbarItemClass}`).forEach((element) => element.remove())
+        document
+            .querySelectorAll(`.${this.composerToolbarItemClass}`)
+            .forEach((element) => element.remove())
         this.crybabyToggleButton = null
         this.crybabyToggleActiveState = null
         this.resetCrybabyDraftCycle()
@@ -407,7 +410,7 @@ class DanmakuActionsModule extends BaseModule {
             return Math.floor(textareaLimit)
         }
 
-        const storeLimit = useBiliStore().danmuLengthLimit
+        const storeLimit = useBiliStore().danmakuLengthLimit
         if (typeof storeLimit === 'number' && Number.isFinite(storeLimit) && storeLimit > 0) {
             return Math.floor(storeLimit)
         }
@@ -429,9 +432,14 @@ class DanmakuActionsModule extends BaseModule {
         }
     }
 
-    private readComposerDraft(panel: NativeChatControlPanelVm, textarea: HTMLTextAreaElement): ComposerDraft {
+    private readComposerDraft(
+        panel: NativeChatControlPanelVm,
+        textarea: HTMLTextAreaElement
+    ): ComposerDraft {
         const replyMid = this.parsePositiveIntegerFromUnknown(panel.atUid)
-        const replyUname = this.normalizeMentionUname(panel.atUserName || panel.tempAtUserName || '')
+        const replyUname = this.normalizeMentionUname(
+            panel.atUserName || panel.tempAtUserName || ''
+        )
         const rawText = textarea.value.replace(/\u00a0/g, ' ')
 
         if (replyMid <= 0 || replyUname.length === 0) {
@@ -496,7 +504,10 @@ class DanmakuActionsModule extends BaseModule {
         return this.needsSpaceBetween(left, right) ? `${left} ${right}` : `${left}${right}`
     }
 
-    private mergeDraftForAppend(currentDraft: ComposerDraft, incomingDraft: ComposerDraft): ComposerDraft {
+    private mergeDraftForAppend(
+        currentDraft: ComposerDraft,
+        incomingDraft: ComposerDraft
+    ): ComposerDraft {
         if (incomingDraft.replyMid > 0 && incomingDraft.replyUname.length > 0) {
             if (
                 currentDraft.replyMid > 0 &&
@@ -517,7 +528,10 @@ class DanmakuActionsModule extends BaseModule {
 
             return {
                 ...currentDraft,
-                bodyText: this.smartJoinText(currentDraft.bodyText, this.renderComposerDraft(incomingDraft))
+                bodyText: this.smartJoinText(
+                    currentDraft.bodyText,
+                    this.renderComposerDraft(incomingDraft)
+                )
             }
         }
 
@@ -639,7 +653,8 @@ class DanmakuActionsModule extends BaseModule {
             typeof panelElement.closest === 'function'
                 ? panelElement.closest<HTMLElement>('.chat-input-ctnr')
                 : null
-        const scopedContainer = closestContainer ?? document.querySelector<HTMLElement>('.chat-input-ctnr')
+        const scopedContainer =
+            closestContainer ?? document.querySelector<HTMLElement>('.chat-input-ctnr')
         const textarea =
             scopedContainer?.querySelector<HTMLTextAreaElement>('textarea.chat-input') ??
             document.querySelector<HTMLTextAreaElement>('.chat-input-ctnr textarea.chat-input')
@@ -683,9 +698,9 @@ class DanmakuActionsModule extends BaseModule {
         }
 
         return (
-            Array.from(document.querySelectorAll<HTMLButtonElement>('.control-panel-ctnr button')).find(
-                (button) => button.textContent?.trim() === '发送'
-            ) ?? null
+            Array.from(
+                document.querySelectorAll<HTMLButtonElement>('.control-panel-ctnr button')
+            ).find((button) => button.textContent?.trim() === '发送') ?? null
         )
     }
 
@@ -889,8 +904,7 @@ class DanmakuActionsModule extends BaseModule {
                 (char, index, source) =>
                     char === '，' && this.isSafePunctuationMutationIndex(source, index),
                 ','
-            )
-            ??
+            ) ??
             this.replaceFirstOutsideSquareBracket(
                 baseBody,
                 (char, index, source) =>
@@ -964,7 +978,9 @@ class DanmakuActionsModule extends BaseModule {
             })
 
         const finalBodyCycle =
-            bodyCandidates.length > 0 ? bodyCandidates : this.buildCrybabyReplacementCandidates(baseBody)
+            bodyCandidates.length > 0
+                ? bodyCandidates
+                : this.buildCrybabyReplacementCandidates(baseBody)
 
         const cycleDrafts = [baseBody, ...finalBodyCycle].map((bodyText) => ({
             ...baseDraft,
@@ -973,13 +989,19 @@ class DanmakuActionsModule extends BaseModule {
 
         return cycleDrafts.filter(
             (draft, index, drafts) =>
-                drafts.findIndex((candidate) => this.isSameComposerDraft(candidate, draft)) === index
+                drafts.findIndex((candidate) => this.isSameComposerDraft(candidate, draft)) ===
+                index
         )
     }
 
-    private createCrybabyDraft(lastDraft: ComposerDraft, textarea: HTMLTextAreaElement): ComposerDraft | null {
+    private createCrybabyDraft(
+        lastDraft: ComposerDraft,
+        textarea: HTMLTextAreaElement
+    ): ComposerDraft | null {
         const currentCycle = this.crybabyDraftCycle
-        let cycleIndex = currentCycle.findIndex((draft) => this.isSameComposerDraft(draft, lastDraft))
+        let cycleIndex = currentCycle.findIndex((draft) =>
+            this.isSameComposerDraft(draft, lastDraft)
+        )
 
         if (cycleIndex < 0) {
             this.crybabyDraftCycle = this.buildCrybabyDraftCycle(lastDraft, textarea)
@@ -1021,7 +1043,10 @@ class DanmakuActionsModule extends BaseModule {
     private blockNativeSend(event: Event) {
         event.preventDefault()
         event.stopPropagation()
-        if ('stopImmediatePropagation' in event && typeof event.stopImmediatePropagation === 'function') {
+        if (
+            'stopImmediatePropagation' in event &&
+            typeof event.stopImmediatePropagation === 'function'
+        ) {
             event.stopImmediatePropagation()
         }
 
@@ -1136,7 +1161,13 @@ class DanmakuActionsModule extends BaseModule {
 
     private readonly handleNativeSendKeydownCapture = (event: Event) => {
         if (!this.config.enable || !(event instanceof KeyboardEvent)) return
-        if (event.key !== 'Enter' || event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) {
+        if (
+            event.key !== 'Enter' ||
+            event.shiftKey ||
+            event.ctrlKey ||
+            event.altKey ||
+            event.metaKey
+        ) {
             return
         }
         if (event.isComposing) return
@@ -1185,7 +1216,11 @@ class DanmakuActionsModule extends BaseModule {
     }
 
     private async sendStructuredMentionWithNativeComposer(payload: DanmakuActionPayload) {
-        if (payload.replyMid <= 0 || !payload.replyUname || payload.sendContent.trim().length === 0) {
+        if (
+            payload.replyMid <= 0 ||
+            !payload.replyUname ||
+            payload.sendContent.trim().length === 0
+        ) {
             return false
         }
 
@@ -1282,7 +1317,10 @@ class DanmakuActionsModule extends BaseModule {
         const colorToken = appButton.style.getPropertyValue('--hazelspam-host-button-color').trim()
         const resolvedColor = colorToken || window.getComputedStyle(appButton).color || '#C9CCD0'
         this.composerToolbarItems.forEach(({ root }) => {
-            if (root.style.getPropertyValue('--hazelspam-host-button-color').trim() === resolvedColor) {
+            if (
+                root.style.getPropertyValue('--hazelspam-host-button-color').trim() ===
+                resolvedColor
+            ) {
                 return
             }
             root.style.setProperty('--hazelspam-host-button-color', resolvedColor)
@@ -1333,14 +1371,10 @@ class DanmakuActionsModule extends BaseModule {
         button.ariaLabel = label
         button.classList.add(this.composerToolbarButtonClass, APP_HOST_TOOLBAR_BUTTON_CLASS)
 
-        const iconWrapper = createSvgIconWrapper(
-            svgMarkup,
-            APP_HOST_TOOLBAR_ICON_WRAPPER_CLASS,
-            [
-                APP_HOST_TOOLBAR_ICON_CLASS,
-                this.composerToolbarIconClass
-            ]
-        )
+        const iconWrapper = createSvgIconWrapper(svgMarkup, APP_HOST_TOOLBAR_ICON_WRAPPER_CLASS, [
+            APP_HOST_TOOLBAR_ICON_CLASS,
+            this.composerToolbarIconClass
+        ])
         if (!iconWrapper) {
             const fallbackWrapper = document.createElement('div')
             fallbackWrapper.classList.add(APP_HOST_TOOLBAR_ICON_WRAPPER_CLASS)
@@ -1396,7 +1430,9 @@ class DanmakuActionsModule extends BaseModule {
             return
         }
 
-        document.querySelectorAll(`.${this.composerToolbarItemClass}`).forEach((element) => element.remove())
+        document
+            .querySelectorAll(`.${this.composerToolbarItemClass}`)
+            .forEach((element) => element.remove())
 
         const crybabyItem = this.createHostToolbarItem(
             CRYBABY_INACTIVE_SVG,
@@ -1408,9 +1444,7 @@ class DanmakuActionsModule extends BaseModule {
                 this.updateCrybabyToggleState()
                 const { message } = useDiscreteAPI(['message'])
                 message.info(
-                    this.config.crybabyEnabled
-                        ? 'Crybaby 自动装填已开启'
-                        : 'Crybaby 自动装填已关闭'
+                    this.config.crybabyEnabled ? 'Crybaby 自动装填已开启' : 'Crybaby 自动装填已关闭'
                 )
             }
         )
@@ -1426,14 +1460,10 @@ class DanmakuActionsModule extends BaseModule {
         )
         repeatItem.button.dataset.hazelspamToolbarAction = 'repeat'
 
-        const clearItem = this.createHostToolbarItem(
-            TOOLBAR_CLEAR_SVG,
-            '清空输入框',
-            (event) => {
-                event.stopPropagation()
-                this.clearComposerInput()
-            }
-        )
+        const clearItem = this.createHostToolbarItem(TOOLBAR_CLEAR_SVG, '清空输入框', (event) => {
+            event.stopPropagation()
+            this.clearComposerInput()
+        })
         clearItem.button.dataset.hazelspamToolbarAction = 'clear'
 
         this.composerToolbarItems = [crybabyItem, repeatItem, clearItem]
@@ -1569,7 +1599,7 @@ class DanmakuActionsModule extends BaseModule {
             return
         }
 
-        const roomid = useBiliStore().BilibiliLive?.ROOMID
+        const roomid = useBiliStore().bilibiliLive?.ROOMID
         if (!roomid) {
             notification.error({
                 title: '发送失败',

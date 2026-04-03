@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { computed, ref, toRef, watch } from 'vue'
+import { computed, toRef } from 'vue'
 import AppButton from './AppButton.vue'
-import type { EmotionGridItem, EmotionPackagePanel } from '@/composables/useEmotionPackages'
-import {
-    useEmotionImageWarmup,
-    type EmotionImageWarmupPanel
-} from '@/composables/useEmotionImageWarmup'
+import type {
+    EmotionGridItem,
+    EmotionPackageImagePanel,
+    EmotionPackagePanel
+} from '@/composables/useEmotionPackages'
+import { useEmotionImageWarmup } from '@/composables/useEmotionImageWarmup'
 
 const props = defineProps<{
     packageId: number | null
-    packagePanels: EmotionPackagePanel[]
+    packageImagePanels: EmotionPackageImagePanel[]
+    selectedPackagePanel: EmotionPackagePanel | null
+    selectedEmotionKeySet: Set<string>
     hasSelectedInCurrentPackage: boolean
     disabled: boolean
 }>()
@@ -19,41 +22,26 @@ const emit = defineEmits<{
     (event: 'clear-package'): void
 }>()
 
-const hasPackage = computed(() => props.packageId !== null)
-const visitedPackageIds = ref<number[]>([])
-const packageImagePanels = computed<EmotionImageWarmupPanel[]>(() =>
-    props.packagePanels.map((panel) => ({
-        packageId: panel.packageId,
-        imageUrls: panel.emotionItems.map((item) => item.imageUrl)
-    }))
-)
+const selectedPackagePanel = computed(() => props.selectedPackagePanel)
+const hasPackage = computed(() => selectedPackagePanel.value !== null)
 
 useEmotionImageWarmup({
-    packagePanels: packageImagePanels,
+    packagePanels: toRef(props, 'packageImagePanels'),
     currentPackageId: toRef(props, 'packageId')
 })
 
-watch(
-    () => props.packageId,
-    (packageId) => {
-        if (packageId === null || visitedPackageIds.value.includes(packageId)) {
-            return
-        }
-
-        visitedPackageIds.value.push(packageId)
-    },
-    { immediate: true }
-)
-
-const visiblePackagePanels = computed(() => {
-    const visitedSet = new Set(visitedPackageIds.value)
-    return props.packagePanels.filter((panel) => visitedSet.has(panel.packageId))
-})
+const isEmotionSelected = (item: EmotionGridItem) => props.selectedEmotionKeySet.has(item.unique)
+const isEmotionDisabled = (item: EmotionGridItem) => props.disabled || item.isLocked
 
 const getEmotionGridButtonClass = (item: EmotionGridItem) => ({
-    'emotion-grid-item--selected': item.isSelected,
-    'emotion-grid-item--disabled': item.isDisabled
+    'emotion-grid-item--selected': isEmotionSelected(item),
+    'emotion-grid-item--disabled': isEmotionDisabled(item)
 })
+
+const memoizeEmotionGridItem = (item: EmotionGridItem) => [
+    props.selectedEmotionKeySet.has(item.unique),
+    props.disabled || item.isLocked
+]
 </script>
 
 <template>
@@ -63,37 +51,40 @@ const getEmotionGridButtonClass = (item: EmotionGridItem) => ({
                 <div class="hazelspam-scroll-hint-shell hazelspam-scroll-hint-shell--fill">
                     <div class="emotion-list__content hazelspam-faux-scroll">
                         <div
-                            v-for="panel in visiblePackagePanels"
-                            :key="panel.packageId"
-                            v-show="panel.packageId === packageId"
+                            v-if="selectedPackagePanel"
+                            :key="selectedPackagePanel.packageId"
                             class="emotion-grid-panel"
                         >
                             <div
                                 class="emotion-grid"
-                                :class="{ 'emotion-grid--general': panel.imageVariant === 'general' }"
+                                :class="{
+                                    'emotion-grid--general':
+                                        selectedPackagePanel.imageVariant === 'general'
+                                }"
                             >
                                 <AppButton
-                                    v-for="item in panel.emotionItems"
+                                    v-for="item in selectedPackagePanel.emotionItems"
                                     :key="item.id"
+                                    v-memo="memoizeEmotionGridItem(item)"
                                     class="emotion-grid-item hazelspam-grid-card"
                                     :class="getEmotionGridButtonClass(item)"
-                                    :tone="item.isSelected ? 'primary' : 'surface'"
+                                    :tone="isEmotionSelected(item) ? 'primary' : 'surface'"
                                     size="small"
                                     :title="item.title"
-                                    :disabled="item.isDisabled"
+                                    :disabled="isEmotionDisabled(item)"
                                     @click="emit('toggle-emotion', item.unique)"
                                 >
                                     <img
                                         class="emotion-grid-item__image hazelspam-grid-card__image"
                                         :class="{
                                             'emotion-grid-item__image--general':
-                                                panel.imageVariant === 'general',
+                                                selectedPackagePanel.imageVariant === 'general',
                                             'hazelspam-grid-card__image--general':
-                                                panel.imageVariant === 'general',
+                                                selectedPackagePanel.imageVariant === 'general',
                                             'emotion-grid-item__image--emoji':
-                                                panel.imageVariant === 'emoji',
+                                                selectedPackagePanel.imageVariant === 'emoji',
                                             'hazelspam-grid-card__image--emoji':
-                                                panel.imageVariant === 'emoji'
+                                                selectedPackagePanel.imageVariant === 'emoji'
                                         }"
                                         :src="item.imageUrl"
                                         :alt="item.title"

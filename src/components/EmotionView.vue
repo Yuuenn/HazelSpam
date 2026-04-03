@@ -10,7 +10,9 @@ import { PRODUCT_NAME } from '@/constants/brand'
 
 const {
     packageCards,
-    packagePanels,
+    packageImagePanels,
+    selectedPackagePanel,
+    selectedEmotionKeySet,
     selectedPackageId,
     hasSelectedInCurrentPackage,
     selectedEmotionCount,
@@ -23,7 +25,7 @@ const {
     isEmotionSpamRunning,
     isAnySpamRunning,
     activeIntervalSeconds,
-    randomSendMode,
+    isRandomOrderEnabled,
     autoStopEnabled,
     timeLimitSeconds,
     closePanel,
@@ -59,7 +61,7 @@ const {
 
                 <div class="control-item control-item--switch">
                     <label>打乱顺序发送</label>
-                    <ToggleSwitch v-model="randomSendMode" :disabled="isEmotionSpamRunning" />
+                    <ToggleSwitch v-model="isRandomOrderEnabled" :disabled="isEmotionSpamRunning" />
                 </div>
 
                 <div class="control-item control-item--switch">
@@ -103,7 +105,9 @@ const {
                 <EmotionGridPanel
                     class="emotion-send__column emotion-send__column--grid hazelspam-responsive-panel"
                     :package-id="selectedPackageId"
-                    :package-panels="packagePanels"
+                    :package-image-panels="packageImagePanels"
+                    :selected-package-panel="selectedPackagePanel"
+                    :selected-emotion-key-set="selectedEmotionKeySet"
                     :has-selected-in-current-package="hasSelectedInCurrentPackage"
                     :disabled="isEmotionSpamRunning"
                     @toggle-emotion="toggleEmotionSelection"
