@@ -57,6 +57,7 @@
     </tbody>
   </table>
 </div>
+
 2. 按 Tampermonkey 提示完成脚本安装或升级
 3. 打开任意 B 站直播间页面，确认聊天区附近出现 HazelSpam 入口按钮（方向盘图标）
 4. 升级版本后，请使用 `Ctrl + Shift + R` 强制刷新页面
