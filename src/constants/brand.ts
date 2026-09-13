@@ -9,8 +9,10 @@ export const DEBUG_NOTIFY_GLOBAL_KEY = '__HAZELSPAM_NOTIFY__'
 export const GITHUB_OWNER = 'Yuuenn'
 export const GITHUB_REPOSITORY = 'HazelSpam'
 export const GITHUB_PROFILE_URL = `https://github.com/${GITHUB_OWNER}`
-export const EDGEONE_RELEASE_ORIGIN = 'https://hazel.idols.ltd'
-export const EDGEONE_RELEASE_HOST = 'hazel.idols.ltd'
+export const PRIMARY_RELEASE_ORIGIN = 'https://hazel.idol.gold'
+export const PRIMARY_RELEASE_HOST = 'hazel.idol.gold'
+export const MIRROR_RELEASE_ORIGIN = 'https://hazel.idol.su'
+export const MIRROR_RELEASE_HOST = 'hazel.idol.su'
 
 export const APP_ROOT_SELECTOR = `#${APP_ROOT_ID}`
 export const APP_ROOT_CLASS = `${APP_CSS_NAMESPACE}-root`
@@ -43,7 +45,7 @@ export const PROJECT_HOMEPAGE_URL = 'https://car.hzm.baby'
 export const PROJECT_ISSUES_URL = `${PROJECT_REPOSITORY_URL}/issues`
 export const PROJECT_README_URL = `${PROJECT_REPOSITORY_URL}/blob/main/README.md`
 export const PROJECT_CHANGELOG_URL = `${PROJECT_REPOSITORY_URL}/blob/main/CHANGELOG.md`
-export const PROJECT_RELEASES_URL = EDGEONE_RELEASE_ORIGIN
+export const PROJECT_RELEASES_URL = PRIMARY_RELEASE_ORIGIN
 export const INSPIRATION_AUTHOR_NAME = '虚拟主播灰泽满 Hazel（ManShin）'
 export const INSPIRATION_AUTHOR_SPACE_URL = 'https://space.bilibili.com/1298779265'
 
@@ -51,10 +53,12 @@ const USER_SCRIPT_FILE_NAME = 'HazelSpam.min.user.js'
 const USER_SCRIPT_SOURCE_FILE_NAME = 'HazelSpam.user.js'
 const LATEST_RELEASE_MANIFEST_FILE_NAME = 'latest.json'
 
-export const USERSCRIPT_DOWNLOAD_URL = `${EDGEONE_RELEASE_ORIGIN}/${USER_SCRIPT_FILE_NAME}`
+export const USERSCRIPT_DOWNLOAD_URL = `${PRIMARY_RELEASE_ORIGIN}/${USER_SCRIPT_FILE_NAME}`
 export const USERSCRIPT_UPDATE_URL = USERSCRIPT_DOWNLOAD_URL
-export const USERSCRIPT_SOURCE_DOWNLOAD_URL = `${EDGEONE_RELEASE_ORIGIN}/${USER_SCRIPT_SOURCE_FILE_NAME}`
-export const LATEST_RELEASE_MANIFEST_URL = `${EDGEONE_RELEASE_ORIGIN}/${LATEST_RELEASE_MANIFEST_FILE_NAME}`
+export const USERSCRIPT_SOURCE_DOWNLOAD_URL = `${PRIMARY_RELEASE_ORIGIN}/${USER_SCRIPT_SOURCE_FILE_NAME}`
+export const LATEST_RELEASE_MANIFEST_URL = `${PRIMARY_RELEASE_ORIGIN}/${LATEST_RELEASE_MANIFEST_FILE_NAME}`
+
+export const MIRROR_RELEASE_MANIFEST_URL = `${MIRROR_RELEASE_ORIGIN}/${LATEST_RELEASE_MANIFEST_FILE_NAME}`
 
 export const PRODUCT_DESCRIPTION = '绿冻车得太快就像龙卷风'
 export const PRODUCT_SUBTITLE = '面向 B 站直播的后现代风格弹幕工具'

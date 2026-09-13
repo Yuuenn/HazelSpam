@@ -54,12 +54,14 @@
 - 脚本通过 Tampermonkey 注入到 `*://live.bilibili.com/*`
 - 持久化依赖 `GM_getValue` / `GM_setValue`
 - 构建结果是 userscript，而不是传统站点产物
-- 网络请求主要面向 B 站 API、EdgeOne 发行源和构建依赖 CDN
+- 网络请求主要面向 B 站 API、Pages 发行源和构建依赖 CDN
 
 发布环境约束：
 
-- 正式发行源为 EdgeOne Pages 固定域名 `https://hazel.idols.ltd`
-- `latest` 发行清单为 `https://hazel.idols.ltd/latest.json`
+- 正式发行源为阿里云 ESA Pages 固定域名 `https://hazel.idol.gold`
+- Cloudflare Pages 镜像为 `https://hazel.idol.su`，主源失败时用于应用内检查更新兜底
+- 两个 Pages 项目跟随 `main` 构建；tag 工作流只创建 GitHub Release 备份
+- `latest` 发行清单为 `https://hazel.idol.gold/latest.json`
 - GitHub Release 仅保留同版本构建产物，作为备份下载源，不再作为主更新源
 
 除非确有必要，不要把这个项目按普通站点、SSR 应用或后端服务来设计。
@@ -325,7 +327,7 @@ pnpm format
   - `git merge --ff-only origin/main`
   - `git show --no-patch --oneline HEAD`
   - `node -p "require('./package.json').version"`
-- 只有在 `HEAD` 提交和 `package.json.version` 均确认无误后再执行：`git tag vX.Y.Z && git push origin vX.Y.Z`，触发 `.github/workflows/edgeone-release.yml`
+- 只有在 `HEAD` 提交和 `package.json.version` 均确认无误后再执行：`git tag vX.Y.Z && git push origin vX.Y.Z`，触发 `.github/workflows/release.yml`
 - tag 推送后建议复核：`git ls-remote --tags origin vX.Y.Z`，确认远端 tag 指向本次发布提交
 
 ---
@@ -387,7 +389,7 @@ pnpm format
 
 - 本项目会读取 B 站登录态和用户相关信息，因此更要避免多余的数据暴露
 - 修改网络请求时，只连接业务所需域名
-- EdgeOne 发行清单 `latest.json` 也属于外部输入，更新检查逻辑必须校验字段并提供明确失败提示
+- Pages 发行清单 `latest.json` 也属于外部输入，更新检查逻辑必须校验字段并提供明确失败提示
 - 修改导入导出功能时，优先保证“格式明确、失败可预期”
 
 ---

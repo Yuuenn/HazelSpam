@@ -1,0 +1,9 @@
+/HazelSpam.user.js
+  Content-Type: application/javascript; charset=utf-8
+  Cache-Control: no-cache
+/HazelSpam.min.user.js
+  Content-Type: application/javascript; charset=utf-8
+  Cache-Control: no-cache
+/latest.json
+  Content-Type: application/json; charset=utf-8
+  Cache-Control: no-cache
