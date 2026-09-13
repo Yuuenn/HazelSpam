@@ -3,7 +3,7 @@ import path from 'path'
 
 const DIST_DIR = 'dist'
 const PACKAGE_JSON_PATH = 'package.json'
-const RELEASE_ORIGIN = process.env.HAZELSPAM_RELEASE_ORIGIN ?? 'https://hazel.idols.ltd'
+const RELEASE_ORIGIN = process.env.HAZELSPAM_RELEASE_ORIGIN ?? 'https://hazel.idol.ltd'
 const CHANGELOG_URL =
     process.env.HAZELSPAM_CHANGELOG_URL ??
     'https://github.com/Yuuenn/HazelSpam/blob/main/CHANGELOG.md'

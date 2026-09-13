@@ -44,7 +44,7 @@ pnpm dev
 
 这样做的原因是：
 
-- EdgeOne Pages 的正式域名以生产部署为准
+- 阿里云 ESA Pages 的正式域名以生产部署为准
 - 当前发布链路更适合把 `main` 视为“待正式发版的稳定入口”，而不是日常开发分支
 - 如果把日常提交持续推到 `main`，会让发布边界变得不清晰，也更容易误触正式发布链路
 
@@ -57,7 +57,7 @@ pnpm dev
 
 # 发版清单
 
-正式发行源为 EdgeOne Pages，GitHub Release 仅保留同版本产物作为备份下载源。
+正式发行源为阿里云 ESA Pages，Cloudflare Pages 提供镜像，GitHub Release 仅保留同版本产物作为备份下载源。
 
 发版前请按以下顺序执行：
 
@@ -107,8 +107,10 @@ git push origin v1.1.2
 补充说明：
 
 - CI 会校验 Git tag 与 `package.json.version` 完全一致；如果 tag 是 `v1.1.2`，而 `package.json` 仍是 `1.1.1`，工作流会直接失败
-- tag 推送会触发 [`.github/workflows/edgeone-release.yml`](./.github/workflows/edgeone-release.yml)
-- 工作流会构建 `HazelSpam.user.js`、`HazelSpam.min.user.js` 和 `latest.json`，部署到 `https://hazel.idols.ltd`，并同步上传同版本 GitHub Release 资产
+- tag 推送会触发 [`.github/workflows/release.yml`](./.github/workflows/release.yml)
+- 两个 Pages 项目通过 Git 集成在 `main` 更新时各自构建部署；这是生产发布触发点，tag 不触发 Pages 部署
+- tag 工作流只构建并上传 GitHub Release 备份，不再调用 EdgeOne 钩子
+- 两个平台必须部署同一个 `main` 提交；构建配置、域名与验收步骤见 [Pages 部署指南](./docs/pages-deployment.md)
 
 # 发布后同步 `dev`
 

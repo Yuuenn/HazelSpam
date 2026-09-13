@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { checkUpdate } from '@/utils/checkUpdate'
-import { LATEST_RELEASE_MANIFEST_URL, PROJECT_CHANGELOG_URL } from '@/constants/brand'
+import {
+    LATEST_RELEASE_MANIFEST_URL,
+    MIRROR_RELEASE_MANIFEST_URL,
+    PROJECT_CHANGELOG_URL
+} from '@/constants/brand'
 
 const { gmInfo, gmXmlhttpRequest } = vi.hoisted(() => ({
     gmInfo: {
@@ -22,7 +26,7 @@ describe('checkUpdate', () => {
         gmXmlhttpRequest.mockReset()
     })
 
-    it('在 EdgeOne manifest 版本更高时返回可更新结果', async () => {
+    it('在 Pages manifest 版本更高时返回可更新结果', async () => {
         gmXmlhttpRequest.mockImplementation(({ url, onload }) => {
             expect(url).toBe(LATEST_RELEASE_MANIFEST_URL)
             onload?.({
@@ -30,7 +34,7 @@ describe('checkUpdate', () => {
                 responseText: JSON.stringify({
                     version: '1.1.0',
                     publishedAt: '2026-03-15T00:00:00.000Z',
-                    downloadUrl: 'https://hazel.idols.ltd/HazelSpam.min.user.js',
+                    downloadUrl: 'https://hazel.idol.ltd/HazelSpam.min.user.js',
                     changelogUrl: 'https://example.com/changelog'
                 })
             })
@@ -40,7 +44,7 @@ describe('checkUpdate', () => {
             status: 'available',
             currentVersion: '1.0.0',
             latestVersion: '1.1.0',
-            downloadUrl: 'https://hazel.idols.ltd/HazelSpam.min.user.js',
+            downloadUrl: 'https://hazel.idol.ltd/HazelSpam.min.user.js',
             changelogUrl: 'https://example.com/changelog'
         })
     })
@@ -54,7 +58,7 @@ describe('checkUpdate', () => {
                     version: '1.1.0',
                     publishedAt: '2026-03-15T00:00:00.000Z',
                     downloads: {
-                        minified: 'https://hazel.idols.ltd/HazelSpam.min.user.js'
+                        minified: 'https://hazel.idol.ltd/HazelSpam.min.user.js'
                     }
                 })
             })
@@ -75,7 +79,7 @@ describe('checkUpdate', () => {
                     version: '1.2.0',
                     publishedAt: '2026-03-15T00:00:00.000Z',
                     downloads: {
-                        default: 'https://hazel.idols.ltd/HazelSpam.min.user.js'
+                        default: 'https://hazel.idol.ltd/HazelSpam.min.user.js'
                     }
                 })
             })
@@ -85,7 +89,7 @@ describe('checkUpdate', () => {
             status: 'available',
             currentVersion: '1.0.0',
             latestVersion: '1.2.0',
-            downloadUrl: 'https://hazel.idols.ltd/HazelSpam.min.user.js',
+            downloadUrl: 'https://hazel.idol.ltd/HazelSpam.min.user.js',
             changelogUrl: PROJECT_CHANGELOG_URL
         })
     })
@@ -95,7 +99,7 @@ describe('checkUpdate', () => {
             onload?.({
                 status: 200,
                 responseText: JSON.stringify({
-                    downloadUrl: 'https://hazel.idols.ltd/HazelSpam.min.user.js'
+                    downloadUrl: 'https://hazel.idol.ltd/HazelSpam.min.user.js'
                 })
             })
         })
@@ -115,5 +119,71 @@ describe('checkUpdate', () => {
         })
 
         await expect(checkUpdate()).rejects.toThrow('最新版本信息未提供可用的安装链接')
+    })
+    it.each(['http', 'network', 'timeout', 'json', 'download'])(
+        '主源 %s 失败后从镜像获取清单和下载链接',
+        async (failure) => {
+            gmXmlhttpRequest
+                .mockImplementationOnce(({ onload, onerror, ontimeout, timeout }) => {
+                    expect(timeout).toBe(10000)
+                    if (failure === 'network') return onerror()
+                    if (failure === 'timeout') return ontimeout()
+                    onload({
+                        status: failure === 'http' ? 503 : 200,
+                        responseText:
+                            failure === 'download'
+                                ? JSON.stringify({ version: '1.2.0' })
+                                : '<html>error</html>'
+                    })
+                })
+                .mockImplementationOnce(({ url, onload }) => {
+                    expect(url).toBe(MIRROR_RELEASE_MANIFEST_URL)
+                    onload({
+                        status: 200,
+                        responseText: JSON.stringify({
+                            version: '1.2.0',
+                            downloadUrl: 'https://hazel.idol.ltd/HazelSpam.min.user.js'
+                        })
+                    })
+                })
+            await expect(checkUpdate()).resolves.toMatchObject({
+                status: 'available',
+                downloadUrl: 'https://hazel.idol.su/HazelSpam.min.user.js'
+            })
+            expect(gmXmlhttpRequest).toHaveBeenCalledTimes(2)
+        }
+    )
+
+    it('主源正常时不请求镜像', async () => {
+        gmXmlhttpRequest.mockImplementation(({ onload }) =>
+            onload({
+                status: 200,
+                responseText: JSON.stringify({
+                    version: '1.0.0',
+                    downloadUrl: 'https://hazel.idol.ltd/HazelSpam.min.user.js'
+                })
+            })
+        )
+        await expect(checkUpdate()).resolves.toMatchObject({ status: 'latest' })
+        expect(gmXmlhttpRequest).toHaveBeenCalledTimes(1)
+    })
+
+    it('两源均不可用时明确报错', async () => {
+        gmXmlhttpRequest.mockImplementation(({ onerror }) => onerror())
+        await expect(checkUpdate()).rejects.toThrow('获取最新版本信息失败')
+        expect(gmXmlhttpRequest).toHaveBeenCalledTimes(2)
+    })
+
+    it('拒绝清单中的非 HTTPS 安装链接', async () => {
+        gmXmlhttpRequest.mockImplementation(({ onload }) =>
+            onload({
+                status: 200,
+                responseText: JSON.stringify({
+                    version: '1.2.0',
+                    downloadUrl: 'javascript:alert(1)'
+                })
+            })
+        )
+        await expect(checkUpdate()).rejects.toThrow('下载链接必须使用 HTTPS')
     })
 })

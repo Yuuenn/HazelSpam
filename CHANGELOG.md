@@ -10,6 +10,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Changed
 
+- 将发行主源迁移至阿里云 ESA Pages `hazel.idol.ltd`，新增 Cloudflare Pages `hazel.idol.su` 镜像与更新检查失败兜底，补充部署和旧版迁移指南。
+
 - 更新发布文档与 agent 约束，补充打 tag 前的 `main` 对齐与版本一致性校验步骤，降低 tag 指向旧提交的风险。
 
 ### Fixed

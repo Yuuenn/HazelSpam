@@ -11,9 +11,11 @@ import {
     USERSCRIPT_NAME,
     PROJECT_HOMEPAGE_URL,
     PROJECT_ISSUES_URL,
-    EDGEONE_RELEASE_HOST,
-    USERSCRIPT_DOWNLOAD_URL,
-    USERSCRIPT_UPDATE_URL
+    PRIMARY_RELEASE_HOST,
+    MIRROR_RELEASE_HOST,
+    PRIMARY_RELEASE_ORIGIN,
+    MIRROR_RELEASE_ORIGIN,
+    USERSCRIPT_DOWNLOAD_URL
 } from './src/constants/brand'
 
 function createUserscriptIconDataUrl() {
@@ -38,6 +40,11 @@ function createUserscriptIconDataUrl() {
 }
 
 const userscriptIconDataUrl = createUserscriptIconDataUrl()
+const releaseOrigin = process.env.HAZELSPAM_RELEASE_ORIGIN ?? PRIMARY_RELEASE_ORIGIN
+if (![PRIMARY_RELEASE_ORIGIN, MIRROR_RELEASE_ORIGIN].includes(releaseOrigin)) {
+    throw new Error('HAZELSPAM_RELEASE_ORIGIN 必须为已配置的正式发行源或镜像源')
+}
+const userscriptDownloadUrl = USERSCRIPT_DOWNLOAD_URL.replace(PRIMARY_RELEASE_ORIGIN, releaseOrigin)
 
 export default defineConfig({
     resolve: {
@@ -74,15 +81,16 @@ export default defineConfig({
                 license: 'MIT',
                 author: PRODUCT_AUTHOR,
                 copyright: `2026, ${PRODUCT_AUTHOR} (${GITHUB_PROFILE_URL})`,
-                downloadURL: USERSCRIPT_DOWNLOAD_URL,
-                updateURL: USERSCRIPT_UPDATE_URL,
+                downloadURL: userscriptDownloadUrl,
+                updateURL: userscriptDownloadUrl,
                 match: ['*://live.bilibili.com/*'],
                 'run-at': 'document-start',
                 connect: [
                     'api.bilibili.com',
                     'api.live.bilibili.com',
                     'live.bilibili.com',
-                    EDGEONE_RELEASE_HOST
+                    PRIMARY_RELEASE_HOST,
+                    MIRROR_RELEASE_HOST
                 ]
             },
             build: {
