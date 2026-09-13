@@ -1,5 +1,11 @@
 import { GM_info, GM_xmlhttpRequest } from '$'
-import { LATEST_RELEASE_MANIFEST_URL, PROJECT_CHANGELOG_URL } from '@/constants/brand'
+import {
+    LATEST_RELEASE_MANIFEST_URL,
+    MIRROR_RELEASE_MANIFEST_URL,
+    PRIMARY_RELEASE_ORIGIN,
+    MIRROR_RELEASE_ORIGIN,
+    PROJECT_CHANGELOG_URL
+} from '@/constants/brand'
 import type { HazelSpamRelease } from '@/types'
 
 export type UpdateCheckResult =
@@ -57,11 +63,12 @@ const parseLatestReleaseManifest = (responseText: string): HazelSpamRelease.Late
     return payload as unknown as HazelSpamRelease.LatestManifest
 }
 
-const getLatestReleaseManifest = async (): Promise<HazelSpamRelease.LatestManifest> =>
+const fetchLatestReleaseManifest = async (url: string): Promise<HazelSpamRelease.LatestManifest> =>
     new Promise((resolve, reject) => {
         GM_xmlhttpRequest({
             method: 'GET',
-            url: LATEST_RELEASE_MANIFEST_URL,
+            url,
+            timeout: 10000,
             onload: (response) => {
                 if (response.status !== 200) {
                     reject(new Error(`获取最新版本信息失败：${response.status}`))
@@ -69,18 +76,38 @@ const getLatestReleaseManifest = async (): Promise<HazelSpamRelease.LatestManife
                 }
 
                 try {
-                    resolve(parseLatestReleaseManifest(response.responseText))
+                    const manifest = parseLatestReleaseManifest(response.responseText)
+                    resolveDownloadUrl(manifest)
+                    resolve(manifest)
                 } catch (error) {
-                    reject(
-                        error instanceof Error ? error : new Error('解析最新版本信息失败')
-                    )
+                    reject(error instanceof Error ? error : new Error('解析最新版本信息失败'))
                 }
+            },
+            ontimeout: () => {
+                reject(new Error('获取最新版本信息超时'))
+            },
+            onabort: () => {
+                reject(new Error('获取最新版本信息已取消'))
             },
             onerror: () => {
                 reject(new Error('获取最新版本信息失败'))
             }
         })
     })
+
+const getLatestReleaseManifest = async (): Promise<HazelSpamRelease.LatestManifest> => {
+    try {
+        return await fetchLatestReleaseManifest(LATEST_RELEASE_MANIFEST_URL)
+    } catch {
+        const manifest = await fetchLatestReleaseManifest(MIRROR_RELEASE_MANIFEST_URL)
+        // 即使镜像托管了主源构建的清单，兜底下载也应留在可用的镜像源。
+        const downloadUrl = new URL(resolveDownloadUrl(manifest))
+        if (downloadUrl.origin === PRIMARY_RELEASE_ORIGIN) {
+            downloadUrl.host = new URL(MIRROR_RELEASE_ORIGIN).host
+        }
+        return { ...manifest, downloadUrl: downloadUrl.href }
+    }
+}
 
 const resolveDownloadUrl = (manifest: HazelSpamRelease.LatestManifest) => {
     const candidate =
@@ -90,7 +117,16 @@ const resolveDownloadUrl = (manifest: HazelSpamRelease.LatestManifest) => {
         throw new Error('最新版本信息未提供可用的安装链接')
     }
 
-    return candidate
+    let url: URL
+    try {
+        url = new URL(candidate)
+    } catch {
+        throw new Error('最新版本信息中的下载链接格式无效')
+    }
+    if (url.protocol !== 'https:') {
+        throw new Error('最新版本信息中的下载链接必须使用 HTTPS')
+    }
+    return url.href
 }
 
 const resolveChangelogUrl = (manifest: HazelSpamRelease.LatestManifest) =>
