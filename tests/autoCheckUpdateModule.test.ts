@@ -52,7 +52,7 @@ describe('AutoCheckUpdateModule', () => {
             status: 'available',
             currentVersion: '1.0.0',
             latestVersion: '1.1.0',
-            downloadUrl: 'https://hazel.idol.ltd/HazelSpam.min.user.js',
+            downloadUrl: 'https://hazel.idol.gold/HazelSpam.min.user.js',
             changelogUrl: 'https://example.com/changelog'
         })
 
@@ -62,7 +62,7 @@ describe('AutoCheckUpdateModule', () => {
         expect(showUpdateDialogMock).toHaveBeenCalledWith({
             version: '1.1.0',
             changelogUrl: 'https://example.com/changelog',
-            downloadUrl: 'https://hazel.idol.ltd/HazelSpam.min.user.js'
+            downloadUrl: 'https://hazel.idol.gold/HazelSpam.min.user.js'
         })
     })
 })

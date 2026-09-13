@@ -7,7 +7,7 @@ on:
 
 env:
     FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-    HAZELSPAM_RELEASE_ORIGIN: https://hazel.idol.ltd
+    HAZELSPAM_RELEASE_ORIGIN: https://hazel.idol.gold
     HAZELSPAM_CHANGELOG_URL: https://github.com/Yuuenn/HazelSpam/blob/main/CHANGELOG.md
 
 jobs:

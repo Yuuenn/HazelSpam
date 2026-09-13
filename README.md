@@ -1,7 +1,7 @@
 <div align="center">
   <img width="100" src="images/Logo.svg" alt="HazelSpam Logo">
 
-[![GitHub Release](https://img.shields.io/github/v/release/Yuuenn/HazelSpam)](https://hazel.idol.ltd/HazelSpam.min.user.js)
+[![GitHub Release](https://img.shields.io/github/v/release/Yuuenn/HazelSpam)](https://hazel.idol.gold/HazelSpam.min.user.js)
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Yuuenn/HazelSpam/ci.yml)](https://github.com/Yuuenn/HazelSpam/actions/workflows/ci.yml)
 [![GitHub Download Count](https://img.shields.io/github/downloads/Yuuenn/HazelSpam/total?label=Download)](https://github.com/Yuuenn/HazelSpam/releases)
 [![GitHub Repo stars](https://img.shields.io/github/stars/Yuuenn/HazelSpam)](https://github.com/Yuuenn/HazelSpam)
@@ -38,8 +38,8 @@
      <tbody>
        <tr>
          <td>阿里云 ESA Pages（正式发行源）</td>
-         <td><a href="https://hazel.idol.ltd/HazelSpam.min.user.js">下载</a></td>
-         <td><a href="https://hazel.idol.ltd/HazelSpam.user.js">下载</a></td>
+         <td><a href="https://hazel.idol.gold/HazelSpam.min.user.js">下载</a></td>
+         <td><a href="https://hazel.idol.gold/HazelSpam.user.js">下载</a></td>
        </tr>
        <tr>
          <td>Cloudflare Pages（镜像）</td>
@@ -66,8 +66,8 @@
 
 ### 发行说明
 
-- 正式发行源为阿里云 ESA Pages 固定域名 `https://hazel.idol.ltd`
-- 应用内自动检查和“检测更新”优先读取 `https://hazel.idol.ltd/latest.json`，失败后尝试 Cloudflare Pages 的 `https://hazel.idol.su/latest.json`
+- 正式发行源为阿里云 ESA Pages 固定域名 `https://hazel.idol.gold`
+- 应用内自动检查和“检测更新”优先读取 `https://hazel.idol.gold/latest.json`，失败后尝试 Cloudflare Pages 的 `https://hazel.idol.su/latest.json`
 - Tampermonkey 自带更新使用脚本元信息里的 `.user.js` 地址；从 Cloudflare 镜像安装的构建使用镜像地址
 - 旧域名 `idols.ltd` 已弃用，旧版用户需从上方新地址手动覆盖安装一次（保留脚本名称和 namespace，不要先卸载）
 - 部署设置、DNS 与迁移验收见 [Pages 部署指南](./docs/pages-deployment.md)

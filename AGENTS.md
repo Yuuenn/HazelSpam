@@ -58,10 +58,10 @@
 
 发布环境约束：
 
-- 正式发行源为阿里云 ESA Pages 固定域名 `https://hazel.idol.ltd`
+- 正式发行源为阿里云 ESA Pages 固定域名 `https://hazel.idol.gold`
 - Cloudflare Pages 镜像为 `https://hazel.idol.su`，主源失败时用于应用内检查更新兜底
 - 两个 Pages 项目跟随 `main` 构建；tag 工作流只创建 GitHub Release 备份
-- `latest` 发行清单为 `https://hazel.idol.ltd/latest.json`
+- `latest` 发行清单为 `https://hazel.idol.gold/latest.json`
 - GitHub Release 仅保留同版本构建产物，作为备份下载源，不再作为主更新源
 
 除非确有必要，不要把这个项目按普通站点、SSR 应用或后端服务来设计。

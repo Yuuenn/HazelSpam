@@ -34,7 +34,7 @@ describe('checkUpdate', () => {
                 responseText: JSON.stringify({
                     version: '1.1.0',
                     publishedAt: '2026-03-15T00:00:00.000Z',
-                    downloadUrl: 'https://hazel.idol.ltd/HazelSpam.min.user.js',
+                    downloadUrl: 'https://hazel.idol.gold/HazelSpam.min.user.js',
                     changelogUrl: 'https://example.com/changelog'
                 })
             })
@@ -44,7 +44,7 @@ describe('checkUpdate', () => {
             status: 'available',
             currentVersion: '1.0.0',
             latestVersion: '1.1.0',
-            downloadUrl: 'https://hazel.idol.ltd/HazelSpam.min.user.js',
+            downloadUrl: 'https://hazel.idol.gold/HazelSpam.min.user.js',
             changelogUrl: 'https://example.com/changelog'
         })
     })
@@ -58,7 +58,7 @@ describe('checkUpdate', () => {
                     version: '1.1.0',
                     publishedAt: '2026-03-15T00:00:00.000Z',
                     downloads: {
-                        minified: 'https://hazel.idol.ltd/HazelSpam.min.user.js'
+                        minified: 'https://hazel.idol.gold/HazelSpam.min.user.js'
                     }
                 })
             })
@@ -79,7 +79,7 @@ describe('checkUpdate', () => {
                     version: '1.2.0',
                     publishedAt: '2026-03-15T00:00:00.000Z',
                     downloads: {
-                        default: 'https://hazel.idol.ltd/HazelSpam.min.user.js'
+                        default: 'https://hazel.idol.gold/HazelSpam.min.user.js'
                     }
                 })
             })
@@ -89,7 +89,7 @@ describe('checkUpdate', () => {
             status: 'available',
             currentVersion: '1.0.0',
             latestVersion: '1.2.0',
-            downloadUrl: 'https://hazel.idol.ltd/HazelSpam.min.user.js',
+            downloadUrl: 'https://hazel.idol.gold/HazelSpam.min.user.js',
             changelogUrl: PROJECT_CHANGELOG_URL
         })
     })
@@ -99,7 +99,7 @@ describe('checkUpdate', () => {
             onload?.({
                 status: 200,
                 responseText: JSON.stringify({
-                    downloadUrl: 'https://hazel.idol.ltd/HazelSpam.min.user.js'
+                    downloadUrl: 'https://hazel.idol.gold/HazelSpam.min.user.js'
                 })
             })
         })
@@ -142,7 +142,7 @@ describe('checkUpdate', () => {
                         status: 200,
                         responseText: JSON.stringify({
                             version: '1.2.0',
-                            downloadUrl: 'https://hazel.idol.ltd/HazelSpam.min.user.js'
+                            downloadUrl: 'https://hazel.idol.gold/HazelSpam.min.user.js'
                         })
                     })
                 })
@@ -160,7 +160,7 @@ describe('checkUpdate', () => {
                 status: 200,
                 responseText: JSON.stringify({
                     version: '1.0.0',
-                    downloadUrl: 'https://hazel.idol.ltd/HazelSpam.min.user.js'
+                    downloadUrl: 'https://hazel.idol.gold/HazelSpam.min.user.js'
                 })
             })
         )

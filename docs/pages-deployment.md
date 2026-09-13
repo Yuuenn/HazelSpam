@@ -4,7 +4,7 @@ HazelSpam 是 Tampermonkey 用户脚本。Pages 只托管 `dist/` 中的静态�
 
 | 用途 | 平台 | 自定义域名 |
 | --- | --- | --- |
-| 正式主源 | 阿里云 ESA Pages（函数和 Pages） | `hazel.idol.ltd` |
+| 正式主源 | 阿里云 ESA Pages（函数和 Pages） | `hazel.idol.gold` |
 | 镜像 | Cloudflare Pages | `hazel.idol.su` |
 | 备份下载 | GitHub Release | 仓库 Releases 页面 |
 
@@ -29,7 +29,7 @@ HazelSpam 是 Tampermonkey 用户脚本。Pages 只托管 `dist/` 中的静态�
 
 使用锁定的 pnpm 版本，避免构建机预装版本变化。不要填写 `src/main.ts` 作为函数入口；它是用户脚本的浏览器构建入口。不要将静态资源目录填成 `src`、`public` 或仓库根目录。
 
-主源无需设置 `HAZELSPAM_RELEASE_ORIGIN`，默认就是 `https://hazel.idol.ltd`。若迁移旧项目设置，删除旧的域名变量或改成该值。构建变量和函数运行时变量是两回事，本项目没有函数运行时变量。
+主源无需设置 `HAZELSPAM_RELEASE_ORIGIN`，默认就是 `https://hazel.idol.gold`。若迁移旧项目设置，删除旧的域名变量或改成该值。构建变量和函数运行时变量是两回事，本项目没有函数运行时变量。
 
 ## Cloudflare Pages
 
@@ -61,7 +61,7 @@ HazelSpam 是 Tampermonkey 用户脚本。Pages 只托管 `dist/` 中的静态�
 
 ## 绑定域名与 DNS
 
-1. 先等待两个项目构建成功，在各自控制台的自定义域名设置中分别添加 `hazel.idol.ltd` 和 `hazel.idol.su`。
+1. 先等待两个项目构建成功，在各自控制台的自定义域名设置中分别添加 `hazel.idol.gold` 和 `hazel.idol.su`。
 2. 阿里云：按控制台要求完成域名验证，复制实际提供的 CNAME 目标和必要的验证记录，不要猜测目标域名。
 3. Cloudflare：必须先在 Pages 项目的 Custom domains 中关联域名，再添加 DNS；仅手工添加 CNAME 不足以完成关联。若 `idol.su` 使用外部 DNS，也可用子域名 CNAME，无需为此迁移整个主域名的 NS。
 4. 在对应 DNS 服务商添加下表记录。若同名已有冲突记录，先核实用途，再替换为新项目目标。
@@ -69,7 +69,7 @@ HazelSpam 是 Tampermonkey 用户脚本。Pages 只托管 `dist/` 中的静态�
 
 | DNS 区域 | 记录类型 | 主机记录 | 记录值 |
 | --- | --- | --- | --- |
-| `idol.ltd` | CNAME | `hazel` | 阿里云该项目实际给出的 CNAME 目标 |
+| `idol.gold` | CNAME | `hazel` | 阿里云该项目实际给出的 CNAME 目标 |
 | `idol.su` | CNAME | `hazel` | Cloudflare 该项目实际分配的 `<项目>.pages.dev` |
 
 记录值只填主机名，不加 `https://` 或文件路径。两个域名应各自指向自己的平台，镜像不要重定向回主源。
@@ -88,7 +88,7 @@ HazelSpam 是 Tampermonkey 用户脚本。Pages 只托管 `dist/` 中的静态�
 | `/HazelSpam.min.user.js` | HTTP 200，包含元信息和压缩后的代码 |
 | `/latest.json` | HTTP 200，有效 JSON，`version` 等于本次 `package.json.version` |
 
-检查主源脚本的 `@downloadURL` / `@updateURL` 为 `hazel.idol.ltd`，镜像脚本为 `hazel.idol.su`；两份脚本的 `@connect` 都应包含两个新域名，不能再包含旧域名。检查每份清单的下载链接能访问且与脚本版本一致。`publishedAt` 表示各平台的构建时间，可以不同。
+检查主源脚本的 `@downloadURL` / `@updateURL` 为 `hazel.idol.gold`，镜像脚本为 `hazel.idol.su`；两份脚本的 `@connect` 都应包含两个新域名，不能再包含旧域名。检查每份清单的下载链接能访问且与脚本版本一致。`publishedAt` 表示各平台的构建时间，可以不同。
 
 这是下载源，没有首页；根路径 `/` 返回 404 不代表三个产物部署失败。不应将找不到的 JS/JSON 路径重写为 HTML 首页。
 

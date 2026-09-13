@@ -9,8 +9,8 @@ export const DEBUG_NOTIFY_GLOBAL_KEY = '__HAZELSPAM_NOTIFY__'
 export const GITHUB_OWNER = 'Yuuenn'
 export const GITHUB_REPOSITORY = 'HazelSpam'
 export const GITHUB_PROFILE_URL = `https://github.com/${GITHUB_OWNER}`
-export const PRIMARY_RELEASE_ORIGIN = 'https://hazel.idol.ltd'
-export const PRIMARY_RELEASE_HOST = 'hazel.idol.ltd'
+export const PRIMARY_RELEASE_ORIGIN = 'https://hazel.idol.gold'
+export const PRIMARY_RELEASE_HOST = 'hazel.idol.gold'
 export const MIRROR_RELEASE_ORIGIN = 'https://hazel.idol.su'
 export const MIRROR_RELEASE_HOST = 'hazel.idol.su'
 
